@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/index-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/modal.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+    <link rel="stylesheet" href="/styles/pages/index-oferta.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="scripts/index-oferta.js" defer type="module"></script>
+  </head>
+  <body id="page-index">
+
+    <%- include('parts/index-header', {
+      button_text:'Adicionar Nova Oferta',
+      button_link:'oferta'
+      }) %> 
+
+    <div class="container">
+      <main class="animate-up delay-2">
+        <h1 class="sr-only">Ofertas por Ciclo</h1>
+
+        <div class="cards">
+
+          <% ofertas.forEach((oferta) => { %>
+           
+            <div class="card <%= oferta.status %> " data-id="<%= oferta.id %> ">
+              <div class="id column"><%= oferta.id %> </div>
+              <div class="name column">
+                <%= oferta.nome %> 
+              </div>
+              <div class="deadline column">
+                <span>Valor máximo</span>
+                <p> R$ <%= oferta.valorMaximo %> </p>
+              </div>
+              <div class="amount column">
+                <span></span>
+                <p></p>
+              </div>
+              <div class="status badge column">
+                <%= oferta.status === 'inativo' ? 'Inativo' : 'Ativo' %> 
+              </div>
+              <div class="actions column flex">
+                <p class="sr-only">Ações</p>
+                <a 
+                  href="/oferta/<%= oferta.id %> " 
+                  class="button white edit" 
+                  title="Editar Oferta">
+                  <img src="/images/edit-24.svg" alt="Editar Oferta" />
+                </a>
+                <button class="delete button white" title="Excluir Oferta">
+                  <img src="/images/trash-24.svg" alt="Excluir Oferta" />
+                </button>
+              </div>
+            </div>
+            <!-- end card -->
+
+          <% }) %>
+      </main>
+    </div>
+    <!-- end container -->
+
+    <div class="modal-wrapper">
+      <div class="modal">
+        <img src="/images/trash-48.svg" alt="Excluir Oferta" title="Excluir Oferta" />
+        <h3>Excluir Oferta</h3>
+        <p>Quer mesmo excluir toda esta oferta? <br/>
+        Ela será apagada para sempre.  
+        <p>
+        <footer>
+          <a 
+            class="button gray" 
+            href="#">Cancelar</a>
+          <button
+            class="button red"
+            type="submit"
+            form="delete-oferta">Excluir Oferta</button>
+        </footer>
+      </div>
+      <form 
+        method="post" 
+        action="/oferta/delete" 
+        id="delete-oferta"></form>
+    </div>
+    <!-- end modal-wrapper -->
+  </body>
+</html>

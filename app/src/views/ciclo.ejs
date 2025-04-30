@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+    <link rel="stylesheet" href="/styles/pages/ciclo.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!--<script type='text/javascript'>
+      function addFields(){
+          // Number of inputs to create
+          var number = document.getElementById("member").value;
+          // Container <div> where dynamic content will be placed
+          var container = document.getElementById("container");
+          // Clear previous contents of the container
+          while (container.hasChildNodes()) {
+              container.removeChild(container.lastChild);
+          }
+          for (i=0;i<number;i++){
+              // Append a node with a random text
+              container.appendChild(document.createTextNode("Member " + (i+1)));
+              // Create an <input> element, set its type and name attributes
+              var input = document.createElement("input");
+              input.type = "text";
+              input.name = "member" + i;
+              container.appendChild(input);
+              // Append a line break 
+              container.appendChild(document.createElement("br"));
+          }
+      }
+  </script>-->
+
+  <script type='text/javascript'>
+    function addFields(){
+        // Number of inputs to create
+        var number = 1;
+        // Container <div> where dynamic content will be placed
+        var containerEntrega = document.getElementById("containerEntrega");
+
+        var divEntrega = document.getElementById("divEntrega1");
+
+        var lastDivEntrega = containerEntrega.lastElementChild;
+
+        var oldNumberdivEntrega = parseInt(lastDivEntrega.id.substr(10));
+        var newNumberdivEntrega = oldNumberdivEntrega + 1;
+
+        var oldDivEntrega = 'divEntrega' + oldNumberdivEntrega.toString();
+        var oldInputEntregaFornecedorInicio = 'entregaFornecedorInicio' + oldNumberdivEntrega.toString();
+        var oldInputEntregaFornecedorFim = 'entregaFornecedorFim' + oldNumberdivEntrega.toString();
+
+        var newDivEntrega = 'divEntrega' + newNumberdivEntrega.toString();
+        var newInputEntregaFornecedorInicio = 'entregaFornecedorInicio' + newNumberdivEntrega.toString();
+        var newInputEntregaFornecedorFim = 'entregaFornecedorFim' + newNumberdivEntrega.toString();
+        
+        //document.write(newDivEntrega);
+
+        var divClone = divEntrega.cloneNode(true);
+
+        divClone.id = newDivEntrega;
+
+        containerEntrega.appendChild(divClone);
+
+        document.getElementById("entregaFornecedorInicio1").setAttribute('name', 'tempEntregaFornecedorInicio');
+        document.getElementById("entregaFornecedorFim1").setAttribute('name', 'tempEntregaFornecedorFim');
+        document.getElementById("entregaFornecedorInicio1").setAttribute('id', 'tempEntregaFornecedorInicio');
+        document.getElementById("entregaFornecedorFim1").setAttribute('id', 'tempEntregaFornecedorFim'); 
+         
+        document.getElementById("entregaFornecedorInicio1").setAttribute('name', newInputEntregaFornecedorInicio);
+        document.getElementById("entregaFornecedorFim1").setAttribute('name', newInputEntregaFornecedorFim);
+        document.getElementById("entregaFornecedorInicio1").setAttribute('id', newInputEntregaFornecedorInicio);
+        document.getElementById("entregaFornecedorFim1").setAttribute('id', newInputEntregaFornecedorFim); 
+        
+        document.getElementById('tempEntregaFornecedorInicio').setAttribute('name', "entregaFornecedorInicio1");
+        document.getElementById('tempEntregaFornecedorFim').setAttribute('name', "entregaFornecedorFim1"); 
+        document.getElementById('tempEntregaFornecedorInicio').setAttribute('id', "entregaFornecedorInicio1");
+        document.getElementById('tempEntregaFornecedorFim').setAttribute('id', "entregaFornecedorFim1"); 
+
+
+        //DivEntrega.scrollIntoView(true);
+
+        /*for (i=0;i<number;i++){
+            // Append a node with a random text
+            container.appendChild(document.createTextNode("Member " + (i+1)));
+            // Create an <input> element, set its type and name attributes
+            var input = document.createElement("input");
+            input.type = "text";
+            input.name = "member" + i;
+            container.appendChild(input);
+            // Append a line break 
+            container.appendChild(document.createElement("br"));
+        }*/
+    }
+
+    function addFieldsCesta(){
+          // Number of inputs to create
+          //var number = 1;
+          // Container <div> where dynamic content will be placed
+          var containerCestas = document.getElementById("containerCestas");
+  
+          var divCesta = document.getElementById("divCesta1");
+  
+          var lastDivCesta = containerCestas.lastElementChild;
+  
+          var oldNumberdivCesta = parseInt(lastDivCesta.id.substr(8));
+          var newNumberdivCesta = oldNumberdivCesta + 1;
+  
+          var oldDivCesta = 'divCesta' + oldNumberdivCesta.toString();
+          var oldInputCestaId = 'cestaId' + oldNumberdivCesta.toString();
+          var oldInputQuantidadeCestas = 'quantidadeCestas' + oldNumberdivCesta.toString();
+  
+          var newDivCesta = 'divCesta' + newNumberdivCesta.toString();
+          var newInputCestaId = 'cestaId' + newNumberdivCesta.toString();
+          var newInputQuantidadeCestas = 'quantidadeCestas' + newNumberdivCesta.toString();
+          
+          //document.write(newDivEntrega);
+  
+          var divClone = divCesta.cloneNode(true);
+  
+          divClone.id = newDivCesta;
+  
+          containerCestas.appendChild(divClone);
+  
+          document.getElementById("cestaId1").setAttribute('name', 'tempCestaId');
+          document.getElementById("quantidadeCestas1").setAttribute('name', 'tempQuantidadeCestas');
+          document.getElementById("cestaId1").setAttribute('id', 'tempCestaId');
+          document.getElementById("quantidadeCestas1").setAttribute('id', 'tempQuantidadeCestas'); 
+         
+          document.getElementById("cestaId1").setAttribute('value', 0);
+          document.getElementById("quantidadeCestas1").setAttribute('value', 0);  
+          document.getElementById("cestaId1").setAttribute('name', newInputCestaId);
+          document.getElementById("quantidadeCestas1").setAttribute('name', newInputQuantidadeCestas);
+          document.getElementById("cestaId1").setAttribute('id', newInputCestaId);
+          document.getElementById("quantidadeCestas1").setAttribute('id', newInputQuantidadeCestas); 
+        
+          document.getElementById('tempCestaId').setAttribute('name', "cestaId1");
+          document.getElementById('tempQuantidadeCestas').setAttribute('name', "quantidadeCestas1"); 
+          document.getElementById('tempCestaId').setAttribute('id', "cestaId1");
+          document.getElementById('tempQuantidadeCestas').setAttribute('id', "quantidadeCestas1"); 
+
+      }
+</script>
+
+    
+  </head>
+  <body id="page-ciclo">
+
+    <%- include('parts/page-header', { title: "Adicionar Novo Ciclo", back_link: "/ciclo-index"}) %> 
+
+    <div class="container flex animate-up delay-2">
+      <main>
+        <form id="form-ciclo"
+          method="POST"
+          action="/ciclo" >
+          <fieldset>
+            <legend>Dados do Ciclo</legend>
+            <div class="separator light"></div>
+
+            <div class="input-wrapper">
+              <label class="label-group" for="nome">Nome do ciclo?</label>
+              <input type="text" id="nome" name="nome" />
+            </div>
+
+
+            <!-- cestas e quantidades -->
+            <div class="button-group">
+              <label class="label-group" for="cesta">Cesta(s) e quantidades que comporão este ciclo?</label>
+              <a 
+                 href="#"
+                 id="filldetailsCesta"
+                 onclick="addFieldsCesta()"
+                 class="buttonAdicionarItem gray">
+              <img 
+                  src="/images/plus-24.svg" 
+                  alt="Adicionar Tipo de Cesta" 
+                  title="Adicionar Tipo de Cesta">
+              </a>
+            </div>
+            <span id="containerCestas">
+
+              <div id="divCesta1" class="input-group">
+
+                  <div class="input-wrapper">
+                    <label for="cestaId">Tipo</label>
+                    <select name="cestaId1" id="cestaId1">
+                      <% tiposCesta.forEach(tipoCesta => { %>
+                        <option value="<%= tipoCesta.id %> "><%= tipoCesta.nome %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+    
+                  <div class="input-wrapper">
+                    <label for="quantidadeCestas">Quantidade</label>
+                    <input 
+                      type="number"
+                      id="quantidadeCestas1" 
+                      name="quantidadeCestas1"/>
+                  </div>           
+    
+              </div>
+            </span>
+            <!-- fim - cestas e quantidades -->
+
+
+            
+            <div class="input-wrapper">
+              <label class="label-group" for="pontoEntregaId">Ponto de entrega?</label>
+              <select name="pontoEntregaId" id="pontoEntregaId">
+                <% pontosEntrega.forEach(pontoEntrega => { %>
+                  <option value="<%= pontoEntrega.id %> "><%= pontoEntrega.nome %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <label class="label-group" for="oferta">Período para oferta de produtos?</label>
+            <div class="input-group">
+
+              <div class="input-wrapper">
+                <label for="ofertaInicio">Início</label>
+                <input 
+                  type="datetime-local"
+                  id="ofertaInicio" 
+                  name="ofertaInicio"/>
+              </div>
+
+              <div class="input-wrapper">
+                <label for="ofertaFim">Fim</label>
+                <input 
+                  type="datetime-local"
+                  id="ofertaFim" 
+                  name="ofertaFim"/>
+              </div>
+            </div>
+
+
+            <label class="label-group" for="compraItensAdicionais">Período para compra de itens adicionais?</label>
+            <div class="input-group">
+
+              <div class="input-wrapper">
+                <label for="itensAdicionaisInicio">Início</label>
+                <input 
+                  type="datetime-local"
+                  id="itensAdicionaisInicio" 
+                  name="itensAdicionaisInicio"/>
+              </div>
+
+              <div class="input-wrapper">
+                <label for="itensAdicionaisFim">Fim</label>
+                <input 
+                  type="datetime-local"
+                  id="itensAdicionaisFim" 
+                  name="itensAdicionaisFim"/>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <label class="label-group" for="entrega">Período(s) para fornecedores entregarem seus produtos?</label>
+              <a 
+                 href="#"
+                 id="filldetails"
+                 onclick="addFields()"
+                 class="buttonAdicionarItem gray">
+              <img 
+                  src="/images/plus-24.svg" 
+                  alt="Adicionar Período de Entrega" 
+                  title="Adicionar Período de Entrega">
+              </a>
+            </div>
+            <span id="containerEntrega">
+            <div id="divEntrega1" class="input-group">
+
+              <div class="input-wrapper">
+                <label for="entregaFornecedorInicio">Início</label>
+                <input 
+                  type="datetime-local"
+                  id="entregaFornecedorInicio1" 
+                  name="entregaFornecedorInicio1"/>
+              </div>
+
+              <div class="input-wrapper">
+                <label for="entregaFornecedorFim">Fim</label>
+                <input 
+                  type="datetime-local"
+                  id="entregaFornecedorFim1" 
+                  name="entregaFornecedorFim1"/>
+              </div>           
+
+            </div>
+
+            
+            </span>
+
+            
+            <label class="label-group" for="retirada">Período para consumidores retirarem suas cestas e produtos?</label>
+            <div class="input-group">
+
+              <div class="input-wrapper">
+                <label for="retiradaConsumidorInicio">Início</label>
+                <input 
+                  type="datetime-local"
+                  id="retiradaConsumidorInicio" 
+                  name="retiradaConsumidorInicio"/>
+              </div>
+
+              <div class="input-wrapper">
+                <label for="retiradaConsumidorFim">Fim</label>
+                <input 
+                  type="datetime-local"
+                  id="retiradaConsumidorFim" 
+                  name="retiradaConsumidorFim"/>
+              </div>
+            </div>
+
+              
+
+            
+            <!--<div class="input-wrapper">
+              <label for="status">Situação? </label>
+              <input 
+                type="radio"
+                id="ativo" 
+                name="status"
+                value="ativo"/>
+                <label for="ativo">Ativo</label><br>
+                <input 
+                type="radio"
+                id="inativo" 
+                name="status"
+                value="inativo"/>
+                <label for="inativo">Inativo</label><br>
+            </div>-->
+
+            <div class="input-wrapper">
+              <label class="label-group" for="observacao">Observação?</label><br>
+              <textarea
+                id="observacao"
+                name="observacao"
+                rows="4"
+              ></textarea>
+            </div>
+
+          </fieldset>
+    
+        </form>
+      </main>
+      <aside class="card">
+        <img src="/images/ciclo.svg" alt="Imagem de Ciclo">
+        <p>
+          
+        </p>
+        <div class="button-group">
+          <button 
+            class="button green" 
+            form="form-ciclo" 
+            type="submit" 
+            title="Salvar Dados">Salvar</button>
+          <a 
+            href="/ciclo-index" 
+            class="button gray">
+            <img 
+              src="/images/trash-24.svg" 
+              alt="Cancelar cadastro" 
+              title="Cancelar cadastro">
+          </a>
+        </div>
+      </aside>
+      
+    </div>
+    <!-- end container -->
+  </body>
+</html>
+ 

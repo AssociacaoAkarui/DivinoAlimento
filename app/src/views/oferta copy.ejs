@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/header.css" />
+    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/index-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/modal.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- links bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+    <link rel="stylesheet" href="/styles/pages/oferta.css" />
+    <script type="module" src="/scripts/oferta.js"></script>
+
+  <script>
+      $(document).ready(function(){
+        $("#searchUsuario").on("keyup", function() {
+          //var value = $(this).val().toLowerCase();
+          var value = replaceSpecialChars($(this).val().toLowerCase())
+          $(".dropdown-menu li").filter(function() {
+            //$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            var value2 = replaceSpecialChars($(this).text().toLowerCase())
+            $(this).toggle(value2.indexOf(value) > -1)
+          });
+        });
+      });
+
+      function replaceSpecialChars(str)	{
+        if (!str) return ''
+        str = str.toString()
+        str = str.replace(/[aáàãäâ]/,'a')
+        str = str.replace(/[eéèëê]/,'e')
+        str = str.replace(/[iíìïî]/,'i')
+        str = str.replace(/[oóòõöô]/,'o')
+        str = str.replace(/[uúùüû]/,'u')
+        str = str.replace(/[ç]/,"c")
+        return str 
+      }
+
+
+  </script>
+
+  <script>
+    $(document).ready(function(){
+      $("#searchProduto").on("keyup", function() {
+        var valueProduto = replaceSpecialChars2($(this).val().toLowerCase())
+        //var value = $(this).val().toLowerCase();
+        $("#listaProdutos tbody tr").filter(function() {
+          //$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+          var valueProduto2 = replaceSpecialChars2($(this).text().toLowerCase())
+          $(this).toggle(valueProduto2.indexOf(valueProduto) > -1)
+        });
+      });
+    });
+
+    function replaceSpecialChars2(str)	{
+        if (!str) return ''
+        str = str.toString()
+        str = str.replace(/[aáàäâ]/,'a')
+        str = str.replace(/[ã]/,'a')
+        str = str.replace(/[eèëê]/,'e')
+        str = str.replace(/[é]/,'e')
+        str = str.replace(/[iíìïî]/,'i')
+        str = str.replace(/[oóòõöô]/,'o')
+        str = str.replace(/[uúùüû]/,'u')
+        str = str.replace(/[ç]/,"c")
+        return str 
+      }
+
+  </script>
+
+  <script>
+    function copyTextValue(element) {
+      var id = $(element).attr('id');
+      var modalId = 'quant' + id.substr(10)
+      var text1 = document.getElementById(id).value;
+      document.getElementById(modalId).value = text1;
+    }
+  </script>
+
+  </head>
+  <body id="page-oferta">
+
+    <!--<e%- include('parts/page-header', { title: "Adicionar Nova Oferta", back_link: "/oferta-index"}) %>-->
+
+    <!--<e%- include('parts/index-header', {
+      button_text:'vazio',
+      button_link:''
+      }) %e>-->
+    
+    <%- include('parts/header', {
+      button_text:'vazio',
+      button_link:''
+      }) %>
+
+
+<!--<div class="card_topo">-->
+  <div>
+  <img src="/images/oferta.svg" alt="Imagem de Oferta">
+  <p></p>
+  <p>Ciclo: <%= ciclo.nome  %> </p>
+        <br>
+        <p for="nome">Período para ofertas: 
+        <% 
+          if (ciclo.ofertaInicio) { %>de&nbsp<%=
+            ciclo.ofertaInicio.toISOString().substr(8,2)%>/<%=
+            ciclo.ofertaInicio.toISOString().substr(5,2)%>/<%=
+            ciclo.ofertaInicio.toISOString().substr(0,4)%> <%=
+            ciclo.ofertaInicio.toISOString().substr(11,5)%>
+          <% } %>
+      <% 
+          if (ciclo.ofertaFim) { %>a&nbsp;<%=
+            ciclo.ofertaFim.toISOString().substr(8,2)%>/<%=
+            ciclo.ofertaFim.toISOString().substr(5,2)%>/<%=
+            ciclo.ofertaFim.toISOString().substr(0,4)%> <%=
+            ciclo.ofertaFim.toISOString().substr(11,5)%>
+          <% } %> 
+  </p>
+</div>
+
+
+    <div class="container flex animate-up delay-2">
+
+    <!--<div class="container">-->
+      
+
+      <main>
+
+
+
+
+
+        
+        <form id="form-oferta"
+          method="POST"
+          action="/ofertasave" >
+          <fieldset>
+            <legend>Dados da Oferta</legend>
+
+            <div class="input-wrapper">
+              <h4>
+                Fornecedor selecionado: 
+                <% if (usuarioOferta) { %>
+                  <%= usuarioOferta.nome %>
+                <% } %>
+              </h4>
+            </div>
+            <input 
+                  type="hidden"
+                  id= "ofertaId"
+                  name= "ofertaId"
+                  value="<%= oferta.id %>"
+              />
+              <input 
+                  type="hidden"
+                  id= "cicloId"
+                  name= "cicloId"
+                  value="<%= ciclo.id %>"
+              />
+              <input 
+                  type="hidden"
+                  id= "usuarioOfertaId"
+                  name= "usuarioOfertaId"
+                  value="<%= usuarioOferta.id %>"
+              />
+            
+            <!--<div class="input-wrapper">
+              <label class="label-group" for="usuarioNome">Fornecedor selecionado: </label>
+              <% if (usuarioOferta) { %>
+                <label class="label-group" for="usuarioNome"><%= usuarioOferta.nome %></label>
+              <% } %>
+            </div>-->
+            
+            //<%  if ( usuarioAtivo.perfil) {
+                    //if ( usuarioAtivo.perfil.indexOf('admin') >= 0 ) { %>  
+                        //<div id="selecaoUsuario" class="input-wrapper">
+                          //<div class="dropdown">
+                            //<button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Alterar fornecedor
+                            //<span class="caret"></span></button>
+                            //<ul class="dropdown-menu">
+                              //<input class="form-control" id="searchUsuario" type="text" placeholder="Busque o fornecedor..">
+                                //<% usuarios.forEach(usuario => { %>
+                                  //<li><a href="?usr=<%= usuario.id %>"><%= usuario.nome %></a></li>
+                                //<% }) %>
+                            //</ul>
+                          //</div>
+                        //</div>
+                  //<% }} %>
+
+
+                  
+        <p>Veja abaixo os itens salvos na sua oferta:
+        </p>
+
+
+          <!-- lista de produtos registrados-->
+          <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Produto</th>
+              <th scope="col">Medida</th>
+              <th scope="col">Valor</th>
+              <th scope="col">Quantidade</th>
+          </thead>
+          <tbody>
+              <%  
+                  let haOferta = 0
+                  let msgOferta = ""
+                  produtosOfertaDados.forEach(produtoOfertaDados => {
+
+                      if (produtoOfertaDados.quantidade > 0) {
+                          haOferta = 1
+              %>   
+                          <tr>
+                              <th scope="row">
+                                  <label>
+                                    <%= produtoOfertaDados.nome %>
+                                  </label>
+                              </th>
+                              <td>
+                                  <label>
+                                    <%= produtoOfertaDados.medida %>
+                                  </label>
+                              </td>
+                              <td>
+                                  <label>
+                                    R$ <%= produtoOfertaDados.valorReferencia.toFixed(2).replace('.',',' ) %>
+                                  </label>
+                              </td>
+                              <td>
+                                <label>
+                                    <%= produtoOfertaDados.quantidade %>
+                                </label>
+                              </td>
+                          </tr>
+                      <% } %>
+              <% }) %>
+              
+              
+          </tbody>
+        </table>
+        
+
+          <a 
+          data-toggle="modal"
+          href="#myModal" 
+          class="button orange open-modal"
+          ><span>
+              <img src="/images/plus-24.svg" alt="Adicionar Produto" /> 
+            </span>
+          <span style="font-size: 1.5rem">Adicionar Produtos</span>
+        </a>
+
+
+        
+
+
+        </fieldset>
+    
+        </form>
+
+        <div class="button-cel">
+          <button 
+            class="button green" 
+            form="form-oferta"
+            type="submitSalvar" 
+            title="Salvar Dados">Salvar</button>
+        </div>
+
+      </main>
+
+      <aside class="card">
+        <img src="/images/oferta.svg" alt="Imagem de Oferta">
+        <p></p>
+          <% 
+           if (ciclo.ofertaInicio) { %>a&nbsp;<%=
+            ciclo.ofertaInicio.toISOString().substr(0,4)%> <%=
+                  ciclo.ofertaInicio.toISOString().substr(11,5)%>
+                <% } %>
+            <% 
+                if (ciclo.ofertaFim) { %>a&nbsp;<%=
+                  ciclo.ofertaFim.toISOString().substr(8,2)%>/<%=
+                  ciclo.ofertaFim.toISOString().substr(5,2)%>/<%=
+                  ciclo.ofertaFim.toISOString().substr(0,4)%> <%=
+                  ciclo.ofertaFim.toISOString().substr(11,5)%>
+                <% } %> 
+        </p><p>Ciclo: <%= ciclo.nome  %> </p>
+              <br>
+              <p for="nome">Período para ofertas: 
+              <% 
+                if (ciclo.ofertaInicio) { %>de&nbsp<%=
+                  ciclo.ofertaInicio.toISOString().substr(8,2)%>/<%=
+                  ciclo.ofertaInicio.toISOString().substr(5,2)%>/<%=
+               
+        <div class="button-group">
+          <button 
+            class="button green" 
+            form="form-oferta" 
+            type="submitSalvar" 
+            title="Salvar Dados">Salvar</button>
+          <!--<a 
+            href="/oferta-index" 
+            class="button gray">
+            <img 
+              src="/images/trash-24.svg" 
+              alt="Cancelar cadastro" 
+              title="Cancelar cadastro">
+          </a>-->
+        </div>
+      </aside>
+
+
+      
+    </div>
+
+
+    
+    <div class="modal fade" id="myModal" role="dialog">
+      <div class="modal-dialog">
+
+        
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 style="color:black;"> Oferta de Produtos</h4>
+          </div>
+
+          <div class="modal-body">
+            <form role="form"
+              method="POST"
+              action="/oferta"></form>
+              <p>Selecione os produtos a serem inseridos na oferta. Utilize o filtro de produtos para lhe auxiliar:</p>  
+              <input class="form-control" id="searchProduto" type="text" placeholder="Digite o nome do produto..">
+              <br>
+              <input 
+                  type="hidden"
+                  id= "ofertaId"
+                  name= "ofertaId"
+                  value="<%= oferta.id %>"
+              />
+              <input 
+                  type="hidden"
+                  id= "cicloId"
+                  name= "cicloId"
+                  value="<%= ciclo.id %>"
+              />
+              <input 
+                  type="hidden"
+                  id= "usuarioOfertaId"
+                  name= "usuarioOfertaId"
+                  value="<%= usuarioOferta.id %>"
+              />
+              <% produtosOfertaDados.forEach(produtoOfertaDados => {
+                 let nomeInput = 'quant' + produtoOfertaDados.id.toString()
+              %>
+                  <input 
+                      type="hidden"
+                      id="nomeInput"
+                      name="nomeInput"
+                      value=""
+                  />
+              <% }) %>
+              <div id="listaProdutos">
+                  <table class="table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Produto</th>
+                          <th scope="col">Medida</th>
+                          <th scope="col">Valor</th>
+                          <th scope="col">Incluir?</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      <%
+                        index = 0
+                        produtos.forEach(produto => {
+                        index += 1
+                      %>
+                      <tr>
+                          <th scope="row">
+                              <label>
+                                <%= produto.nome %>
+                              </label>
+                          </th>
+                          <td>
+                            <label>
+                                <%= produto.medida %>
+                              </label>
+                          </td>
+                          <td>
+                            <label>
+                              R$ <%= produto.valorReferencia.toFixed(2).replace('.',',' ) %>
+                            </label>
+                          </td>
+                          <td>
+                            <input type="checkbox" id= "<%= 'ofertaProdSel' + produto.id %>"  name= "<%= 'ofertaProdSel' + produto.id %>" value="selecionado">
+                          </td>
+                          <td>
+ 
+                                  <input class="inputmenor"
+                                    type="number"
+                                    id= "<%= produto.id %>"
+                                    name="<%= produto.id %>"
+                                    style="min-width: 60px"
+                                    value=""
+                                  />
+                          </td>
+                      </tr>
+                  <div class="input-group">
+                      <div class="input-wrapper">
+                        <div class="checkbox">
+                          <label><input type="checkbox" id= "<%= 'ofertaProdSel' + produto.id %>"  name= "<%= 'ofertaProdSel' + produto.id %>" value="selecionado"></label>
+                        </div>
+                      </div>
+
+                      <div class="input-wrapper">
+                        <span><%= produto.nome %></span>
+                      </div>
+                  </div>
+                  <% }) %>
+                </tbody>
+                </table>
+              </div>
+              <button id="submit" type="submit" class="btn btn-default btn-success btn-block"><span class="glyphicon glyphicon-plus"></span> Adicionar Produtos</button>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-default btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+  </body>
+</html>
+ 

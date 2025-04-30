@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/index-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/modal.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- links bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+    <link rel="stylesheet" href="/styles/pages/pedidosFornecedoresTodos.css" />
+
+  </head>
+  <body id="page-pedidosFornecedoresCiclos">
+
+   
+    <!--<e%- include('parts/index-header', {
+      button_text:'vazio',
+      button_link:''
+      }) %e>-->
+
+
+  <div class="container">
+      <main>
+          <div>
+
+          <form id="form-fornecedoresciclos"
+                method="POST"
+                action="/pedidosfornecedoresciclos" >
+              <fieldset>
+            
+            <legend>Selecione os ciclos para Gerar Relatório Pedidos Fornecedores</legend>
+        
+            <div class="button-group">
+                <button 
+                    class="button green" 
+                    form="form-fornecedoresciclos" 
+                    type="submit"
+                    name="relatorio"
+                    value="tela" 
+                    title="Enviar Dados">MOSTRAR RELATÓRIO
+                </button>
+                <button 
+                    class="button green" 
+                    form="form-fornecedoresciclos" 
+                    type="submit"
+                    name="relatorio"
+                    value="download" 
+                    title="Enviar Dados">DOWNLOAD RELATÓRIO CSV
+                </button>
+            </div>
+
+            <div id="listaCiclos">
+              <table class="table table-bordered">
+                  <thead>
+                        <tr>
+                          <th scope="col">Ciclo</th>
+                          <th scope="col">Entrega</th>
+                          <th scope="col">Selecione</th>
+                        </tr>   
+                  </thead>
+                  <tbody>
+                        <% ciclos.forEach(ciclo => { %>
+                          <tr>
+                            <th>
+                                  <%= ciclo.nome %>
+                            </th>
+                            <td>
+                              <% if (ciclo.retiradaConsumidorInicio) { %>
+                                <%=
+                                  ciclo.retiradaConsumidorInicio .toISOString().substr(8,2)%>/<%=
+                                  ciclo.retiradaConsumidorInicio .toISOString().substr(5,2)%>/<%=
+                                  ciclo.retiradaConsumidorInicio .toISOString().substr(0,4)%>&nbsp&nbsp<%=
+                                  ciclo.retiradaConsumidorInicio .toISOString().substr(11,5)%>
+                              <% } %>
+                            </td>
+                            <td>
+                                <input 
+                                    type="checkbox"
+                                    id="<%= ciclo.id %>"
+                                    name="ciclos"
+                                    value="<%= ciclo.id %>"/>
+                            </td>
+                          </tr>
+                        <% }) %>
+                  </tbody>
+              </table><!-- end table -->
+
+            </div><!-- end listaCiclos -->
+
+          </fieldset>
+          </form>
+          
+          </div>
+  
+      </main>
+ 
+  </div><!-- end container -->
+
+  </body>
+</html>
+ 

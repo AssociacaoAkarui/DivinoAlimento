@@ -1,0 +1,260 @@
+@import url(https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap);
+
+#container_ciclos {
+  background: #f7a419;
+  background-image: url("/images/divinoalimento_topo_foto.jpeg");
+  background-size: cover;
+  border-bottom: 50px solid #6a640b;
+  margin-top: -20px;
+}
+
+.ciclo {
+  display: grid;
+  gap: 10px; 
+  font-family: "Raleway", Arial, Helvetica, sans-serif;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: auto auto auto; 
+  margin: 20px 0;
+  text-align: center;
+}
+
+.info_ciclo {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 1 / 4;
+  grid-row: 1;
+  margin: 50px 0;
+  color: #fff;
+  height: auto;
+
+}
+
+.corAtivo {
+  border: 8px solid #43e37e;
+}
+
+.corInativo {
+  border: 8px solid #6a640b;
+}
+
+.box {
+  background: #fff;
+  border-radius: 20px;
+  margin: 50px 0;
+}
+
+.box a {
+  margin-bottom: 1em;
+  color: #000000;
+}
+
+.box a:link {
+  color: #000000;
+}
+
+.box a:visited{
+  color: #000000;
+}
+
+.box a:focus {
+  color: #000000;
+}
+
+.box a:hover {
+  color: #43e37e;
+  text-decoration: none;
+}
+
+.box a:active {
+  color: #000000;
+}
+
+
+.img-wrapper {
+  background: #fff;
+  border-radius: 50%;
+  width: 130px;
+  height: 130px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: -75px;
+}
+
+.img-wrapper img {
+  width: 80px;
+  margin: 16px;
+}
+
+.info_oferta {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.info_composicao {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.info_pedidoAdicionais {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.info_pedidoEntregaProdutos {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.info_pedidoEntregaCestas {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.info_admin {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 1 / 4;
+  grid-row: 1;
+  margin: 50px 0;
+  color: #fff;
+  height: auto;
+
+}
+
+.info_admin_cicloindex {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.info_admin_relatoriofornecedores {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.info_admin_relatorioconsumidores {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.info_admin_cadastros {
+  /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+  grid-column: 1;
+  grid-row: 3;
+}
+
+
+@media(max-width: 2440px) {
+  html {
+    font-size: 100% !important; /* 15px */
+  }
+}
+
+@media(max-width: 1080px) {
+  html {
+    font-size: 93.75% !important; /* 15px */
+  }
+}
+
+@media(max-width: 970px) {
+  html {
+    font-size: 87.5% !important; /* 14px */
+  }
+}
+
+@media(max-width:700px) {
+  :root {
+    font-size: 75% !important; /* 12px */
+  }
+}
+
+@media(max-width: 590px) {
+  :root {
+    font-size: 62.25% !important; /* 10px */
+  }
+
+  .container {
+    padding-right: 0px;
+    padding-left: 0px;
+  }
+
+  .ciclo {
+    grid-template-columns: auto;
+    grid-template-rows: auto auto auto auto auto auto; 
+  }
+  
+
+  
+  .info_ciclo {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 1;
+  }
+  
+  .info_oferta {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 4;
+  }
+  
+  .info_composicao {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 5;
+  }
+  
+  .info_pedidoAdicionais {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 2;
+  }
+  
+  .info_pedidoEntregaProdutos {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 6;
+  }
+  
+  .info_pedidoEntregaCestas {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .info_admin {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 1;
+  }
+  
+  .info_admin_cicloindex {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 2;
+  }
+  
+  .info_admin_relatoriofornecedores {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 3;
+  }
+  
+  .info_admin_relatorioconsumidores {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 4;
+  }
+  
+  .info_admin_cadastros {
+    /*background: url('../img/fortnite.jpg') center / cover no-repeat;*/
+    grid-column: 1;
+    grid-row: 5;
+  }
+
+}
+

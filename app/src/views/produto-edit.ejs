@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/modal.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+    <link rel="stylesheet" href="/styles/pages/produto.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="module" src="/scripts/produto-edit.js"></script>
+    
+  </head>
+  <body id="page-produto-edit">
+
+    <%- include('parts/page-header', { title: "Editar Produto", back_link: "/produto-index"}) %> 
+
+    <div class="container flex animate-up delay-2">
+        <form id="form-produto"
+        method="POST"
+        action="/produto/<%= produto.id %> ">
+          <fieldset>
+            <legend>Dados do Produto</legend>
+            <div class="separator light"></div>
+
+            <div class="input-wrapper">
+              <label for="nome">Nome do Produto</label>
+              <input 
+                type="text" 
+                id="nome" 
+                name="nome"
+                value= "<%= produto.nome %>"
+              />
+            </div>
+
+            <br>
+
+            <div class="input-wrapper">
+              <label class="label-group" for="categoriaId">Categoria (obrigatório)</label>
+              <select name="categoriaId" id="categoriaId" required>
+               <% categoriasProdutos.forEach(categoria => { %>
+                  <% if (produto.categoriaId == categoria.id) { %>
+                    <option value="<%= categoria.id %>" selected><%= categoria.nome %></option>
+                  <% } else { %>
+                    <option value="<%= categoria.id %>"><%= categoria.nome %></option>
+                  <% } %>
+                <% }) %>
+              </select>
+            </div>
+
+            <br>
+
+            <div class="input-wrapper">
+              <label for="medida">Medida do Produto?</label>
+              <input
+                type="text"
+                id="medida"
+                name="medida"
+                value= "<%= produto.medida %>"
+                />
+            </div>
+
+            <br>
+
+            <div class="input-wrapper">
+              <label for="pesoGrama">Peso em Grama?</label>
+              <input 
+                type="number"
+                step="0.01" 
+                id="pesoGrama" 
+                name="pesoGrama"
+                value= "<%= produto.pesoGrama %>"/>
+            </div>
+
+
+            <br>
+            <div class="input-wrapper">
+              <label for="valorReferencia">Valor de Referência?</label>
+              <input 
+                type="number"
+                step="0.01" 
+                id="valorReferencia" 
+                name="valorReferencia"
+                value= "<%= produto.valorReferencia %>"/>
+            </div>
+
+            <br>
+            <div class="input-wrapper">
+              <label for="descritivo">Descrição para Consumidor (opcional)</label>
+              <textarea
+                id="descritivo" 
+                name="descritivo"
+                rows="5"
+                cols="40"><%= produto.descritivo %></textarea>
+            </div>
+            
+            <br>
+            <div class="input-wrapper">
+              <label for="status">Situação? </label>
+              <br>
+              <input 
+                type="radio"
+                id="ativo" 
+                name="status"
+                value="ativo"
+                <% if (produto.status == "ativo") { %>
+                  checked
+                <% } %>/>
+                <label for="ativo">Ativo</label><br>
+                <input 
+                type="radio"
+                id="inativo" 
+                name="status"
+                value="inativo"
+                <% if (produto.status == "inativo") { %>
+                  checked
+                <% } %>/>
+                <label for="inativo">Inativo</label><br>
+            </div>
+          </fieldset>
+    
+        </form>
+      </main>
+      <aside class="card">
+        <img src="/images/produto.svg" alt="Imagem de Produto">
+        <p>
+          
+        </p>
+        <div class="button-group">
+          <button 
+            class="button green" 
+            form="form-produto" 
+            type="submit" 
+            title="Salvar Dados">Salvar</button>
+          <a 
+            href="#" 
+            class="button gray open-modal"
+            >
+            <img 
+              src="/images/trash-24.svg" 
+              alt="Cancelar cadastro" 
+              title="Cancelar cadastro">
+          </a>
+        </div>
+      </aside>
+      
+    </div>
+    <!-- end container -->
+
+    <div class="modal-wrapper">
+      <div class="modal">
+        <img src="/images/trash-48.svg" alt="Excluir Produto" title="Excluir Produto" />
+        <h3>Excluir Produto</h3>
+        <p>Quer mesmo excluir esse produto? <br/>
+        Ele será apagado para sempre.  
+        <p>
+        <footer>
+          <a 
+            class="button gray" 
+            href="#">Cancelar</a>
+          <button
+            class="button red"
+            type="submit"
+            form="delete-produto">Excluir Produto</button>
+        </footer>
+      </div>
+      <form 
+        method="post" 
+        action="/produto/delete/<%= produto.id %> " 
+        id="delete-produto"></form>
+    </div>
+    <!-- end modal-wrapper -->
+  </body>
+</html>
+ 

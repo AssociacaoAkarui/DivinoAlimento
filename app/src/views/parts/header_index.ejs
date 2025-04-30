@@ -1,0 +1,81 @@
+<header>
+  <div id="container_header">
+    <section>
+      <div id="menu_topo" class="dropdown show">
+        <% if (usuarioAtivo.email_verified == "false") {%>
+          <a class="btn btn-secondary" href="/login" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Entrar
+          </a>
+        <% } else {%>
+            <span id="usuario_identificacao" class="dropdown">
+              <p > &#9660; <%= usuarioAtivo.name %> </p>
+              <img
+                src="<%= usuarioAtivo.picture %>"
+              />
+              <div class="dropdown-content">
+                <a href="/logout">Sair</a>
+              </div>
+            </span>
+
+            <!--<div class="dropdown">
+              <button class="dropbtn">Menu</button>
+              
+            </div>-->
+        <% } %>
+      </div>
+      
+      <div id="topo_logomarca">
+        <img src="/images/divinoalimento_topo_logomarca.png" alt="Divino Alimento" />
+          
+      </div>
+      <!--<span id="notification">
+        <img src="/images/alert-octagon.svg" alt="Alerta" />
+        <a href="https://www.akarui.org.br/divinoalimento" color:"#FFFFFF" > Site do Divino Alimento</a>
+      </span>-->
+      <!--<a href="/profile" id="avatar-profile">-->
+      <!--<span id="avatar-profile">-->
+        <!--<p>Juliana Farinacci <span>Ver perfil</span></p>-->
+        <!--<p>Juliana Farinacci </p>
+        <img
+          src="https://lh3.googleusercontent.com/yZYikwA0CfBYFa2kAj29fkooJUDGTxA9QjovOxoBzHHjhArdCPwKH3fKmb7zWTzbD9lx9g=s85"
+        />-->
+      <!--</a>-->
+      <!--</span>-->
+    </section>
+
+
+    <!--<a href="/cadastros" id="acessar-cadastros">
+      <span>Acessar cadastros</span>
+    </a>-->
+    <!--<div class="separator"></div>-->
+
+    <!--<section id="summary" class="animate-up delay-1">
+      <h2 class="sr-only">Sumário</h2>-->
+
+      
+      <!--<div class="info">
+        <div class="total">
+          <strong> </strong>
+          Total 
+        </div>
+        <div class="in-progress">
+          <strong></strong>
+          Ativos
+        </div>
+        <div class="finished">
+          <strong>statusCount.inativo </strong>
+          Inativos
+        </div>
+      </div>-->
+
+      <!--<e% if (button_text !== 'vazio') { %>
+        <a class="button orange" href="<e%= button_link %> ">
+          <span>
+            <img src="/images/plus-24.svg" alt="Novo Item" /> 
+          </span>
+          <e%= button_text %>
+        </a>
+      <e% } %>
+    </section>-->
+  </div>
+</header>

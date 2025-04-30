@@ -1,0 +1,89 @@
+.modal-wrapper {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.modal-wrapper.on {
+  height: 100vh !important;
+  width: 100vw !important;
+
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+
+  background: rgba(0, 0, 0, 0.8) !important;
+
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.modal {
+  background: #F0F2F5 !important;
+
+  border-radius: 0.313rem !important;
+
+  padding: 2.5rem !important;
+
+  text-align: center !important;
+
+  color: var(--color-card-content) !important;
+}
+
+.modal img {
+  margin-bottom: 2rem !important;
+}
+
+.modal h3 {
+  color: var(--color-card-title) !important;
+
+  font-family: IBM Plex Sans !important;
+  font-weight: 600 !important;
+  font-size: 2rem !important;
+  line-height: 2.625rem !important;
+
+  margin-bottom: .5rem !important;
+}
+
+.modal p {
+  margin-bottom: 2rem !important;
+}
+
+.modal footer button {
+  padding: 0.75rem 3rem !important;
+  border-radius: 0.313rem !important;
+
+  font-family: IBM Plex Sans !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.625rem !important;
+  text-transform: uppercase !important;
+
+  transition: all .2s !important;
+
+  cursor:pointer !important;
+}
+
+.modal footer button + button {
+  margin-left: .5rem !important;
+}
+
+.modal footer button:nth-child(1) {
+  color: var(--color-card-content) !important;
+  background: var(--color-cancel) !important;
+}
+
+.modal footer button:nth-child(1):hover {
+  background: #ECEEF0 !important;
+}
+
+.modal footer button:nth-child(2) {
+  background: var(--color-delete) !important;
+}
+
+.modal footer button:nth-child(2):hover {
+  background: #FA3F38 !important;
+}

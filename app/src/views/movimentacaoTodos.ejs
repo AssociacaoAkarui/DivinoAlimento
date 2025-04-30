@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/header.css" />
+    <link rel="stylesheet" href="/styles/partials/index-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/modal.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- links bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+    <link rel="stylesheet" href="/styles/pages/pedidosConsumidoresTodos.css" />
+
+    <!--<script>
+      $(document).ready(function(){
+        $("#searchCestaCiclo").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $(".dropdown-menu li").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+          });
+        });
+      });
+      </script>-->
+
+  <script>
+    $(document).ready(function(){
+      $("#searchProduto").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        value = replaceSpecialChars(value)
+        $("#listaProdutos div.pedidoFornecedor").filter(function() {
+          //$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+          var value2 = $(this).text().toLowerCase()
+          value2 = replaceSpecialChars(value2)
+          $(this).toggle(value2.indexOf(value) > -1)
+        });
+      });
+    });
+
+    function replaceSpecialChars(str)	{
+      if (!str) return ''
+      str = str.toString()
+      str = str.replace(/[aáàãäâ]/,'a')
+      str = str.replace(/[eéèëê]/,'e')
+      str = str.replace(/[iíìïî]/,'i')
+      str = str.replace(/[oóòõöô]/,'o')
+      str = str.replace(/[uúùüû]/,'u')
+      str = str.replace(/[ç]/,"c")
+      return str 
+    }
+  </script>
+
+
+  </head>
+  <body id="page-pedidosFornecedores">
+
+   
+    <!--<e%- include('parts/header', {
+      button_text:'vazio',
+      button_link:''
+      }) %>-->
+
+
+  <!--<div class="container flex animate-up delay-2">-->
+  <div class="container">
+      <main>
+          <div>
+
+            <!--<div class="info_ciclo">
+              <h2>CICLO&nbsp<e%= ciclo.nome %></h2>
+              <p>DATA INÍCIO:&nbsp<e% 
+                    if (ciclo.ofertaInicio) { %>
+                    <e%=
+                      ciclo.ofertaInicio.toISOString().substr(8,2)%>/<e%=
+                      ciclo.ofertaInicio.toISOString().substr(5,2)%>/<e%=
+                      ciclo.ofertaInicio.toISOString().substr(0,4)%>&nbsp&nbsp<e%=
+                      ciclo.ofertaInicio.toISOString().substr(11,5)%>
+                    <e% } %>
+              </p>
+              <p>DATA FIM:&nbsp<e%
+                    if (ciclo.retiradaConsumidorFim) { %>
+                    <e%=
+                      ciclo.retiradaConsumidorFim.toISOString().substr(8,2)%>/<e%=
+                      ciclo.retiradaConsumidorFim.toISOString().substr(5,2)%>/<e%=
+                      ciclo.retiradaConsumidorFim.toISOString().substr(0,4)%>&nbsp&nbsp<e%=
+                      ciclo.retiradaConsumidorFim.toISOString().substr(11,5)%>
+                    <e% } %> 
+              </p>
+            </div>
+            <br><br>-->
+
+            <legend>Movimentações</legend>
+
+              <!--<div class="pesquisa">         
+
+                <p>Utilize o filtro de fornecedores/produtos para lhe auxiliar:</p>  
+                <input class="form-control" id="searchProduto" type="text" placeholder="Digite o nome do fornecedor/produto..">
+                <br>
+
+              </div>-->
+            
+          <div id="listaProdutos">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th scope="col">Consumidor/Fornecedor</th>
+                    <th scope="col">Data</th>
+                    <th scope="col">Movimentação</th>
+                    <th scope="col">Observacao</th>
+                    <th scope="col" style="min-width:75px;">Valor</th>
+                    <th scope="col" style="min-width:83px;">Total</th>
+
+                </thead>
+                <tbody>
+
+                  
+                      <% let usuarioCorrente = 0
+                         let usuarioAnterior = 0
+                         let valorTotal = 0
+                         let corLinha = 0
+                        movimentacaoDados.forEach(movimentacao => {
+                          usuarioCorrente = movimentacao.usuarioId
+                          if (usuarioCorrente != usuarioAnterior) {
+                      %>
+                      
+                          <% if (usuarioAnterior != 0) {%>
+                            <% if (Number(corLinha) == 0) {%>
+                              <tr>
+                            <% } else { %>
+                              <tr class='linha_par'>
+                            <% } %>
+
+                              <td>Total</td><td></td><td></td><td></td><td></td>
+                              <td>
+                                <% if (valorTotal) {%>
+                                  R$ <%= valorTotal.toFixed(2).replace('.',',' ) %>
+                                <% } %>
+                                <% valorTotal = 0 %>
+                              </td>
+                            </tr>
+                         <% } 
+                            usuarioAnterior = usuarioCorrente
+                            if (Number(corLinha) == 0) {
+                              corLinha = 1
+                            } else {
+                              corLinha = 0
+                            }
+                         %>
+                         <% if (Number(corLinha) == 0) {%>
+                              <tr>
+                            <% } else { %>
+                              <tr class='linha_par'>
+                            <% } %>
+                        
+                          <td>
+                                <%= movimentacao['usuario.nome'] %>
+                          </td>
+                          <td>
+                            <% if (movimentacao.data) { %>
+                                <%=
+                                  movimentacao.data.toISOString().substr(8,2)%>/<%=
+                                  movimentacao.data.toISOString().substr(5,2)%>/<%=
+                                  movimentacao.data.toISOString().substr(0,4)%>&nbsp&nbsp<%=
+                                  movimentacao.data.toISOString().substr(11,5)%>
+                            <% } %> 
+                            <% valorTotal = valorTotal + movimentacao.valor %>
+                          </td>
+                          <td>
+                            <%= movimentacao.tipoMovimentacao %>
+                          </td>
+                          <td>
+                            <%= movimentacao.observacao %>
+                          </td>
+                          <td>
+                            <% if (movimentacao.valor) { %>
+                              R$ <%= movimentacao.valor.toFixed(2).replace('.',',' ) %>
+                            <% } %>
+                          </td>
+                          <td>
+                            <% if (valorTotal) { %>
+                              R$ <%= valorTotal.toFixed(2).replace('.',',' ) %>
+                            <% } %>
+                          </td>
+                      </tr>
+                    <% } else { %>
+                      <% if (Number(corLinha) == 0) {%>
+                              <tr>
+                            <% } else { %>
+                              <tr class='linha_par'>
+                            <% } %>
+
+                          <td>
+                            <%= movimentacao['usuario.nome'] %>
+                          </td>
+                          <td>
+                            <% if (movimentacao.data) { %>
+                                <%=
+                                  movimentacao.data.toISOString().substr(8,2)%>/<%=
+                                  movimentacao.data.toISOString().substr(5,2)%>/<%=
+                                  movimentacao.data.toISOString().substr(0,4)%>&nbsp&nbsp<%=
+                                  movimentacao.data.toISOString().substr(11,5)%>
+                            <% } %> 
+                            <% valorTotal = valorTotal + movimentacao.valor %>
+                          </td>
+                          <td>
+                            <%= movimentacao.tipoMovimentacao %>
+                          </td>
+                          <td>
+                            <%= movimentacao.observacao %>
+                          </td>
+                          <td>
+                            <% if (movimentacao.valor) { %>
+                              R$ <%= movimentacao.valor.toFixed(2).replace('.',',' ) %>
+                            <% } %>
+                          </td>
+                          <td>
+                            <% if (valorTotal) { %>
+                              R$ <%= valorTotal.toFixed(2).replace('.',',' ) %>
+                            <% } %>
+                          </td>
+
+                          </tr>
+                    <% } %>
+                    
+                    <% }) %>
+                    <% if (Number(corLinha) == 0) {%>
+                              <tr>
+                            <% } else { %>
+                              <tr class='linha_par'>
+                            <% } %>
+                    <td>Total</td><td></td><td></td><td></td><td></td>
+                    <td>
+                       <% if (valorTotal) { %>
+                          R$ <%= valorTotal.toFixed(2).replace('.',',' ) %>
+                       <% } %>
+                       <% valorTotal = 0 %>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>               
+                
+              </div><!-- end cardPedidoFornecedor -->
+
+            </div><!-- end listaprodutos -->
+
+            
+
+          </div>
+  
+      </main>
+ 
+  </div><!-- end container -->
+
+  </body>
+</html>
+ 

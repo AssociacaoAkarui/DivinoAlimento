@@ -1,0 +1,56 @@
+<header class="page-header">
+  <div class="container">
+    <section id="top" class="animate-up">
+      <h2 class="sr-only">Homepage</h2>
+      <a href="/ciclo-index"><img id="logo" src="/images/logo.png" alt="Tela Inicial" /></a>
+      <span id="notification">
+        <img src="/images/alert-octagon.svg" alt="Alerta" />
+        <a href="https://www.akarui.org.br/divinoalimento" color:"#FFFFFF" > Site do Divino Alimento</a>
+      </span>
+      <!--<a href="/profile" id="avatar-profile">-->
+      <span id="avatar-profile">
+        <!--<p>Juliana Farinacci <span>Ver perfil</span></p>-->
+        <p > <%= usuarioAtivo.name %> </p>
+        <img
+        src="<%= usuarioAtivo.picture %>"
+        />
+      <!--</a>-->
+      </span>
+    </section>
+
+
+    <a href="/cadastros" id="acessar-cadastros">
+      <span>Acessar cadastros</span>
+    </a>
+    <div class="separator"></div>
+
+    <section id="summary" class="animate-up delay-1">
+      <h2 class="sr-only">Sumário</h2>
+
+      
+      <!--<div class="info">
+        <div class="total">
+          <strong> </strong>
+          Total 
+        </div>
+        <div class="in-progress">
+          <strong></strong>
+          Ativos
+        </div>
+        <div class="finished">
+          <strong>statusCount.inativo </strong>
+          Inativos
+        </div>
+      </div>-->
+
+      <% if (button_text !== 'vazio') { %>
+        <a class="button orange" href="<%= button_link %> ">
+          <span>
+            <img src="/images/plus-24.svg" alt="Novo Item" /> 
+          </span>
+          <%= button_text %>
+        </a>
+      <% } %>
+    </section>
+  </div>
+</header>

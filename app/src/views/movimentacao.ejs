@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/header.css" />
+    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- links bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+    <link rel="stylesheet" href="/styles/pages/movimentacao.css" />
+    
+
+    <script>
+      $(document).ready(function(){
+        $("#searchUsuario").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          value = replaceSpecialChars(value)
+          $(".dropdown-menu li").filter(function() {
+            var value2 = replaceSpecialChars($(this).text().toLowerCase())
+            $(this).toggle(value2.indexOf(value) > -1)
+          });
+        });
+      });
+    </script>
+    
+  </head>
+  <body id="page-movimentacao">
+
+    <%- include('parts/header', {
+      button_text:'vazio',
+      button_link:''
+      }) %>
+    
+    <div class="container flex animate-up delay-2">
+      <main>
+        <form id="form-movimentacao"
+          method="POST"
+          action="/movimentacao" >
+          <fieldset>
+            <legend>Dados da Movimentação</legend>
+
+            <div class="input-wrapper">
+              <h4>
+                Usuário selecionado: 
+                <% if (usuarioMovimentacao) { %>
+                  <%= usuarioMovimentacao.nome %>
+                <% } %>
+              </h4>
+            </div>
+
+            <!--<%  if ( usuarioAtivo.perfil) {
+                    if ( usuarioAtivo.perfil.indexOf('admin') >= 0 ) { %>
+                      <div id="selecaoUsuario" class="input-wrapper">
+                        <div class="dropdown">
+                          <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Selecione seu nome&nbsp;&nbsp;&nbsp;   
+                          <span class="caret"></span></button>
+                          <ul class="dropdown-menu">
+                            <input class="form-control" id="searchUsuario" type="text" placeholder="Busque o consumidor..">
+                              <% usuarios.forEach(usuario => { %>
+                                <li><a href="?usr=<%= usuario.id %>"><%= usuario.nome %></a></li>
+                              <% }) %>
+                          </ul>
+                        </div>
+                    </div>
+              <% }} %>-->
+            
+            <div class="input-wrapper">
+              <label for="data">Data?</label>
+              <input
+                type="datetime-local"
+                id="data"
+                name="data"
+                value="<%= ( (movimentacao.data) ? (movimentacao.data.toISOString().substr(0,16)) : null) %>"
+              />
+            </div>
+
+            <div class="input-wrapper">
+              <label for="tipoMovimentacaoId">Movimentação?</label>
+              <input
+                type="number"
+                id="tipoMovimentacaoId"
+                name="tipoMovimentacaoId"
+              />
+            </div>
+
+            
+            <div class="input-wrapper">
+              <label for="valor">Valor?</label>
+              <input type="number" id=<div class="input-wrapper">
+                <label for="usuarioId">Usuário?</label>
+                <input
+                  type="number"
+                  id="usuarioId"
+                  name="usuarioId"
+                />
+              </div>"valor" name="valor" />
+            </div>
+            <br>
+
+            <br>
+            
+            
+            <br>
+            <div class="input-wrapper">
+              <label for="status">Situação? </label>
+              <br>
+              <input 
+                type="radio"
+                id="submetido" 
+                name="status"
+                value="submetido"/>
+                <label for="submetido">Submetido</label><br>
+                <input 
+                type="radio"
+                id="validado" 
+                name="status"
+                value="validado"/>
+                <label for="validado">Validado</label><br>
+            </div>
+
+          </fieldset>
+    
+        </form>
+      </main>
+
+      <aside class="card">
+        <img src="/images/usuario.svg" alt="Imagem de Pessoas">
+        <p>
+          
+        </p>
+        <div class="button-group">
+          <button 
+            class="button green" 
+            form="form-movimentacao" 
+            type="submit" 
+            title="Salvar Dados">Salvar</button>
+          <a 
+            href="/movimentacao-index" 
+            class="button gray">
+            <img 
+              src="/images/trash-24.svg" 
+              alt="Cancelar cadastro" 
+              title="Cancelar cadastro">
+          </a>
+        </div>
+      </aside>
+      
+    </div>
+    <!-- end container -->
+  </body>
+</html>
+ 

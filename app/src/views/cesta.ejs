@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+    <link rel="stylesheet" href="/styles/pages/cesta.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    
+  </head>
+  <body id="page-cesta">
+
+    <%- include('parts/page-header', { title: "Adicionar Novo Tipo de Cesta", back_link: "/cesta-index"}) %> 
+
+    <!--<div class="container-flux container flex animate-up delay-2">-->
+    <div class="container-flux container flex animate-up delay-2">
+      <div class="row">
+      <div class="col-sm-8">
+      <!--<main>-->
+        <form id="form-cesta"
+          method="POST"
+          action="/cesta" >
+          <fieldset>
+            <legend>Dados do Tipo da Cesta</legend>
+            <div class="separator light"></div>
+
+            <div class="input-wrapper">
+              <label for="nome">Nome do Tipo de Cesta</label>
+              <input type="text" id="nome" name="nome" />
+            </div>
+            <br>
+            <div class="input-wrapper">
+              <label for="valormaximo">Valor máximo <br/>
+                por cesta, disponível para montagem?</label>
+              <input 
+                type="number"
+                step="0.01" 
+                id="valormaximo" 
+                name="valormaximo"/>
+            </div>
+            <br>
+            <div class="input-wrapper">
+              <label for="status">Situação? </label>
+              <br>
+              <input 
+                type="radio"
+                id="ativo" 
+                name="status"
+                value="ativo"/>
+                <label for="ativo">Ativo</label><br>
+                <input 
+                type="radio"
+                id="inativo" 
+                name="status"
+                value="inativo"/>
+                <label for="inativo">Inativo</label><br>
+            </div>
+
+          </fieldset>
+    
+        </form>
+      <!--</main>-->
+    </div>
+    <div class="col-sm-4">
+      <aside class="card">
+        <img src="/images/cesta.svg" alt="Imagem de Cesta">
+        <p>
+          
+        </p>
+        <div class="button-group">
+          <button 
+            class="button green" 
+            form="form-cesta" 
+            type="submit" 
+            title="Salvar Dados">Salvar</button>
+          <a 
+            href="/cesta-index" 
+            class="button gray">
+            <img 
+              src="/images/trash-24.svg" 
+              alt="Cancelar cadastro" 
+              title="Cancelar cadastro">
+          </a>
+        </div>
+      </aside>
+    </div>
+      
+    </div>
+  </div>
+    <!-- end container -->
+  </body>
+</html>
+ 

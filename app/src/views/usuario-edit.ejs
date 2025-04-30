@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/partials/header2023_v1.css" />
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/modal.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+    <link rel="stylesheet" href="/styles/pages/usuario.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="module" src="/scripts/usuario-edit.js"></script>
+    
+  </head>
+
+  <!--<body id="page-usuario-edit">-->
+  <body>
+
+    <!--<e%- include('parts/page-header', { title: "Editar Usuário", back_link: "/usuario-index"}) %e>-->
+
+    <div class="container">
+
+      <div id="header">
+        <%- include('parts/header2023_v1', {
+          button_text:'Adicionar Novo Produto',
+          button_link:'produto'
+        }) %>
+      </div>
+
+      <main>
+        <!--<div class="container flex animate-up delay-2">-->
+        <div id="page-usuario-edit">
+            <form id="form-usuario"
+                  method="POST"
+                  action="/usuario/<%= usuario.id %> ">
+              <fieldset>
+                <legend class="titulo-fonte-akarui">Dados do Usuário</legend>
+                <div class="separator light"></div>
+
+                <div class="input-wrapper">
+                  <label for="nomeoficial">Nome Completo</label>
+                  <input 
+                    type="text" 
+                    id="nomeoficial" 
+                    name="nomeoficial"
+                    value= "<%= usuario.nomeoficial %>"
+                  />
+                </div>
+
+                <br>
+
+                <div class="input-wrapper">
+                  <label for="nome">Nome Fantasia</label>
+                  <input 
+                    type="text" 
+                    id="nome" 
+                    name="nome"
+                    value= "<%= usuario.nome %>"
+                  />
+                </div>
+
+                <br>
+
+                <div class="input-wrapper">
+                  <label for="celular">Celular</label>
+                  <input 
+                    type="text" 
+                    id="celular" 
+                    name="celular"
+                    value= "<%= usuario.celular %>"
+                  />
+                </div>
+
+                <br>
+
+                <div class="input-wrapper">
+                  <label for="descritivo">Informações para Pagamento (conta bancária, chave pix...)</label>
+                  <textarea
+                    id="descritivo" 
+                    name="descritivo"
+                    rows="5"
+                    cols="40"><%= usuario.descritivo %></textarea>
+                </div>
+
+                <div class="input-wrapper">
+                  <label for="email">Email?</label>
+                  <input
+                    type="text"
+                    id="email"
+                    name="email"
+                    value="<%= usuario.email %>"
+                  />
+                </div>
+
+                <br>
+
+                <div class="input-wrapper">
+                  <label for="cientepolitica">Política de Privacidade AKARUI e Termos de Uso? </label>
+                  <br>
+                  <input 
+                    type="checkbox"
+                    id="cienciapolitica" 
+                    name="cienciapolitica"
+                    value="cienciapolitica"
+                    <% if (usuario.cienciapolitica == "sim") { %>
+                      checked
+                    <% } %>/>
+                    <label for="cienciapolitica">
+                      Declaro que li e concordo com a política de privacidade AKARUI e termo de uso disponível 
+                      <a href="https://docs.google.com/document/d/1u69VUNkih50pM5IBT0ecp69JLR2SBIEc/" target="_blank">AQUI</a>.</label><br>
+                </div>
+
+                <br>
+
+                <div class="input-wrapper">
+                  <label for="perfil">Perfil de Acesso? </label>
+                  <br>
+                  <% arrayPerfil = [];
+                     arrayPerfil = usuario.perfil;
+                  %>
+                  <input 
+                    type="checkbox"
+                    id="fornecedor" 
+                    name="perfil"
+                    value="fornecedor"
+                    <% if (arrayPerfil("fornecedor") > -1){ %>
+                      checked
+                    <% } %>/>
+                    <label for="fornecedor">Fornecedor</label><br>
+                  <input 
+                    type="checkbox"
+                    id="consumidor" 
+                    name="perfil"
+                    value="consumidor"
+                    <% if (arrayPerfil("consumidor") > -1) { %>
+                      checked
+                    <% } %>/>
+                    <label for="consumidor">Consumidor</label><br>
+                  <input 
+                    type="checkbox"
+                    id="admin" 
+                    name="perfil"
+                    value="admin"
+                    <% if (arrayPerfil("admin") > -1) { %>
+                      checked
+                    <% } %>/>
+                    <label for="admin">Administrador</label><br>
+                </div>
+
+                <br>
+
+                <div class="input-wrapper">
+                  <label for="status">Situação? </label>
+                  <br>
+                  <input 
+                    type="radio"
+                    id="ativo" 
+                    name="status"
+                    value="ativo"
+                    <% if (usuario.status == "ativo") { %>
+                      checked
+                    <% } %>/>
+                    <label for="ativo">Ativo</label><br>
+                    <input 
+                    type="radio"
+                    id="inativo" 
+                    name="status"
+                    value="inativo"
+                    <% if (usuario.status == "inativo") { %>
+                      checked
+                    <% } %>/>
+                    <label for="inativo">Inativo</label><br>
+                </div>
+
+              </fieldset>
+    
+            </form>
+        </div>
+
+        <div>
+            <div class="button-group">
+              <button 
+                class="button green" 
+                form="form-usuario" 
+                type="submit" 
+                title="Salvar Dados">Salvar</button>
+              <a 
+                href="#" 
+                class="button gray open-modal"
+                >
+                <img 
+                  src="/images/trash-24.svg" 
+                  alt="Cancelar cadastro" 
+                  title="Cancelar cadastro">
+              </a>
+            </div>
+        </div>
+      </main>
+    </div>
+      <!--<aside class="card">
+        <img src="/images/usuario.svg" alt="Imagem de Pessoas">
+        <p>
+          
+        </p>
+        <div class="button-group">
+          <button 
+            class="button green" 
+            form="form-usuario" 
+            type="submit" 
+            title="Salvar Dados">Salvar</button>
+          <a 
+            href="#" 
+            class="button gray open-modal"
+            >
+            <img 
+              src="/images/trash-24.svg" 
+              alt="Cancelar cadastro" 
+              title="Cancelar cadastro">
+          </a>
+        </div>
+      </aside>-->
+      
+    </div>
+    <!-- end container -->
+
+    <div class="modal-wrapper">
+      <div class="modal">
+        <img src="/images/trash-48.svg" alt="Excluir Usuário" title="Excluir Usuário" />
+        <h3>Excluir Usuário</h3>
+        <p>Quer mesmo excluir esse usuário? <br/>
+        Ele será apagado para sempre.  
+        <p>
+        <footer>
+          <a 
+            class="button gray" 
+            href="#">Cancelar</a>
+          <button
+            class="button red"
+            type="submit"
+            form="delete-usuario">Excluir Usuário</button>
+        </footer>
+      </div>
+      <form 
+        method="post" 
+        action="/usuario/delete/<%= usuario.id %> " 
+        id="delete-usuario"></form>
+    </div>
+    <!-- end modal-wrapper -->
+  </body>
+</html>
+ 
