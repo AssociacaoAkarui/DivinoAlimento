@@ -6,7 +6,7 @@ Uma plataforma criada a luz iniciativa do Divino Alimento, que é contada com ma
 
 Hoje apoiada pela chamada do [Mover-se na web](https://moverse.ceweb.br/), com os objetivos de deixar a ferramenta em código livre e compartilhado e a aproximação de mais coletivos para uso da ferramenta por meio do trabalho de articulação local e regional.
 
-O [programa atual](https://divinoalimento.herokuapp.com/) foi desenvolvido por Carmen Freitas em diálogo com Juliana Farinaci e se somam mais pessoas ao processo na fase atual,  ligadas a [Tekoporã](https://tekopora.top/), Alejandro González, Alejandro Ayala e Nádia Coelho Pontes e a [Akarui](https://www.akarui.org.br/), Ana Laura Carrilli, Damaris Chaves, Daniela Coura e Sofia Kraja.
+O [programa atual](https://divinoalimento.herokuapp.com/) foi desenvolvido por Carmen Freitas em diálogo com Juliana Farinaci e se somam mais pessoas ao processo na fase atual, ligadas a [Tekoporã](https://tekopora.top/), Alejandro González, Alejandro Ayala e Nádia Coelho Pontes e a [Akarui](https://www.akarui.org.br/), Ana Laura Carrilli, Damaris Chaves, Daniela Coura e Sofia Kraja.
 
 Para utilizar esse programa precisamos clonar o repositório em um lugar do computador de seu conhecimento. Para tanto sugerimos o uso do terminal, e utilizamos o código abaixo.
 
