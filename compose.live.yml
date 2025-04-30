@@ -1,0 +1,49 @@
+services:
+  db.dev:
+    image: postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    networks:
+      - network_name
+    env_file:
+      - .env
+    volumes:
+      - ./sql_populate.sql:/opt/sql_populate.sql
+  mock-oauth2-server:
+    image: ghcr.io/navikt/mock-oauth2-server:2.1.10
+    networks:
+      - network_name
+    ports:
+      - "${AUTH_PORT:-8080}:${AUTH_PORT:-8080}"
+    environment:
+      LOG_LEVEL: "debug"
+      SERVER_PORT: "${AUTH_PORT:-8080}"
+      JSON_CONFIG_PATH: /app/config.json
+    volumes:
+      - ./mock-oauth2-server/src/test/resources/config.json:/app/config.json
+      - ./login.example.html:/app/login/login.example.html
+      - ./mock-oauth2-server/src/test/resources/static/:/app/static/
+    env_file:
+      - .env
+  app.dev:
+    image: node:14
+    working_dir: /app
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+      - "${API_PORT:-5000}:${API_PORT:-5000}"
+    volumes:
+      - ./DivinoAlimento2021a2024:/app
+    depends_on:
+      - db.dev
+    command: /bin/bash -c "npm install && npx sequelize db:migrate && npm run dev"
+    env_file:
+      - .env
+    networks:
+      - network_name
+
+
+networks:
+  network_name:
+    driver: bridge
