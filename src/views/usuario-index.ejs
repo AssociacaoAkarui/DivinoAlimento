@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/partials/header2023_v1.css" />
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/index-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/modal.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+    <link rel="stylesheet" href="/styles/pages/index-usuario.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="scripts/index-usuario.js" defer type="module"></script>
+
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      $(document).ready(function(){
+        $("#search-produto").on("keyup", function() {
+          var value = replaceSpecialChars($(this).val().toLowerCase())
+          $(".cards span.card_usuario").filter(function() {
+            var value2 = replaceSpecialChars($(this).text().toLowerCase())
+            $(this).toggle(value2.indexOf(value) > -1)
+          });
+        });
+      });
+  
+      function replaceSpecialChars(str)	{
+        if (!str) return ''
+        str = str.toString()
+        str = str.replace(/[aáàãäâ]/,'a')
+        str = str.replace(/[eéèëê]/,'e')
+        str = str.replace(/[iíìïî]/,'i')
+        str = str.replace(/[oóòõöô]/,'o')
+        str = str.replace(/[uúùüû]/,'u')
+        str = str.replace(/[ç]/,"c")
+        return str 
+      }
+    </script>
+
+
+  </head>
+
+  <!--<body id="page-index">
+
+    <e%- include('parts/index-header', {
+      button_text:'Adicionar Novo Usuário',
+      button_link:'usuario'
+      }) %e> -->
+
+  <body>
+
+    <div class="container">
+    
+        <div id="page-index-usuario">
+    
+              <%- include('parts/header2023_v1', {
+                button_text:'Adicionar Novo Produto',
+                button_link:'produto'
+              }) %>
+
+          <div id="container-pesquisa" class="fixed-top">
+
+              <div id="pesquisa" class="fixo">
+                  <h5>
+                    Produtos
+                  </h5> 
+                  <input class="form-control" id="search-produto" type="text" placeholder="Nome do produto..">
+              </div>
+
+              <div id="filtros"> 
+                <span>
+                  Filtros
+                </span>
+                <span>
+                  <% if (view == "all") { %>
+                      <a href="/usuario-index/" class="button-filtro" role="button">Ver só ativos</a>
+                  <% } else { %>
+                      <a href="/usuario-index?view=all" class="button-filtro" role="button">Ver todos</a>
+                  <% } %>
+                </span>
+              </div>
+          </div>
+
+        </div>
+
+      <!--<div class="container">-->
+      <main class="animate-up delay-2">
+        <h1 class="sr-only">Usuários</h1>
+
+        <div class="cards">
+
+          <% i = 0
+             usuarios.forEach((usuario) => {
+               i += 1 %>
+           
+            <span class="card_usuario">
+                <div class="card <%= usuario.status %> " data-id="<%= usuario.id %> ">
+                  <div class="id column"><%= i %> </div>
+                  <div class="name column">
+                    <%= usuario.nome %> 
+                  </div>
+                  <div class="deadline column">
+                    <span>Email</span>
+                    <p> <%= usuario.email %> </p>
+                  </div>
+                  <div class="amount column">
+                    <span></span>
+                    <p></p>
+                  </div>
+                  <div class="status badge column">
+                    <%= usuario.status === 'inativo' ? 'Inativo' : 'Ativo' %> 
+                  </div>
+                  <div class="actions column flex">
+                    <p class="sr-only">Ações</p>
+                    <a 
+                      href="/usuario/<%= usuario.id %> " 
+                      class="button white edit" 
+                      title="Editar Usuário">
+                      <img src="/images/edit-24.svg" alt="Editar Usuário" />
+                    </a>
+                    <button class="delete button white" title="Excluir Usuário">
+                      <img src="/images/trash-24.svg" alt="Excluir Usuário" />
+                    </button>
+                  </div>
+                </div>
+            </span>
+            <!-- end card -->
+
+          <% }) %>
+      </main>
+    </div>
+    <!-- end container -->
+
+    <div class="modal-wrapper">
+      <div class="modal">
+        <img src="/images/trash-48.svg" alt="Excluir Usuário" title="Excluir Usuário" />
+        <h3>Excluir Usuário</h3>
+        <p>Quer mesmo excluir esse usuário? <br/>
+        Ele será apagado para sempre.  
+        <p>
+        <footer>
+          <a 
+            class="button gray" 
+            href="#">Cancelar</a>
+          <button
+            class="button red"
+            type="submit"
+            form="delete-usuario">Excluir Usuário</button>
+        </footer>
+      </div>
+      <form 
+        method="post" 
+        action="/usuario/delete" 
+        id="delete-usuario"></form>
+    </div>
+    <!-- end modal-wrapper -->
+  </body>
+</html>

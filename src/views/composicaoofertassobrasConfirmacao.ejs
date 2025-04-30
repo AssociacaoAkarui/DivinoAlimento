@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/header.css" />
+    <link rel="stylesheet" href="/styles/partials/index-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/modal.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- links bootstrap -->
+    <!--<link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>-->
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+    <link rel="stylesheet" href="/styles/pages/pedidoConsumidores.css" />
+
+    <script>
+      $(document).ready(function(){
+        $("#searchUsuario").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          value = replaceSpecialChars(value)
+          $(".dropdown-menu li").filter(function() {
+            var value2 = replaceSpecialChars($(this).text().toLowerCase())
+            $(this).toggle(value2.indexOf(value) > -1)
+          });
+        });
+      });
+    </script>
+
+  <script>
+    $(document).ready(function(){
+      $("#searchProduto").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        value = replaceSpecialChars(value)
+        $("#principal section.product").filter(function() {
+          //$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+          //var value2 = $(this).text().toLowerCase()
+          //value2 = replaceSpecialChars(value2)
+          var value2 = replaceSpecialChars($(this).text().toLowerCase())
+          $(this).toggle(value2.indexOf(value) > -1)
+        });
+      });
+    });
+
+    function replaceSpecialChars(str)	{
+      if (!str) return ''
+      str = str.toString()
+      str = str.replace(/[aáàãäâ]/,'a')
+      str = str.replace(/[eéèëê]/,'e')
+      str = str.replace(/[iíìïî]/,'i')
+      str = str.replace(/[oóòõöô]/,'o')
+      str = str.replace(/[uúùüû]/,'u')
+      str = str.replace(/[ç]/,"c")
+      return str 
+    }
+  </script>
+
+
+  </head>
+  <body id="page-composicaoofertassobrasConfirmacao">
+
+   
+    <%- include('parts/header', {
+      button_text:'vazio',
+      button_link:''
+      }) %>
+
+
+  <!--<div class="container flex animate-up delay-2">-->
+  <div class="container">
+      <main>
+
+
+        <div class="info_ciclo">
+          <h2>CICLO&nbsp<%= ciclo.nome %></h2>
+            <p>Período programado para pedido extra:</p><%
+                if (ciclo.itensAdicionaisInicio) { %>
+                    <%=
+                      ciclo.itensAdicionaisInicio.toISOString().substr(8,2)%>/<%=
+                      ciclo.itensAdicionaisInicio.toISOString().substr(5,2)%>/<%=
+                      ciclo.itensAdicionaisInicio.toISOString().substr(0,4)%>&nbsp<%=
+                      ciclo.itensAdicionaisInicio.toISOString().substr(11,5)%>
+                <% } %>&nbsp;à
+                </p><p><%
+                if (ciclo.itensAdicionaisFim) { %>
+                    <%=
+                      ciclo.itensAdicionaisFim.toISOString().substr(8,2)%>/<%=
+                      ciclo.itensAdicionaisFim.toISOString().substr(5,2)%>/<%=
+                      ciclo.itensAdicionaisFim.toISOString().substr(0,4)%>&nbsp<%=
+                      ciclo.itensAdicionaisFim.toISOString().substr(11,5)%>
+                    <% } %>
+                </p>
+          </p>
+          <br>
+        </div>
+
+
+        <form id="form-listaExtraConfirmacao"
+          method="POST"
+          action="/composicao/<%=ciclo.id%>?cst=<%= cicloCestaSel.id %>" >
+
+          <div class="secao_selecao">
+              <legend>Liberação da Lista de Ofertas Extras</legend>
+
+              <h5>A liberação das ofertas extras só deve ser realizada após a finalização da composição de todas as cestas do ciclo.</h5>
+              <h5>Confirma?</h5>
+
+              <input 
+                  type="hidden"
+                  id= "composicaoId"
+                  name= "composicaoId"
+                  value="<%= composicao.id %>"
+              />
+              <input 
+                  type="hidden"
+                  id= "cicloId"
+                  name= "cicloId"
+                  value="<%= ciclo.id %>"
+              />
+              <input 
+                  type="hidden"
+                  id= "cicloCestaId"
+                  name= "cicloCestaId"
+                  value="<%= cicloCestaSel.id %>"
+              />
+
+              <input 
+                  type="hidden"
+                  id= "gerarAutomaticoSobra"
+                  name= "gerarAutomaticoSobra"
+                  value="SIM"
+              />
+              
+      
+          </div>
+        
+          <div class="pesquisa">  
+              
+              <div class="container_salvar">
+                      <button class="buy--btn"
+                                    form="form-listaExtraConfirmacao"
+                                    type="submitSalvar" 
+                                    title="Gerar Pedido Extra"
+                                    name="gerarPedidoExtra">
+                                    SIM. Gerar Lista de Ofertas  Extras</button>
+                      <button class="buy--btn"
+                                    form="form-listaExtraConfirmacao"
+                                    type="submitSalvar" 
+                                    title="Direcionar Composição"
+                                    name="direcionarComposicao">
+                                    NÃO. Direcionar para Tela de Composição</button>
+                      
+              </div>
+
+          </div>
+  
+        </form>
+      </main>
+ 
+  </div><!-- end container -->
+
+  </body>
+</html>
+ 

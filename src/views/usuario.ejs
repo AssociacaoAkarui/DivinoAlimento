@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+    <link rel="stylesheet" href="/styles/pages/usuario.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    
+  </head>
+  <body id="page-usuario">
+
+    <%- include('parts/page-header', { title: "Adicionar Novo Usuário", back_link: "/usuario-index"}) %> 
+
+    <div class="container flex animate-up delay-2">
+      <main>
+        <form id="form-usuario"
+          method="POST"
+          action="/usuario" >
+          <fieldset>
+            <legend>Dados do Usuário</legend>
+            <div class="separator light"></div>
+
+            <div class="input-wrapper">
+              <label for="nome">Nome do Usuário?</label>
+              <input type="text" id="nome" name="nome" />
+            </div>
+            <br>
+            <!--<br>
+            <div class="input-wrapper">
+              <label for="linkFoto">Url de foto para perfil?</label>
+              <input 
+                placeholder="https://"
+                type="url" 
+                id="urlFoto" 
+                name="urlFoto"
+              />
+            </div>-->
+
+            <br>
+            <div class="input-wrapper">
+              <label for="email">Email?</label>
+              <input
+                type="text"
+                id="email"
+                name="email"
+              />
+            </div>
+            
+            <br>
+            <div class="input-wrapper">
+              <label for="status">Situação? </label>
+              <br>
+              <input 
+                type="radio"
+                id="ativo" 
+                name="status"
+                value="ativo"/>
+                <label for="ativo">Ativo</label><br>
+                <input 
+                type="radio"
+                id="inativo" 
+                name="status"
+                value="inativo"/>
+                <label for="inativo">Inativo</label><br>
+            </div>
+
+          </fieldset>
+    
+        </form>
+      </main>
+      <aside class="card">
+        <img src="/images/usuario.svg" alt="Imagem de Pessoas">
+        <p>
+          
+        </p>
+        <div class="button-group">
+          <button 
+            class="button green" 
+            form="form-usuario" 
+            type="submit" 
+            title="Salvar Dados">Salvar</button>
+          <a 
+            href="/usuario-index" 
+            class="button gray">
+            <img 
+              src="/images/trash-24.svg" 
+              alt="Cancelar cadastro" 
+              title="Cancelar cadastro">
+          </a>
+        </div>
+      </aside>
+      
+    </div>
+    <!-- end container -->
+  </body>
+</html>
+ 

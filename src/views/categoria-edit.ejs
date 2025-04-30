@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/modal.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+    <link rel="stylesheet" href="/styles/pages/categoria.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="module" src="/scripts/categoria-edit.js"></script>
+    
+  </head>
+  <body id="page-categoria-edit">
+
+    <%- include('parts/page-header', { title: "Editar Categoria", back_link: "/categoria-index"}) %> 
+
+    <div class="container flex animate-up delay-2">
+        <form id="form-categoria"
+        method="POST"
+        action="/categoria/<%= categoria.id %> ">
+          <fieldset>
+            <legend>Dados da Categoria</legend>
+            <div class="separator light"></div>
+
+            <div class="input-wrapper">
+              <label for="nome">Nome do Tipo de Categoria</label>
+              <input 
+                type="text" 
+                id="nome" 
+                name="nome"
+                value= "<%= categoria.nome %>"
+              />
+            </div>
+
+            <br>
+            <div class="input-wrapper">
+              <label for="status">Situação? </label>
+              <br>
+              <input 
+                type="radio"
+                id="ativo" 
+                name="status"
+                value="ativo"
+                <% if (categoria.status == "ativo") { %>
+                  checked
+                <% } %>/>
+                <label for="ativo">Ativo</label><br>
+                <input 
+                type="radio"
+                id="inativo" 
+                name="status"
+                value="inativo"
+                <% if (categoria.status == "inativo") { %>
+                  checked
+                <% } %>/>
+                <label for="inativo">Inativo</label><br>
+            </div>
+          </fieldset>
+    
+        </form>
+      </main>
+      <aside class="card">
+        <img src="/images/cesta.svg" alt="Imagem de Categoria">
+        <p>
+          
+        </p>
+        <div class="button-group">
+          <button 
+            class="button green" 
+            form="form-categoria" 
+            type="submit" 
+            title="Salvar Dados">Salvar</button>
+          <a 
+            href="#" 
+            class="button gray open-modal"
+            >
+            <img 
+              src="/images/trash-24.svg" 
+              alt="Cancelar cadastro" 
+              title="Cancelar cadastro">
+          </a>
+        </div>
+      </aside>
+      
+    </div>
+    <!-- end container -->
+
+    <div class="modal-wrapper">
+      <div class="modal">
+        <img src="/images/trash-48.svg" alt="Excluir Categoria" title="Excluir Categoria" />
+        <h3>Excluir Categoria</h3>
+        <p>Quer mesmo excluir esse tipo de categoria? <br/>
+        Ele será apagado para sempre.  
+        <p>
+        <footer>
+          <a 
+            class="button gray" 
+            href="#">Cancelar</a>
+          <button
+            class="button red"
+            type="submit"
+            form="delete-categoria">Excluir Categoria</button>
+        </footer>
+      </div>
+      <form 
+        method="post" 
+        action="/categoria/delete/<%= categoria.id %> " 
+        id="delete-categoria"></form>
+    </div>
+    <!-- end modal-wrapper -->
+  </body>
+</html>
+ 

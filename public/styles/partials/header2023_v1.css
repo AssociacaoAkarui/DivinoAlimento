@@ -1,0 +1,101 @@
+#container-header {
+  /* Auto layout */
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 30px;
+  gap: 10px;
+
+  width: min(100vw);
+  height: 70px;
+
+  /* orange/50 */
+  background: #E57021;
+
+  /* Inside auto layout */
+  flex: none;
+  order: 0;
+  align-self: stretch;
+  flex-grow: 0;
+
+}
+
+#header-logo img {
+  width: 183.56px;
+  height: 57.33px;
+
+  /* Inside auto layout */
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+}
+
+  
+  /* 
+   * avatar
+  /* -------------------------------------------------- */
+  /*#avatar-profile {
+    display: flex;
+    align-items: center;
+    color: var(--color-white);
+    text-decoration: none;
+  
+    font-family: IBM Plex Sans;
+    text-align: right;
+
+  
+}*/
+
+#usuario_identificacao img {
+    /* Ellipse 2 */
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    /*border: 0.156rem solid #F1972C;*/
+
+    /* Inside auto layout */
+    flex: none;
+    order: 1;
+    flex-grow: 0;
+}
+  
+  #avatar-profile p {
+    font-size: 1.25rem; /* 20px of 16px root*/
+    line-height: 1.875rem; /*30px of 16px root*/
+    margin-right: 1.25rem;
+  
+    font-weight: 600;
+  }
+  
+  #avatar-profile span {
+    display: block;
+  
+    font-weight: normal;
+    font-size: 0.875rem; /* 14px of 16px root*/
+    line-height: 1.5rem; /* 24px of 16px root*/
+  
+    font-weight: 400;
+  }
+  
+  #avatar-profile p span:hover {
+    text-decoration: underline;
+    color:var(--color-secondary-hover);
+  }
+  
+  /*#avatar-profile img {
+    width: 4rem; /* 64px of 16px root*e/
+    height: 4rem; /* 64px of 16px root*e/
+    border-radius: 50%;
+    border: 0.156rem solid #F1972C; /* 2.5px of 16px root*e/
+  }*/
+  
+  @media(max-width: 1024px) {
+
+    #container-header {
+      width: min(100vw);
+      padding: 0px 10px;
+    }
+    
+    
+  }
