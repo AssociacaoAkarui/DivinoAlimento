@@ -10,7 +10,6 @@ module.exports = {
         cestas = await db.Cesta.findAll({
             raw: true,
             where: {
-                status: 'ativo',
                 id: {
                     [Op.not]: [1, 5]
                 }
@@ -64,7 +63,7 @@ module.exports = {
                     id: 1,
                     nome: 'Itens Adicionais Oferta',
                     valormaximo: 1,
-                    status: 'inativo'
+                    status: 'ativo'
                   });
             }
         } catch (error) {
@@ -87,7 +86,7 @@ module.exports = {
                     id: 5,
                     nome: 'Pedidos Adicionais',
                     valormaximo: 1,
-                    status: 'inativo'
+                    status: 'ativo'
                   });
             }
         } catch (error) {

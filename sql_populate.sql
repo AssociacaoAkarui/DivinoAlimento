@@ -14,12 +14,6 @@ delete from "Ciclos";
 
 delete from "Oferta";
 
--- Inserir cestas de uso interno do sistema, necessárias para o funcionamento da composição e oferta de itens extras.
-
-insert into "Cesta" (id, nome, valormaximo, status,"createdAt", "updatedAt") values (1, 'Itens Adicionais Oferta', 1, 'inativo',CURRENT_DATE, CURRENT_DATE);
-
-insert into "Cesta" (id, nome, valormaximo, status,"createdAt", "updatedAt") values (5, 'Pedidos Adicionais', 1, 'inativo',CURRENT_DATE, CURRENT_DATE);
-
 -- Inserir cestas padrões, necessárias para emissão dos relatórios específicos (relatórios existentes não possuem tela de seleção de cestas e estão fixos para estas cestas)
 
 insert into "Cesta" (id, nome, valormaximo, status,"createdAt", "updatedAt") values (2, 'Divino Alimento', 20, 'ativo',CURRENT_DATE, CURRENT_DATE);

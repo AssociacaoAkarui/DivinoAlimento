@@ -13,6 +13,12 @@ module.exports = {
     async showCreateEdit(req, res) {
 
         const cicloId = req.params.id
+        
+        // inserir verificacao da existência das cestas 1 e 5 e caso não exista criar estas linhas no banco
+
+        Cesta.verificaCriaCestasInternas();
+
+
 
         let gerarAutomaticoSobra = 'NAO'
         if (req.body.gerarAutomaticoSobra) {

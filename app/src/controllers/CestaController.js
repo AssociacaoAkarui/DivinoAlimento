@@ -4,10 +4,6 @@ const Profile = require('../model/Profile')
 module.exports = {
     create(req, res) {
 
-        // inserir verificacao da existência das cestas 1 e 5 e caso não exista criar estas linhas no banco
-
-        Cesta.verificaCriaCestasInternas();
-
         return res.render("cesta")
     },
 
