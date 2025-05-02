@@ -63,14 +63,20 @@ module.exports = {
         }
 
 
+       
         oferta = await Oferta.findOrCreate({
                         cicloId: cicloId,
                         usuarioId: usuarioId
-                   })
+                })
+        
+        if (oferta == 'error') {
+            return res.send('Ciclo/Oferta não existem!')
+        }
 
         const dadosCiclo = await Ciclo.getCicloId(cicloId)
         ciclo = dadosCiclo.ciclo[0]
 
+        
         produtosOferta = await Oferta.getProdutosPorOferta({
                                 ofertaId: oferta.id
                         })
@@ -79,7 +85,9 @@ module.exports = {
 
         //const produtosAtivos = await Produto.getProdutosAtivos();
 
+        
         const produtosAtivos = await Oferta.getProdutosMaisOfertadosPorFornecedor(usuarioId); 
+        
 
         let produtosOfertaDados = []
 

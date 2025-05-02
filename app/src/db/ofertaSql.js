@@ -83,16 +83,19 @@ module.exports = {
                 } 
              })
             .then(result => (ofertaResult = result))
+
         } catch (error) {
             console.log("ERRO_SISTEMA: erro na criacao ou localizacao da oferta")
+            return 'error'
         }
-      
+
         let oferta = []
+
         if (ofertaResult[0]) {
             oferta = ofertaResult[0]
         }
         
-          return oferta
+        return oferta
     },
 
     async findOrCreateProduto (ofertaProduto) {
