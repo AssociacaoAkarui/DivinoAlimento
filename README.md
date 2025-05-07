@@ -1,5 +1,7 @@
 # Plataforma do Divino Alimento
 
+![image](https://github.com/user-attachments/assets/5a3a8afb-111c-416c-a4fe-31af7911ef65)
+
 A plataforma do Divino Alimento facilita o fluxo de informação de vendas alimentos produzido por diversos agricultores, para diversos compradores por meio de ciclos de entrega de cestas e lista extra de produtos para o varejo.
 
 Uma plataforma criada a luz iniciativa do Divino Alimento, que é contada com mais detalhes no site da [Akarui](https://www.akarui.org.br/divinoalimento).
