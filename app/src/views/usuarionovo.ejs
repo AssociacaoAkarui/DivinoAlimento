@@ -84,7 +84,25 @@
                   name="perfil"
                   value="consumidor"/>
                   <label for="consumidor">Consumidor</label><br>
-              </div>
+                  <% if (!haUsuarios) { %>
+                    <input 
+                    type="checkbox"
+                    id="adminDesabilitado" 
+                    name="perfil"
+                    value="admin"
+                    checked
+                    disabled/>
+                    <label for="admin">Administrador (primeiro usuário deve ser administrador)</label><br>
+                    <input 
+                    type="hidden"
+                    id="admin" 
+                    name="perfil"
+                    value="admin"
+                    checked/>
+                  <% } %>
+                </div>
+
+
               <!--<div class="form-check" id="perfil" name="perfil">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
                 <label class="form-check-label" for="flexCheckDefault">

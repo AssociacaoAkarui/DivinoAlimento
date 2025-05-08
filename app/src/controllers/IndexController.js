@@ -13,6 +13,15 @@ module.exports = {
         usuarioAtivo = []
         user = req.oidc.user
         let controleUsuario = ""
+
+        let haUsuarios = true;
+
+        const usuarios = await Usuario.get();
+             
+        if (usuarios.length === 0) {
+            haUsuarios = false;
+        }
+
         if (user) {
             
             // Já é usuário cadastrado na base do sistema
@@ -42,6 +51,8 @@ module.exports = {
                     name: user.name,
                     email_verified: user.email_verified
                 })
+
+                
                 
             }  
 
@@ -129,7 +140,7 @@ module.exports = {
                 return res.render('index',{ciclos: ciclosAtivos, usuarioAtivo: usuarioAtivo[0]})
             }
             else {
-                return res.render('usuarionovo',{usuarioAtivo: usuarioAtivo[0]})
+                return res.render('usuarionovo',{usuarioAtivo: usuarioAtivo[0], haUsuarios: haUsuarios})
             }  
         }
         else {
