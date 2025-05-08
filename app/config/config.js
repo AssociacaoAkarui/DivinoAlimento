@@ -6,6 +6,13 @@ module.exports = {
     "host": process.env.DB_HOST || "db.dev",
     "dialect": "postgres"
   },
+  "production": {
+    "username": process.env.POSTGRES_USER,
+    "password": process.env.POSTGRES_PASSWORD,
+    "database": process.env.POSTGRES_DB,
+    "host": process.env.DB_HOST || "db.dev",
+    "dialect": "postgres"
+  },
   "test": {
     "username": "root",
     "password": null,
@@ -13,18 +20,4 @@ module.exports = {
     "host": "localhost",
     "dialect": "postgres"
   },
-  "production": {
-    "username": "carmen",
-    "password": "ztm14crm",
-    "database": "d4evh79fho3fnq",
-    "host": "localhost",
-    "dialect": "postgres",
-    "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
-      }
-    },
-    "use_env_variable": "DATABASE_URL"
-  }
 }
