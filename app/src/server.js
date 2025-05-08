@@ -53,30 +53,6 @@ server.use('/js', express.static('node_modules/jquery/dist'))
 // Auth
 const { auth } = require('express-openid-connect');
 
-// producao
-/*const config = {
-  authRequired: false,
-  auth0Logout: true,
-  secret: 'a long, randomly-generated string stored in env',
-  baseURL: 'https://divinoalimento.herokuapp.com/',
-  clientID: 'rgoQA3D5j8QnxDYo3Q0peiuTBq5u7nyj',
-  issuerBaseURL: 'https://ancient-cell-2834.us.auth0.com'
-};
-*/
-
-
-/*
-// staging
-const config = {
-  authRequired: false,
-  auth0Logout: true,
-  secret: 'a long, randomly-generated string stored in env',
-  baseURL: 'https://divinoalimento-staging-1-1.herokuapp.com',
-  clientID: 'cFKpu29uPIIIgUTDoTZ03eQbzp9EwOh0',
-  issuerBaseURL: 'https://ancient-cell-2834.us.auth0.com'
-};
-*/
-
 function init_server(config){
   server.use(auth(config));
   server.use(function (req, res, next) {
@@ -136,9 +112,9 @@ if (process.env.NODE_ENV === 'production') {
     authRequired: false,
     auth0Logout: true,
     secret: 'a long, randomly-generated string stored in env',
-    baseURL: ${baseUrl},
-    clientID: ${clientID},
-    issuerBaseURL: ${issuerBaseURL}
+    baseURL: `${protocol}://${baseUrl}`,
+    clientID: clientID,
+    issuerBaseURL: issueBaseURL
   };
 
   init_server(config)
