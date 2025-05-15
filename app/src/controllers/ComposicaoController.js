@@ -16,9 +16,13 @@ module.exports = {
         
         // inserir verificacao da existência das cestas 1 e 5 e caso não exista criar estas linhas no banco
 
+        const dadosCiclo = await Ciclo.getCicloId(cicloId)
+
+        if (dadosCiclo == 'error') {
+            return res.send('Ciclo não existe!')
+        }  
+        
         Cesta.verificaCriaCestasInternas();
-
-
 
         let gerarAutomaticoSobra = 'NAO'
         if (req.body.gerarAutomaticoSobra) {
@@ -40,8 +44,7 @@ module.exports = {
         }
         else
         {
-                
-                const dadosCiclo = await Ciclo.getCicloId(cicloId)
+
                 ciclo = dadosCiclo.ciclo[0]
 
                         const cicloCestas = dadosCiclo.cicloCestas
@@ -117,6 +120,10 @@ module.exports = {
                         composicao = await Composicao.findOrCreate({
                                         cicloCestaId: cicloCestaSelId
                                 })
+
+                        if (composicao == 'error') {
+                            return res.send('Tipo de cesta não existe para este ciclo!')
+                        } 
                         
                         let arrayComposicoes = []
                         cicloComposicoes.forEach(cicloComposicao => {

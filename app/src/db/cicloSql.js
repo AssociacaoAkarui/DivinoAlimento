@@ -151,14 +151,20 @@ module.exports = {
 
     async getCicloPorId(cicloId) {
 
-        let ciclo = []    
-                
+        let ciclo = [] 
+        
+        
         ciclo = await db.Ciclo.findAll({
             raw: true,
             where: {
                 id: cicloId
             } 
-          });
+        });
+
+        if (ciclo.length === 0) {
+            console.log("ERRO_SISTEMA: Ciclo não existe")
+            return 'error'
+        }
 
         cicloCestas = await db.CicloCestas.findAll({
             raw: true,

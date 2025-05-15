@@ -179,17 +179,23 @@ module.exports = {
 
         let composicaoResult = []
 
-        const results = await db.Composicoes.findOrCreate({
-                            raw: true,
-                            where: {
-                                cicloCestaId: composicaoCicloCestaId.cicloCestaId
-                            } 
-                         })
-          .then(result => (composicaoResult = result))
 
-          const composicao = composicaoResult[0]
+        try {
+                const results = await db.Composicoes.findOrCreate({
+                                    raw: true,
+                                    where: {
+                                        cicloCestaId: composicaoCicloCestaId.cicloCestaId
+                                    } 
+                                })
+                .then(result => (composicaoResult = result))
+        } catch (error) {
+            console.log("ERRO_SISTEMA: erro na criacao ou localizacao da composicao")
+            return 'error'
+        }
 
-          return composicao
+        const composicao = composicaoResult[0]
+
+        return composicao
     },
 
     async findOrCreateComposicaoProduto (composicaoProduto) {
