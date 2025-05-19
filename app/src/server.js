@@ -117,6 +117,6 @@ if (process.env.NODE_ENV === 'production') {
     issuerBaseURL: issueBaseURL
   };
 
-  init_server(config)
+init_server(config)
 
 }
