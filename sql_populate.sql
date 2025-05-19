@@ -1,5 +1,3 @@
-INSERT INTO "Usuarios" (nome, email, status, perfil, "createdAt", "updatedAt")VALUES ('admin', 'email@email.email', 'ativo', '{admin}', now(), now());
-
 insert into "CategoriaProdutos" (id,nome,status,"createdAt", "updatedAt") values (1, 'fruta', 'ativo', CURRENT_DATE, CURRENT_DATE);
 
 insert into "CategoriaProdutos" (id,nome,status,"createdAt", "updatedAt") values (2, 'verduras', 'ativo', CURRENT_DATE, CURRENT_DATE);

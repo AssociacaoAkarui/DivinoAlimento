@@ -11,6 +11,9 @@ module.exports = {
         const pontosEntrega = await PontoEntrega.get();
         const tiposCesta = await Cesta.getCestasAtivas();
 
+        // inserir verificacao da existência das cestas 1 e 5 e caso não exista criar estas linhas no banco
+        Cesta.verificaCriaCestasInternas();
+
         return res.render("ciclo", { pontosEntrega: pontosEntrega, tiposCesta: tiposCesta })
     },
 
