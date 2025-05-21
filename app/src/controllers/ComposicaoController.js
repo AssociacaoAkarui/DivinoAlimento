@@ -595,6 +595,11 @@ module.exports = {
         const cicloId = req.params.id
 
         const dadosCiclo = await Ciclo.getCicloId(cicloId)
+
+        if (dadosCiclo == 'error') {
+            return res.send('Ciclo não existe!')
+        }
+        
         ciclo = dadosCiclo.ciclo[0]
 
         const cicloCestas = dadosCiclo.cicloCestas
