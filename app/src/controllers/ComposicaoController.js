@@ -617,7 +617,8 @@ module.exports = {
         });
 
 
-        if (req.query.cst) {
+// comentado pois parece que se trata de código antigo, sem utilidadee que está dando erro
+        /*if (req.query.cst) {
             cicloCestaSelId = req.query.cst   
 
             cicloCestaSel = cicloCestasDados.find(cicloCestaDado => Number(cicloCestaDado.id) == Number(cicloCestaSelId))
@@ -641,7 +642,7 @@ module.exports = {
             if (cicloComposicao.id != composicao.id) {
                 arrayComposicoes.push(cicloComposicao.id)
             }
-        });
+        });*/
           
         const produtos = await Produto.get();
         const usuarios = await Usuario.get();
@@ -715,15 +716,17 @@ module.exports = {
             //totalValorCesta = (totalValorCesta + quantPedidoFornecedor*produtoDados.valorReferencia)
             //totalItensCesta = (totalItensCesta + quantPedidoFornecedor)
 
-            // TEMP - PARA MIGRACAO - pedidos tabela fornecedores        
+            // comentado pois parece que se trata de código antigo, sem utilidadee que está dando erro
+            /*// TEMP - PARA MIGRACAO - pedidos tabela fornecedores        
               quantPedidoOld = await Composicao.getPedidoFornecedores({
                 id: cicloOfertaProduto.id
               })
-            // fim do temporario
+            // fim do temporario*/
 
             if (produtoDados.id != produtoCorrente.id) {
                 
-                // ANTIGO - SERA EXCLUIDO POS MIGRACAO BEGIN - calculo da quantidade de produtos, por produto, que precisa ser pedido aos fornecedores
+                // comentado pois parece que se trata de código antigo, sem utilidadee que está dando erro
+                /*// ANTIGO - SERA EXCLUIDO POS MIGRACAO BEGIN - calculo da quantidade de produtos, por produto, que precisa ser pedido aos fornecedores
                     quantidadeProdutoComposicaoOld = await Composicao.getQuantidadeProdutosComposicaoOld({
                         arrayComposicoes: arrayComposicoes,
                         produtoId: produtoDados.id
@@ -732,7 +735,7 @@ module.exports = {
                     quantidadeParaPedir = 0
                     if (quantidadeProdutoComposicaoOld[0]) {
                         quantidadeParaPedir = Number(quantidadeProdutoComposicaoOld[0].SumQuantidade)
-                    }
+                    }*/
                 
                 produtoCorrente.id = produtoDados.id
 
@@ -770,7 +773,8 @@ module.exports = {
                 medida: cicloOfertaProduto.medida,
                 valorReferencia: cicloOfertaProduto.valorReferencia,
                 quantidadeOfertados: quantidadeOfertados,
-                quantidadePedido: quantPedidoOld,
+                // comentado pois parece que se trata de código antigo, sem utilidadee que está dando erro
+                /*quantidadePedido: quantPedidoOld,*/
                 //quantidade: quantPedidoFornecedor,
                 fornecedor: usuarioDados.nome,
                 valorTotalPedidoAcumulado: valorTotalPedidoAcumulado,
