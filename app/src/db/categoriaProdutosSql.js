@@ -15,14 +15,14 @@ module.exports = {
     },
 
     async insertNewCategoria (newCategoria) {
-        await db.Categoria.create({
+        await db.CategoriaProdutos.create({
             nome: newCategoria.nome,
             status: newCategoria.status
             });
     },
     
     async updateCategoria (categoria) {
-        await db.Categoria.update({
+        await db.CategoriaProdutos.update({
             nome: categoria.nome,
             status: categoria.status
             }, {
@@ -36,7 +36,7 @@ module.exports = {
 
             // TODO: checar antes de apagar se categoria está sendo utilizada
 
-            await db.Categoria.destroy({
+            await db.CategoriaProdutos.destroy({
                 where: {
                     id: categoriaId
                 }
