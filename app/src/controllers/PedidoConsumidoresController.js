@@ -12,9 +12,53 @@ module.exports = {
 
     async showCreateEdit(req, res) {
         const cicloId = req.params.id
+
+        // USUARIO V010921
+        usuarioAtivo = []
+        loginStatus = ""
+        user = req.oidc.user
+        if (user) {
+            
+            // Já é usuário cadastrado na base do sistema
+
+            usuarioCadastrado = await Usuario.retornaUsuarioCadastrado(user.email)
+
+            if (usuarioCadastrado != 0) {
+
+                console.log('LOG: usuario cadastrado encontrado:', usuarioCadastrado)
+
+                usuarioAtivo.push({
+                    email: user.email,
+                    picture: user.picture,
+                    name: user.name,
+                    email_verified: user.email_verified,
+                    id: usuarioCadastrado.id,
+                    perfil: usuarioCadastrado.perfil       
+                })
+
+                loginStatus = 'usuarioAtivo'
+
+            }
+            else {
+
+                usuarioAtivo.push({
+                    email: user.email,
+                    picture: user.picture,
+                    name: user.name,
+                    email_verified: user.email_verified
+                })
+                
+                return res.render('usuarionovo',{usuarioAtivo: usuarioAtivo[0]})
+     
+            }  
+
+        }
+        // USUARIO FIM
+
+
         
-        // to-do alterar para usuário corrente quando módulo de usuários estiver ativo
-        let usuarioId = 2 //enquanto login nao ok
+        // quando não informado mostra tela de pedidos do usuário corrente
+        let usuarioId = usuarioCadastrado.id
         console.log("usuarioId",usuarioId)
 
         if (req.query.usr) {
@@ -49,8 +93,8 @@ module.exports = {
         const cicloComposicoes = dadosCiclo.cicloComposicoes
         console.log('cicloComposicoes',cicloComposicoes)
 
-
-        composicaoGrupoCompras = cicloComposicoes.find(cicloComposicao => Number(cicloComposicao.cestaId) == 3)
+       // erro quando cesta GrupoCompras não existe, código me parece desnecessário
+        /*composicaoGrupoCompras = cicloComposicoes.find(cicloComposicao => Number(cicloComposicao.cestaId) == 3)
         
         if (!composicaoGrupoCompras) {
             composicaoGrupoCompras = cicloComposicoes.find(cicloComposicao => Number(cicloComposicao.cestaId) == 7) 
@@ -109,7 +153,7 @@ module.exports = {
             })
         }
 
-        console.log('produtosComposicaoDados',produtosComposicaoDados)
+        console.log('produtosComposicaoDados',produtosComposicaoDados)*/
 
         
         // array para busca da quantidade por produto para calculo de itens pedidos
@@ -317,8 +361,27 @@ module.exports = {
         //userProfile = JSON.stringify(userProfile, null, 2)
         //console.log("userDados:",userDados)
 
-        // USUARIO V20210720
+
+        if (loginStatus == 'usuarioAtivo') {
+            if ((usuarioAtivo[0].perfil.indexOf('admin') >= 0 ) || (usuarioAtivo[0].perfil.indexOf('consumidor') >= 0 ) ) {
+                //return res.render('pedidoConsumidores',{ usuarioAtivo: usuarioAtivo[0], produtosComposicaoDados: produtosComposicaoDados,statusPedido: statusPedido, produtosPedidos:produtosPedidos, produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, usuarioConsumidor: usuarioConsumidor, pedidoConsumidorId: pedidoConsumidorId, ciclo: ciclo, usuarios: usuarios})
+                return res.render('pedidoConsumidores',{ usuarioAtivo: usuarioAtivo[0], statusPedido: statusPedido, produtosPedidos:produtosPedidos, produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, usuarioConsumidor: usuarioConsumidor, pedidoConsumidorId: pedidoConsumidorId, ciclo: ciclo, usuarios: usuarios})
+            
+            }
+            else {
+                return res.redirect('/')
+            }
+        }
+
+    },
+
+
+    async showConfirmacao(req, res) {
+        const cicloId = req.params.id
+
+        // USUARIO V010921
         usuarioAtivo = []
+        loginStatus = ""
         user = req.oidc.user
         if (user) {
             
@@ -327,6 +390,9 @@ module.exports = {
             usuarioCadastrado = await Usuario.retornaUsuarioCadastrado(user.email)
 
             if (usuarioCadastrado != 0) {
+
+                console.log('LOG: usuario cadastrado encontrado:', usuarioCadastrado)
+
                 usuarioAtivo.push({
                     email: user.email,
                     picture: user.picture,
@@ -336,7 +402,7 @@ module.exports = {
                     perfil: usuarioCadastrado.perfil       
                 })
 
-                return res.render('pedidoConsumidores',{ usuarioAtivo: usuarioAtivo[0], produtosComposicaoDados: produtosComposicaoDados,statusPedido: statusPedido, produtosPedidos:produtosPedidos, produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, usuarioConsumidor: usuarioConsumidor, pedidoConsumidorId: pedidoConsumidorId, ciclo: ciclo, usuarios: usuarios})
+                loginStatus = 'usuarioAtivo'
 
             }
             else {
@@ -353,38 +419,11 @@ module.exports = {
             }  
 
         }
-        else {
-            usuarioAtivo.push({
-                email: "jsfarinaci@gmail.com",
-                picture: "https://lh3.googleusercontent.com/a-/AOh14GgJtCHmUVeMyPR3OiAHnnsp4NCI3bupns-WFHIekQ=s96-c",
-                name: "Juliana Farinaci",
-                email_verified: "false",
-                id: 2,
-                perfil: ['admin','consumidor']       
-            })
-
-            return res.render('pedidoConsumidores',{ usuarioAtivo: usuarioAtivo[0], produtosComposicaoDados: produtosComposicaoDados, statusPedido: statusPedido, produtosPedidos:produtosPedidos, produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, usuarioConsumidor: usuarioConsumidor, pedidoConsumidorId: pedidoConsumidorId, ciclo: ciclo, usuarios: usuarios})
-
-    
-
-        }
         // USUARIO FIM
 
-
-        //return res.render('pedidoConsumidores',{ usuarioAtivo: usuarioAtivo[0], statusPedido: statusPedido, produtosPedidos:produtosPedidos, produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, usuarioConsumidor: usuarioConsumidor, pedidoConsumidorId: pedidoConsumidorId, ciclo: ciclo, usuarios: usuarios})
-    },
-
-
-
-
-
-
-
-    async showConfirmacao(req, res) {
-        const cicloId = req.params.id
         
-        // to-do alterar para usuário corrente quando módulo de usuários estiver ativo
-        let usuarioId = 2 //enquanto login nao ok
+        // quando não informado mostra tela de pedidos do usuário corrente
+        let usuarioId = usuarioCadastrado.id
         console.log("usuarioId",usuarioId)
 
         if (req.query.usr) {
@@ -418,8 +457,8 @@ module.exports = {
 
         const cicloComposicoes = dadosCiclo.cicloComposicoes
         
-
-        composicaoGrupoCompras = cicloComposicoes.find(cicloComposicao => Number(cicloComposicao.cestaId) == 3)
+        // erro quando cesta GrupoCompras não existe, código me parece desnecessário
+        /*composicaoGrupoCompras = cicloComposicoes.find(cicloComposicao => Number(cicloComposicao.cestaId) == 3)
         
         if (!composicaoGrupoCompras) {
             composicaoGrupoCompras = cicloComposicoes.find(cicloComposicao => Number(cicloComposicao.cestaId) == 7)
@@ -475,7 +514,7 @@ module.exports = {
                 nome: nomeProdutoComposicaoDados,
                 quantidade: quantidadeProdutoComposicaoDados
             })
-        }
+        }*/
 
     
         // array para busca da quantidade por produto para calculo de itens pedidos
@@ -683,61 +722,16 @@ module.exports = {
         //userProfile = JSON.stringify(userProfile, null, 2)
         //console.log("userDados:",userDados)
 
-        // USUARIO V20210720
-        usuarioAtivo = []
-        user = req.oidc.user
-        if (user) {
-            
-            // Já é usuário cadastrado na base do sistema
-
-            usuarioCadastrado = await Usuario.retornaUsuarioCadastrado(user.email)
-
-            if (usuarioCadastrado != 0) {
-                usuarioAtivo.push({
-                    email: user.email,
-                    picture: user.picture,
-                    name: user.name,
-                    email_verified: user.email_verified,
-                    id: usuarioCadastrado.id,
-                    perfil: usuarioCadastrado.perfil       
-                })
-
-                return res.render('pedidoConsumidoresConfirmacao',{ usuarioAtivo: usuarioAtivo[0], produtosComposicaoDados: produtosComposicaoDados,statusPedido: statusPedido, produtosPedidos:produtosPedidos, produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, usuarioConsumidor: usuarioConsumidor, pedidoConsumidorId: pedidoConsumidorId, ciclo: ciclo, usuarios: usuarios})
-
+        if (loginStatus == 'usuarioAtivo') {
+            if ((usuarioAtivo[0].perfil.indexOf('admin') >= 0 ) || (usuarioAtivo[0].perfil.indexOf('consumidor') >= 0 ) ) {
+                //return res.render('pedidoConsumidoresConfirmacao',{ usuarioAtivo: usuarioAtivo[0], produtosComposicaoDados: produtosComposicaoDados,statusPedido: statusPedido, produtosPedidos:produtosPedidos, produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, usuarioConsumidor: usuarioConsumidor, pedidoConsumidorId: pedidoConsumidorId, ciclo: ciclo, usuarios: usuarios})
+                return res.render('pedidoConsumidoresConfirmacao',{ usuarioAtivo: usuarioAtivo[0], statusPedido: statusPedido, produtosPedidos:produtosPedidos, produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, usuarioConsumidor: usuarioConsumidor, pedidoConsumidorId: pedidoConsumidorId, ciclo: ciclo, usuarios: usuarios})
             }
             else {
-
-                usuarioAtivo.push({
-                    email: user.email,
-                    picture: user.picture,
-                    name: user.name,
-                    email_verified: user.email_verified
-                })
-                
-                return res.render('usuarionovo',{usuarioAtivo: usuarioAtivo[0]})
-     
-            }  
-
+                return res.redirect('/')
+            }
         }
-        else {
-            usuarioAtivo.push({
-                email: "jsfarinaci@gmail.com",
-                picture: "https://lh3.googleusercontent.com/a-/AOh14GgJtCHmUVeMyPR3OiAHnnsp4NCI3bupns-WFHIekQ=s96-c",
-                name: "Juliana Farinaci",
-                email_verified: "false",
-                id: 2,
-                perfil: ['admin','consumidor']       
-            })
 
-            return res.render('pedidoConsumidoresConfirmacao',{ usuarioAtivo: usuarioAtivo[0], produtosComposicaoDados: produtosComposicaoDados, statusPedido: statusPedido, produtosPedidos:produtosPedidos, produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, usuarioConsumidor: usuarioConsumidor, pedidoConsumidorId: pedidoConsumidorId, ciclo: ciclo, usuarios: usuarios})
-
-    
-
-        }
-        // USUARIO FIM
-
-
-        //return res.render('pedidoConsumidores',{ usuarioAtivo: usuarioAtivo[0], statusPedido: statusPedido, produtosPedidos:produtosPedidos, produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, usuarioConsumidor: usuarioConsumidor, pedidoConsumidorId: pedidoConsumidorId, ciclo: ciclo, usuarios: usuarios})
     },
 
 
