@@ -3,7 +3,7 @@ const Profile = require('../model/Profile')
 
 module.exports = {
     async index(req, res) {
-        const cestas = await Cesta.get();
+        const cestas = await Cesta.getCestasAtivas();
         const profile = Profile.get();        
 
         let statusCount = {

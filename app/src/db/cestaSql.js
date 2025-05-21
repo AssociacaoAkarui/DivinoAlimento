@@ -9,11 +9,6 @@ module.exports = {
                 
         cestas = await db.Cesta.findAll({
             raw: true,
-            where: {
-                id: {
-                    [Op.not]: [1, 5]
-                }
-            }
 
         })
                 
