@@ -120,9 +120,12 @@ module.exports = {
                 } 
             })
         } catch (error) {
-            console.log("Nenhum pedido extra encontrado")
+            console.log("Erro na busca de pedido extra")
         }
-        
+
+        if (pedidoConsumidor.length == 0) {
+                return 'error'
+        } 
         
         let quantPedido = 0
 
@@ -138,7 +141,7 @@ module.exports = {
                     } 
                 })
             } catch (error) {
-                console.log("Nenhum produto encontrado")
+                console.log("Erro na busca de produtos de pedido extra")
             }
             
 

@@ -595,6 +595,12 @@ module.exports = {
                 produtoId: cicloOfertaProduto.produtoId
             })
 
+            if (pedidoConsumidor === 'error') {
+
+                return res.send('Pedido não existe!')
+
+            } 
+
             quantPedidoConsumidor = pedidoConsumidor.quantPedido
             statusPedido = pedidoConsumidor.status
 
