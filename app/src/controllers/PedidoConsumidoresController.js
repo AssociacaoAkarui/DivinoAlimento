@@ -82,7 +82,13 @@ module.exports = {
         pedidoConsumidorId = await PedidoConsumidores.findOrCreatePedidoConsumidor({
             cicloId: cicloId,
             usuarioId: usuarioId
-       })
+        })
+
+        if (pedidoConsumidorId == 'error') {
+
+            return res.send('Ciclo não existe!')
+
+        }  
 
        const produtos = await Produto.get();
 

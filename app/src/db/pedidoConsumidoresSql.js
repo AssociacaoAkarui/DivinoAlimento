@@ -163,18 +163,27 @@ module.exports = {
 
         let pedidoResult = []
 
-        const results = await db.PedidoConsumidores.findOrCreate({
-                raw: true,
-                where: {
-                    cicloId: cicloIdUsuarioId.cicloId,
-                    usuarioId: cicloIdUsuarioId.usuarioId
-                } 
-            })
-            .then(result => (pedidoResult = result))
+        try {
+            const results = await db.PedidoConsumidores.findOrCreate({
+                    raw: true,
+                    where: {
+                        cicloId: cicloIdUsuarioId.cicloId,
+                        usuarioId: cicloIdUsuarioId.usuarioId
+                    } 
+                })
+                .then(result => (pedidoResult = result))
+        } catch (error) {
 
-            pedidoConsumidorId = pedidoResult[0].id
+            console.log("ERRO_SISTEMA: erro na criacao ou localizacao do pedido extra")
+
+            return 'error'
+
+        }
+
+        pedidoConsumidorId = pedidoResult[0].id
   
-            return pedidoConsumidorId
+        return pedidoConsumidorId
+        
     },
 
     async findOrCreatePedidoConsumidorProduto(pedidoConsumidorIdProdutoId) {
