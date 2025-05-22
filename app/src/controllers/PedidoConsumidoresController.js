@@ -86,7 +86,7 @@ module.exports = {
 
         if (pedidoConsumidorId == 'error') {
 
-            return res.send('Ciclo não existe!')
+            return res.send('Ciclo e/ou Usuário não existem!')
 
         }  
 
