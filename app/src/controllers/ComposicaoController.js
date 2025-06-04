@@ -572,7 +572,8 @@ module.exports = {
                                                     status: 'composicao'
                                                 })
 
-                                                return res.render('composicaoofertassobras',{ ofertaProdutosDados: ofertaProdutosDados, ofertaProdutosDadosComposicao: ofertaProdutosDadosComposicao, ciclo: ciclo, quantItensCesta: quantItensCesta, valorCestaDiferenca: valorCestaDiferenca, valorCesta: valorCesta, cicloCestasDados: cicloCestasDados, cicloCestasVisiveis: cicloCestasVisiveis, cicloCestaSel: cicloCestaSel, composicaoId: composicao.id})
+                                                return res.redirect('/composicao/' + ciclo.id + '?cst=' + cicloCestaSel.id)
+                                            
                                             } else {
                                                 return res.render('composicaoofertassobrasConfirmacao',{ ciclo: ciclo, cicloCestaSel: cicloCestaSel, composicaoId: composicao.id })
                                             }
