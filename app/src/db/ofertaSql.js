@@ -159,13 +159,23 @@ module.exports = {
     },
 
     async updateOfertaProduto (ofertaProduto) {
-        await db.OfertaProdutos.update({
-            quantidade: ofertaProduto.quantidade
-          }, {
-            where: {
-                id: ofertaProduto.ofertaId
-            } 
-          });
+
+        if (ofertaProduto.quantidade > 0) {
+            await db.OfertaProdutos.update({
+                quantidade: ofertaProduto.quantidade
+            }, {
+                where: {
+                    id: ofertaProduto.ofertaId
+                } 
+            });
+        }
+        else {
+            await db.OfertaProdutos.destroy({
+                where: {
+                    id: ofertaProduto.ofertaId
+                }
+            });
+        }
     },
 
     async deleteOfertasZero (oferta) {
