@@ -14,6 +14,7 @@ module.exports = {
         return usuarios
 
     },
+    
 
     async getUsuariosAtivos() {
 

@@ -45,7 +45,7 @@
         <div id="page-usuario-edit">
             <form id="form-usuario"
                   method="POST"
-                  action="/usuario/<%= usuario.id %> ">
+                  action="/usuario/<%= usuario.id %> "%>
               <fieldset>
                 <legend class="titulo-fonte-akarui">Dados do Usuário</legend>
                 <div class="separator light"></div>
@@ -108,20 +108,21 @@
                 <br>
 
                 <div class="input-wrapper">
-                  <label for="cientepolitica">Política de Privacidade AKARUI e Termos de Uso? </label>
+                  <label for="cienciapolitica">Política de Privacidade AKARUI e Termos de Uso? </label>
                   <br>
                   <input 
                     type="checkbox"
                     id="cienciapolitica" 
-                    name="cienciapolitica"
-                    value="cienciapolitica"
-                    <% if (usuario.cienciapolitica == "sim") { %>
+                    name="cientepolitica"
+                    value="cientepolitica"
+                    <% if (usuario.cientepolitica == "cientepolitica" ) { %>
                       checked
                     <% } %>/>
                     <label for="cienciapolitica">
                       Declaro que li e concordo com a política de privacidade AKARUI e termo de uso disponível 
                       <a href="https://docs.google.com/document/d/1u69VUNkih50pM5IBT0ecp69JLR2SBIEc/" target="_blank">AQUI</a>.</label><br>
                 </div>
+
 
                 <br>
 
@@ -136,7 +137,7 @@
                     id="fornecedor" 
                     name="perfil"
                     value="fornecedor"
-                    <% if (arrayPerfil("fornecedor") > -1){ %>
+                    <% if (arrayPerfil.indexOf("fornecedor") > -1){ %>
                       checked
                     <% } %>/>
                     <label for="fornecedor">Fornecedor</label><br>
@@ -145,7 +146,7 @@
                     id="consumidor" 
                     name="perfil"
                     value="consumidor"
-                    <% if (arrayPerfil("consumidor") > -1) { %>
+                    <% if (arrayPerfil.indexOf("consumidor") > -1) { %>
                       checked
                     <% } %>/>
                     <label for="consumidor">Consumidor</label><br>
@@ -154,7 +155,7 @@
                     id="admin" 
                     name="perfil"
                     value="admin"
-                    <% if (arrayPerfil("admin") > -1) { %>
+                    <% if (arrayPerfil.indexOf("admin") > -1) { %>
                       checked
                     <% } %>/>
                     <label for="admin">Administrador</label><br>

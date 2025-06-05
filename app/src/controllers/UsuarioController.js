@@ -80,6 +80,11 @@ module.exports = {
             return res.send('Usuário não existe!')
         }
 
+        let cientepolitica = ""
+        if (req.body.cientepolitica) {
+            cientepolitica = req.body.cientepolitica
+        }
+
         const updatedUsuario = {
             //...usuario,
             id: usuarioId,
@@ -88,12 +93,10 @@ module.exports = {
             celular: req.body.celular,
             descritivo: req.body.descritivo,
             email: req.body.email,
-            cientepolitica: req.body.cientepolitica,
+            cientepolitica: cientepolitica,
             perfil: req.body.perfil,
             status: req.body.status,
         }
-
-        console.log("ATENCAO ATENCAO ATENCAO",req.body.nomeoficial)
 
         /*const newUsuario = usuarios.map(usuario =>  {
             if(Number(usuario.id) === Number(usuarioId)) {
