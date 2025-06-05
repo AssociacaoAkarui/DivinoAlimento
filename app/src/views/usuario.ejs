@@ -9,7 +9,8 @@
     <title>Divino Alimento - Akarui</title>
 
     <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/styles/partials/page-header.css" />
+    <link rel="stylesheet" href="/styles/partials/header2023_v1.css" />
+    <!--<link rel="stylesheet" href="/styles/partials/page-header.css" />-->
     <link rel="stylesheet" href="/styles/partials/cards.css" />
     <link rel="stylesheet" href="/styles/partials/buttons.css" />
     <link rel="stylesheet" href="/styles/partials/forms.css" />
@@ -25,7 +26,14 @@
   </head>
   <body id="page-usuario">
 
-    <%- include('parts/page-header', { title: "Adicionar Novo Usuário", back_link: "/usuario-index"}) %> 
+    <div id="header">
+        <%- include('parts/header2023_v1', {
+          button_text:'Adicionar Novo Produto',
+          button_link:'produto'
+        }) %>
+    </div>
+
+    <!--<%- include('parts/page-header', { title: "Adicionar Novo Usuário", back_link: "/usuario-index"}) %> -->
 
     <div class="container flex animate-up delay-2">
       <main>

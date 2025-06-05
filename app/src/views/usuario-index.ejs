@@ -33,7 +33,7 @@
 
     <script>
       $(document).ready(function(){
-        $("#search-produto").on("keyup", function() {
+        $("#search-usuario").on("keyup", function() {
           var value = replaceSpecialChars($(this).val().toLowerCase())
           $(".cards span.card_usuario").filter(function() {
             var value2 = replaceSpecialChars($(this).text().toLowerCase())
@@ -80,9 +80,9 @@
 
               <div id="pesquisa" class="fixo">
                   <h5>
-                    Produtos
+                    Usuários
                   </h5> 
-                  <input class="form-control" id="search-produto" type="text" placeholder="Nome do produto..">
+                  <input class="form-control" id="search-usuario" type="text" placeholder="Nome do usuário..">
               </div>
 
               <div id="filtros"> 
