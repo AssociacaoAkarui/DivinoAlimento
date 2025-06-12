@@ -50,6 +50,20 @@
                 <legend class="titulo-fonte-akarui">Dados do Usuário</legend>
                 <div class="separator light"></div>
 
+                <% arrayPerfil = [];
+                     arrayPerfil = usuario.perfil;
+
+                     arrayUsuarioAtivo = [];
+                     arrayUsuarioAtivo = usuarioAtivo.perfil;
+
+                     mesmoUsuarioAdmin = false;
+
+                     if (arrayPerfil.indexOf("admin") > -1) { 
+                        if (usuario.email == usuarioAtivo.email) {
+                            mesmoUsuarioAdmin = true;
+                     }}
+                  %>
+
                 <div class="input-wrapper">
                   <label for="nomeoficial">Nome Completo</label>
                   <input 
@@ -95,15 +109,38 @@
                     cols="40"><%= usuario.descritivo %></textarea>
                 </div>
 
-                <div class="input-wrapper">
-                  <label for="email">Email?</label>
-                  <input
-                    type="text"
-                    id="email"
-                    name="email"
-                    value="<%= usuario.email %>"
-                  />
-                </div>
+                
+
+                  <% if (mesmoUsuarioAdmin) { %>
+
+                    <div class="input-wrapper">
+                      <label for="email">Email? (você mesmo não pode trocar seu email)</label>
+                      <input
+                          type="text"
+                          id="email"
+                          name="email"
+                          value="<%= usuario.email %>"
+                          disabled
+                        />
+                    </div>
+                  <% } else { %>
+                    <div class="input-wrapper">
+                      <label for="email">Email? 
+                        <% if (arrayUsuarioAtivo.indexOf("admin") <= -1) { %>
+                          (apenas usuários administradores podem alterar seu email)
+                        <% } %>
+                      </label>
+                        <input
+                          type="text"
+                          id="email"
+                          name="email"
+                          value="<%= usuario.email %>"
+                          <% if (arrayUsuarioAtivo.indexOf("admin") <= -1) { %>
+                            disabled
+                          <% } %>
+                        />
+                    </div>
+                  <% } %>
 
                 <br>
 
@@ -129,19 +166,6 @@
                 <div class="input-wrapper">
                   <label for="perfil">Perfil de Acesso? </label>
                   <br>
-                  <% arrayPerfil = [];
-                     arrayPerfil = usuario.perfil;
-
-                     arrayUsuarioAtivo = [];
-                     arrayUsuarioAtivo = usuarioAtivo.perfil;
-
-                     mesmoUsuarioAdmin = false;
-
-                     if (arrayPerfil.indexOf("admin") > -1) { 
-                        if (usuario.email == usuarioAtivo.email) {
-                            mesmoUsuarioAdmin = true;
-                     }}
-                  %>
                   <input 
                     type="checkbox"
                     id="fornecedor" 
