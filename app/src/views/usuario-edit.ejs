@@ -131,6 +131,9 @@
                   <br>
                   <% arrayPerfil = [];
                      arrayPerfil = usuario.perfil;
+
+                     arrayUsuarioAtivo = [];
+                     arrayUsuarioAtivo = usuarioAtivo.perfil;
                   %>
                   <input 
                     type="checkbox"
@@ -150,22 +153,27 @@
                       checked
                     <% } %>/>
                     <label for="consumidor">Consumidor</label><br>
-                  <input 
-                    type="checkbox"
-                    id="admin" 
-                    name="perfil"
-                    value="admin"
-                    <% if (arrayPerfil.indexOf("admin") > -1) { %>
-                      checked
-                    <% } %>/>
-                    <label for="admin">Administrador</label><br>
+
+                  <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
+                      <input 
+                        type="checkbox"
+                        id="admin" 
+                        name="perfil"
+                        value="admin"
+                        <% if (arrayPerfil.indexOf("admin") > -1) { %>
+                          checked
+                        <% } %>
+                      />
+                        <label for="admin">Administrador</label><br>
+                  <% } %>
                 </div>
 
-                <br>
-
-                <div class="input-wrapper">
-                  <label for="status">Situação? </label>
-                  <br>
+                <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
+                    <br>
+                    <div class="input-wrapper">
+                      <label for="status">Situação? </label>
+                      <br>
+                <% } %>
                   <input 
                     type="radio"
                     id="ativo" 
@@ -173,8 +181,13 @@
                     value="ativo"
                     <% if (usuario.status == "ativo") { %>
                       checked
+                    <% } %>
+                    <% if (arrayUsuarioAtivo.indexOf("admin") <= -1) { %>
+                       hidden
                     <% } %>/>
-                    <label for="ativo">Ativo</label><br>
+                    <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
+                        <label for="ativo">Ativo</label><br>
+                    <% } %>
                     <input 
                     type="radio"
                     id="inativo" 
@@ -182,9 +195,14 @@
                     value="inativo"
                     <% if (usuario.status == "inativo") { %>
                       checked
+                    <% } %>
+                    <% if (arrayUsuarioAtivo.indexOf("admin") <= -1) { %>
+                       hidden
                     <% } %>/>
-                    <label for="inativo">Inativo</label><br>
-                </div>
+                <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
+                        <label for="inativo">Inativo</label><br>
+                    </div>
+                <% } %>
 
               </fieldset>
     
