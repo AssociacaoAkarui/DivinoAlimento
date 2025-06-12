@@ -103,21 +103,29 @@ module.exports = {
     },
 
     async retornaUsuarioCadastrado(emailGoogle) {
-        usuario = await db.Usuario.findAll({
-            raw: true,
-            where: {
-                email: emailGoogle
-            },
-        })
 
-        if (usuario[0]) {
-          usuario = usuario[0]
-        }
-        else {
-          usuario = 0
-        }
+        if (emailGoogle) {
+            usuario = await db.Usuario.findAll({
+                raw: true,
+                where: {
+                    email: emailGoogle
+                },
+            })
 
-        return usuario
+            if (usuario[0]) {
+            usuario = usuario[0]
+            }
+            else {
+            usuario = 0
+            }
+
+            return usuario
+        }
+        else
+        {
+            usuario = []
+            return usuario
+        }
 
     }
     
