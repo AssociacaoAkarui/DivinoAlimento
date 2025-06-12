@@ -204,6 +204,10 @@ input#adminDesabilitado {
   width: 10%;
 }
 
+input#statusDesabilitado {
+  width: 10%;
+}
+
 input#cienciapolitica {
   width: 10%;
 }

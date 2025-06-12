@@ -134,6 +134,13 @@
 
                      arrayUsuarioAtivo = [];
                      arrayUsuarioAtivo = usuarioAtivo.perfil;
+
+                     mesmoUsuarioAdmin = false;
+
+                     if (arrayPerfil.indexOf("admin") > -1) { 
+                        if (usuario.email == usuarioAtivo.email) {
+                            mesmoUsuarioAdmin = true;
+                     }}
                   %>
                   <input 
                     type="checkbox"
@@ -153,19 +160,36 @@
                       checked
                     <% } %>/>
                     <label for="consumidor">Consumidor</label><br>
+                  
+                  <% if (mesmoUsuarioAdmin) { %>
+                    <input 
+                    type="checkbox"
+                    id="adminDesabilitado" 
+                    name="perfil"
+                    value="admin"
+                    checked
+                    disabled/>
+                    <label for="admin">Administrador (você mesmo não pode trocar seu perfil de administrador)</label><br>
+                    <input 
+                    type="hidden"
+                    id="admin" 
+                    name="perfil"
+                    value="admin"
+                    checked/>
+                  <% } else {%>
 
-                  <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
-                      <input 
-                        type="checkbox"
-                        id="admin" 
-                        name="perfil"
-                        value="admin"
-                        <% if (arrayPerfil.indexOf("admin") > -1) { %>
-                          checked
-                        <% } %>
-                      />
-                        <label for="admin">Administrador</label><br>
-                  <% } %>
+                      <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
+                          <input 
+                            type="checkbox"
+                            id="admin" 
+                            name="perfil"
+                            value="admin"
+                            <% if (arrayPerfil.indexOf("admin") > -1) { %>
+                              checked
+                            <% } %>
+                          />
+                            <label for="admin">Administrador</label><br>
+                  <% }} %>
                 </div>
 
                 <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
@@ -174,35 +198,56 @@
                       <label for="status">Situação? </label>
                       <br>
                 <% } %>
-                  <input 
+
+                  <% if (mesmoUsuarioAdmin) { %>
+                    <input 
                     type="radio"
+                    id="statusDesabilitado" 
+                    name="status"
+                    value="ativo"
+                    checked
+                    disabled/>
+                    <label for="ativo">Ativo (você mesmo não pode trocar seu status)</label><br>
+                    <input 
+                    type="hidden"
                     id="ativo" 
                     name="status"
                     value="ativo"
-                    <% if (usuario.status == "ativo") { %>
-                      checked
+                    checked/>
+                  <% } else { %>
+
+                      <input 
+                        type="radio"
+                        id="ativo" 
+                        name="status"
+                        value="ativo"
+                        <% if (usuario.status == "ativo") { %>
+                          checked
+                        <% } %>
+                        <% if (arrayUsuarioAtivo.indexOf("admin") <= -1) { %>
+                          hidden
+                        <% } %>/>
+                        <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
+                            <label for="ativo">Ativo</label><br>
+                        <% } %>
+                        <input 
+                        type="radio"
+                        id="inativo" 
+                        name="status"
+                        value="inativo"
+                        <% if (usuario.status == "inativo") { %>
+                          checked
+                        <% } %>
+                        <% if (arrayUsuarioAtivo.indexOf("admin") <= -1) { %>
+                          hidden
+                        <% } %>/>
+                        <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
+                                <label for="inativo">Inativo</label><br>
+                        <% } %>
                     <% } %>
-                    <% if (arrayUsuarioAtivo.indexOf("admin") <= -1) { %>
-                       hidden
-                    <% } %>/>
                     <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
-                        <label for="ativo">Ativo</label><br>
+                        </div>
                     <% } %>
-                    <input 
-                    type="radio"
-                    id="inativo" 
-                    name="status"
-                    value="inativo"
-                    <% if (usuario.status == "inativo") { %>
-                      checked
-                    <% } %>
-                    <% if (arrayUsuarioAtivo.indexOf("admin") <= -1) { %>
-                       hidden
-                    <% } %>/>
-                <% if (arrayUsuarioAtivo.indexOf("admin") > -1) { %>
-                        <label for="inativo">Inativo</label><br>
-                    </div>
-                <% } %>
 
               </fieldset>
     
