@@ -16,6 +16,12 @@ module.exports = {
 
         let haUsuarios = true;
 
+        let ambiente = ""
+        if (process.env.NODE_ENV === 'development') {
+            ambiente = "desenvolvimento"
+        }
+        
+
         const usuarios = await Usuario.get();
              
         if (usuarios.length === 0) {
@@ -130,17 +136,13 @@ module.exports = {
 
         //const cicloComposicoes = dadosCiclo.cicloComposicoes
 
-
-        
-
-        //{"given_name":"Carmen","family_name":"Freitas","nickname":"carmen.freitas","name":"Carmen Freitas","picture":"https://lh3.googleusercontent.com/a-/AOh14GiH66Ce2dfsaDnUBLvLoK5XgScetDqj6L4lqdKhnp0=s96-c","locale":"pt-BR","updated_at":"2021-07-15T11:12:41.266Z","email":"carmen.freitas@gmail.com","email_verified":true,"sub":"google-oauth2|100394483497793615842"}
-
         if (user) {
             if (controleUsuario == "usuarioCadastrado") {
                 return res.render('index',{ciclos: ciclosAtivos, usuarioAtivo: usuarioAtivo[0]})
             }
             else {
-                return res.render('usuarionovo',{usuarioAtivo: usuarioAtivo[0], haUsuarios: haUsuarios})
+
+                return res.render('usuarionovo',{usuarioAtivo: usuarioAtivo[0], haUsuarios: haUsuarios, ambiente:ambiente})
             }  
         }
         else {

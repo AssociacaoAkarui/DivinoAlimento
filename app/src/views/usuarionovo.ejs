@@ -99,7 +99,16 @@
                     name="perfil"
                     value="admin"
                     checked/>
-                  <% } %>
+                  <% } else {
+                        if (ambiente == "desenvolvimento") {%>
+                          <input 
+                            type="checkbox"
+                            id="admin" 
+                            name="perfil"
+                            value="admin"/>
+                            <label for="admin">Administrador (apenas ambiente de desenvolvimento)</label><br>
+                  <% }} %>
+
                 </div>
 
 
