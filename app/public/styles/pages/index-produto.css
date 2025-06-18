@@ -2,6 +2,9 @@
  * main
 /* -------------------------------------------------- */
 
+main {
+  width: 100%;
+}
 
 #page-index-produto {
   display: flex;
@@ -38,12 +41,16 @@
   width: min(100vw);
 }
 
-
-
-
 #search-produto {
   margin: 20px;
   border-radius: 100px;
+}
+
+#filtros_botao {
+  display: flex;
+  align-items: center;
+  padding: 20px 50px;
+  width: min(100vw);
 }
 
 #filtros {
@@ -51,7 +58,25 @@
   align-items: center;
   padding: 20px 50px;
   width: min(100vw);
+  width: 40%;
 }
+
+#botao_incluir {
+  display: flex;
+  align-items: center;
+  padding: 20px 50px;
+  width: min(100vw);
+  width: 60%;
+}
+
+.button {
+  padding: 0.75rem 1rem;
+}
+
+a {
+  text-decoration: none !important;
+}
+
 
 /* CSS */
 .button-filtro {
@@ -80,8 +105,15 @@
 }
 
 
+#lista_produtos {
+  display: flex;
+  align-items: center;
+  width: min(100vw);
+  width: 100%;
+}
+
 main {
-  margin-top: 260px;
+  margin-top: 300px;
 }
 
 

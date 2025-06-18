@@ -90,22 +90,34 @@
               <input class="form-control" id="search-produto" type="text" placeholder="Nome do produto..">
             </div>
 
-            <div id="filtros"> 
-              <span>
-                Filtros
-              </span>
-              <span>
-                <% if (view == "all") { %>
-                    <a href="/produto-index/" class="button-filtro" role="button">Ver só ativos</a>
-                <% } else { %>
-                    <a href="/produto-index?view=all" class="button-filtro" role="button">Ver todos</a>
-                <% } %>
-              </span>
+            <div id="filtros_botao">
+
+                <div id="filtros"> 
+                  <span>
+                    Filtros
+                  </span>
+                  <span>
+                    <% if (view == "all") { %>
+                        <a href="/produto-index/" class="button-filtro" role="button">Ver só ativos</a>
+                    <% } else { %>
+                        <a href="/produto-index?view=all" class="button-filtro" role="button">Ver todos</a>
+                    <% } %>
+                  </span>
+                </div>
+
+                <div id="botao_incluir">
+                      <a class="button orange" href="/produto">
+                        <span>
+                            <img src="/images/plus-24.svg" alt="Adicionar Produto" /> 
+                        </span>
+                            Adicionar Produto
+                      </a>
+                </div>
             </div>
         </div>
 
 
-      <div>
+        <div id="lista_produtos">
             <!--<main class="animate-up delay-2">-->
               <main>
               
