@@ -72,9 +72,9 @@
         <div id="page-index-usuario">
     
               <%- include('parts/header2023_v1', {
-                button_text:'Adicionar Novo Produto',
-                button_link:'produto'
-              }) %>
+                button_text:'Adicionar Novo Usuário',
+                button_link:'usuario'
+              }) %>s
 
           <div id="container-pesquisa" class="fixed-top">
 
@@ -85,17 +85,29 @@
                   <input class="form-control" id="search-usuario" type="text" placeholder="Nome do usuário..">
               </div>
 
-              <div id="filtros"> 
-                <span>
-                  Filtros
-                </span>
-                <span>
-                  <% if (view == "all") { %>
-                      <a href="/usuario-index/" class="button-filtro" role="button">Ver só ativos</a>
-                  <% } else { %>
-                      <a href="/usuario-index?view=all" class="button-filtro" role="button">Ver todos</a>
-                  <% } %>
-                </span>
+              <div id="filtros_botao">
+
+                  <div id="filtros"> 
+                    <span>
+                      Filtros
+                    </span>
+                    <span>
+                      <% if (view == "all") { %>
+                          <a href="/usuario-index/" class="button-filtro" role="button">Ver só ativos</a>
+                      <% } else { %>
+                          <a href="/usuario-index?view=all" class="button-filtro" role="button">Ver todos</a>
+                      <% } %>
+                    </span>
+                  </div>
+
+                  <div id="botao_incluir">
+                      <a class="button orange" href="/usuario">
+                        <span>
+                            <img src="/images/plus-24.svg" alt="Adicionar Usuário" /> 
+                        </span>
+                            Adicionar Usuário
+                      </a>
+                  </div>
               </div>
           </div>
 

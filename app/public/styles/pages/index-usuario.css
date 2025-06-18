@@ -45,11 +45,36 @@
   border-radius: 100px;
 }
 
+#filtros_botao {
+  display: flex;
+  align-items: center;
+  padding: 20px 50px;
+  width: min(100vw);
+}
+
+
 #filtros {
   display: flex;
   align-items: center;
   padding: 20px 50px;
   width: min(100vw);
+  width: 40%;
+}
+
+#botao_incluir {
+  display: flex;
+  align-items: center;
+  padding: 20px 50px;
+  width: min(100vw);
+  width: 60%;
+}
+
+.button {
+  padding: 0.75rem 1rem;
+}
+
+a {
+  text-decoration: none !important;
 }
 
 /* CSS */
