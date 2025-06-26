@@ -101,12 +101,16 @@ module.exports = {
 
         const cicloId = req.params.id
 
-        const dadosCiclo = await Ciclo.getCicloId(cicloId)
+        const dadosCiclo = await Ciclo.getCicloIdMin(cicloId)
         const ciclo = dadosCiclo.ciclo[0]
+
+        console.log('---------------------------------------------------------------------------------------------------------------entrou no Controller show')
 
         const cicloEntregas = dadosCiclo.cicloEntregas
 
         const cicloCestas = dadosCiclo.cicloCestas
+
+        console.log('---------------------------------------------------------------------------------------------------------------Controller showCestas ',dadosCiclo.cicloCestas)
 
         if (!ciclo) {
             return res.send('Ciclo não existe!')
@@ -123,10 +127,15 @@ module.exports = {
 
         const cicloId = req.params.id
 
-        const data = await Ciclo.get()
-        const ciclos = data.ciclos
+        const dadosCiclo = await Ciclo.getCicloIdMin(cicloId)
+        const ciclo = dadosCiclo.ciclo[0]
 
-        const ciclo = ciclos.find(ciclo => Number(ciclo.id) === Number(cicloId))
+        console.log('---------------------------------------------------------------------------------------------------------------entrou no Controller update')
+          
+
+        //const data = await Ciclo.get()
+        //const ciclos = data.ciclos
+        //const ciclo = ciclos.find(ciclo => Number(ciclo.id) === Number(cicloId))
 
         if (!ciclo) {
             return res.send('Ciclo não existe!')

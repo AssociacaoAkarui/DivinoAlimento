@@ -273,6 +273,133 @@ module.exports = {
 
     },
 
+    async getCicloPorIdMin(cicloId) {
+
+        let ciclo = [] 
+        
+        
+        ciclo = await db.Ciclo.findAll({
+            raw: true,
+            where: {
+                id: cicloId
+            } 
+        });
+
+        if (ciclo.length === 0) {
+            console.log("ERRO_SISTEMA: Ciclo não existe")
+            return 'error'
+        }
+
+        cicloCestas = await db.CicloCestas.findAll({
+            raw: true,
+            where: {
+                cicloId: cicloId,
+                cestaId: {
+                    [db.Sequelize.Op.notIn]: [1, 5]
+                }
+            } 
+          });
+        
+        console.log('cicloCestas',cicloCestas)
+
+        cicloEntregas = await db.CicloEntregas.findAll({
+            raw: true,
+            where: {
+                cicloId: cicloId
+            } 
+          });
+
+        cicloOfertas = await db.Oferta.findAll({
+            raw: true,
+            where: {
+                cicloId: cicloId
+            } 
+          });
+        
+        
+        let arrayOfertas = []
+        for (let index = 0; index < cicloOfertas.length; index++) {
+            const oferta = cicloOfertas[index];
+           arrayOfertas.push(oferta.id)
+        }
+        cicloOfertaProdutos = await db.OfertaProdutos.findAll({
+            raw: true,
+            where: {
+                ofertaId: arrayOfertas
+            } 
+        });
+
+        let arrayOfertaProdutos = []
+        for (let index = 0; index < cicloOfertaProdutos.length; index++) {
+            const ofertaProduto = cicloOfertaProdutos[index];
+
+            arrayOfertaProdutos.push(ofertaProduto.id)
+        }
+        cicloPedidosFornecedores = await db.PedidosFornecedores.findAll({
+            raw: true,
+            where: {
+                ofertaProdutoId: arrayOfertaProdutos
+            } 
+        });
+        
+        let cicloComposicoes = []
+        for (let index = 0; index < cicloCestas.length; index++) {
+            const cicloCesta = cicloCestas[index];
+
+            composicaoCesta = await db.Composicoes.findAll({
+                raw: true,
+                where: {
+                    cicloCestaId: cicloCesta.id
+                } 
+              });
+
+              if (composicaoCesta[0]) {
+                    cicloComposicoes.push({
+                        id: composicaoCesta[0].id,
+                        cicloCestaId: composicaoCesta[0].cicloCestaId,
+                        cestaId: cicloCesta.cestaId,
+                        quantidadeCestas: cicloCesta.quantidadeCestas
+                    })
+                }
+        }
+
+        cicloPedidoConsumidores = await db.PedidoConsumidores.findAll({
+            raw: true,
+            where: {
+                cicloId: cicloId
+            } 
+          });
+        
+        
+        let arrayPedidoConsumidores = []
+        for (let index = 0; index < cicloPedidoConsumidores.length; index++) {
+            const pedidoConsumidor = cicloPedidoConsumidores[index];
+           arrayPedidoConsumidores.push(pedidoConsumidor.id)
+        }
+        cicloPedidoConsumidoresProdutos = await db.PedidoConsumidoresProdutos.findAll({
+            raw: true,
+            where: {
+                pedidoConsumidorId: arrayPedidoConsumidores
+            } 
+        });
+
+        //cicloProdutos = await db.CicloProdutos.findAll({
+            //raw: true,
+        //}
+         
+        return {
+            ciclo: ciclo,
+            cicloCestas: cicloCestas,
+            cicloEntregas: cicloEntregas,
+            cicloOfertas: cicloOfertas,
+            cicloOfertaProdutos: cicloOfertaProdutos,
+            cicloComposicoes: cicloComposicoes,
+            cicloPedidosFornecedores: cicloPedidosFornecedores,
+            cicloPedidoConsumidores: cicloPedidoConsumidores
+        }
+
+    },
+
     
 
     async insertNewCiclo (newCiclo) {
@@ -370,7 +497,9 @@ module.exports = {
 
           newCicloEntregas = ciclo.cicloEntregas
           newCicloCestas = ciclo.cicloCestas
-          //newCicloProdutos = ciclo.produtos
+
+          console.log('---------------------------------------------------------------------------------------------------------------newCicloEntregas:',newCicloEntregas)
+          console.log('---------------------------------------------------------------------------------------------------------------newCicloCestas:',newCicloCestas)
 
           await db.CicloEntregas.destroy({
             where: {
@@ -414,14 +543,8 @@ module.exports = {
                                     if (cicloCestaResult[0]) {
 
                                         const cicloCestaId = cicloCestaResult[0].id
-
-                                        console.log('quantidadeCestas: Number(cicloCesta.quantidadeCestas): ',Number(cicloCesta.quantidadeCestas))
-                                        console.log('cicloCestaId: ',Number(cicloCestaId))
-                                        console.log('Number(ciclo.id): ',Number(ciclo.id))
-                                        console.log('Number(cicloCesta.cestaId): ',Number(cicloCesta.cestaId))
-
                                         
-                                        /*await db.CicloCestas.update({
+                                        await db.CicloCestas.update({
                                             quantidadeCestas: Number(cicloCesta.quantidadeCestas)
                                         }, {
                                             where: {
@@ -434,7 +557,7 @@ module.exports = {
                                             cicloId: Number(ciclo.id),
                                             cestaId: Number(cicloCesta.cestaId),
                                             quantidadeCestas: Number(cicloCesta.quantidadeCestas)
-                                        })*/
+                                        })
                                         
                                     }    
                             }

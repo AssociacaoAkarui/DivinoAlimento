@@ -18,6 +18,12 @@ module.exports ={
         return data
         //return {ciclo: data.ciclo, cicloCestas: data.cicloCestas, cicloEntregas: data.cicloEntregas, cicloComposicoes: data.cicloComposicoes }
     },
+    async getCicloIdMin(cicloId){
+        data = await cicloSql.getCicloPorIdMin(cicloId)
+        return data
+        //return {ciclo: data.ciclo, cicloCestas: data.cicloCestas, cicloEntregas: data.cicloEntregas, cicloComposicoes: data.cicloComposicoes }
+        // não retorna cicloCestas 1 e 5, de uso interno do sistema
+    },
     async update(ciclo) {
         await cicloSql.updateCiclo(ciclo)
     },
