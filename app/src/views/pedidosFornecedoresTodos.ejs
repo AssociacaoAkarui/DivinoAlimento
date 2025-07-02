@@ -108,10 +108,7 @@
                     <th scope="col">Produto</th>
                     <th scope="col">Medida</th>
                     <th scope="col" style="min-width:75px;">Valor</th>
-                    <th scope="col">CRAS</th>
-                    <th scope="col">VILA</th>
-                    <th scope="col">GRUPO</th>
-                    <th scope="col">EXTRA</th>
+                    <th scope="col">Quantidades</th>
                     <th scope="col">Total</th>
 
                   </thead>
@@ -147,51 +144,21 @@
                           <td>
                             R$ <%= produtoPedidoFornecedorDados.valorReferencia.toFixed(2).replace('.',',' ) %>
                           </td>
+                          <td>
                                 <% 
-                                    quantCesta_CRAS = 0
-                                    quantCesta_VILA = 0
-                                    quantCesta_GRUPO = 0
-                                    quantCesta_EXTRA = 0
+                                    quantProdutos = 0
                                     pedidosCestas = produtoPedidoFornecedorDados.pedidosCestas
                                     pedidosCestas.forEach(pedidoCesta => { 
-                                      if (Number(pedidoCesta.cestaId) == 2) {
-                                        quantCesta_CRAS = pedidoCesta.cestaQuantidade
-                                      } else {
-                                        if (Number(pedidoCesta.cestaId) == 4) {
-                                           quantCesta_VILA = pedidoCesta.cestaQuantidade
-                                        } else {
-                                          if ( (Number(pedidoCesta.cestaId) == 3) || (Number(pedidoCesta.cestaId) == 7) ) {
-                                           quantCesta_GRUPO = pedidoCesta.cestaQuantidade
-                                          } else {
-                                            if (Number(pedidoCesta.cestaId) == 5) {
-                                              quantCesta_EXTRA = pedidoCesta.cestaQuantidade
-                                            } 
-                                          }
-                                        }
-                                      }
-                                    }) %>
-                                    <td>
-                                        <% if (Number(quantCesta_CRAS) > 0) { %>
-                                          <%= quantCesta_CRAS %>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <% if (Number(quantCesta_VILA) > 0) { %>
-                                          <%= quantCesta_VILA %>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <% if (Number(quantCesta_GRUPO) > 0) { %>
-                                          <%= quantCesta_GRUPO %>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <% if (Number(quantCesta_EXTRA) > 0) { %>
-                                          <%= quantCesta_EXTRA %>
-                                        <% } %>
-                                    </td>
+                                      quantProdutos = quantProdutos + pedidoCesta.cestaQuantidade %>
+                                      
+                                          <%= pedidoCesta.cestaNome %>: <%= pedidoCesta.cestaQuantidade %><br>
+                                      
+                                <%  }) %>
+
+                                    <b>TOTAL : <%= quantProdutos %></b>
+                          </td>
                           <td>
-                            <%= produtoPedidoFornecedorDados.quantidadePedidos %>
+                            R$ <%= (produtoPedidoFornecedorDados.quantidadePedidos * produtoPedidoFornecedorDados.valorReferencia).toFixed(2).replace('.',',' )%>
                           </td>
                           </tr>
                     <% } else { %>
@@ -210,52 +177,21 @@
                           <td>
                             R$ <%= produtoPedidoFornecedorDados.valorReferencia.toFixed(2).replace('.',',' ) %>
                           </td>
-                          <% 
-                                    quantCesta_CRAS = 0
-                                    quantCesta_VILA = 0
-                                    quantCesta_GRUPO = 0
-                                    quantCesta_EXTRA = 0
+                          <td>
+                                <% 
+                                    quantProdutos = 0
                                     pedidosCestas = produtoPedidoFornecedorDados.pedidosCestas
                                     pedidosCestas.forEach(pedidoCesta => { 
-                                      if (Number(pedidoCesta.cestaId) == 2) {
-                                        quantCesta_CRAS = pedidoCesta.cestaQuantidade
-                                      } else {
-                                        if (Number(pedidoCesta.cestaId) == 4) {
-                                           quantCesta_VILA = pedidoCesta.cestaQuantidade
-                                        } else {
-                                          if ( (Number(pedidoCesta.cestaId) == 3) || (Number(pedidoCesta.cestaId) == 7) ) {
-                                           quantCesta_GRUPO = pedidoCesta.cestaQuantidade
-                                          } else {
-                                            if (Number(pedidoCesta.cestaId) == 5) {
-                                              quantCesta_EXTRA = pedidoCesta.cestaQuantidade
-                                            } 
-                                          }
-                                        }
-                                      }
-                                    }) %>
-                                    <td>
-                                        <% if (Number(quantCesta_CRAS) > 0) { %>
-                                          <%= quantCesta_CRAS %>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <% if (Number(quantCesta_VILA) > 0) { %>
-                                          <%= quantCesta_VILA %>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <% if (Number(quantCesta_GRUPO) > 0) { %>
-                                          <%= quantCesta_GRUPO %>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <% if (Number(quantCesta_EXTRA) > 0) { %>
-                                          <%= quantCesta_EXTRA %>
-                                        <% } %>
-                                    </td>
-                            
+                                      quantProdutos = quantProdutos + pedidoCesta.cestaQuantidade %>
+                                      
+                                          <%= pedidoCesta.cestaNome %>: <%= pedidoCesta.cestaQuantidade %><br>
+                                      
+                                <%  }) %>
+
+                                    <b>TOTAL : <%= quantProdutos %></b>
+                          </td>
                           <td>
-                            <%= produtoPedidoFornecedorDados.quantidadePedidos %>
+                            R$ <%= (produtoPedidoFornecedorDados.quantidadePedidos * produtoPedidoFornecedorDados.valorReferencia).toFixed(2).replace('.',',' )%>
                           </td>
                           </tr>
                     <% } %>
