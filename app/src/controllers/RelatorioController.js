@@ -200,34 +200,25 @@ module.exports = {
             for (let index = 0; index < pedidosPorFornecedor.length; index++) {
                 const pedido = pedidosPorFornecedor[index];
 
-                quantCRAS = 0
-                quantVILA = 0
-                quantGRUPO = 0
-                quantEXTRA = 0
                 quantTOTAL = 0
                 valorTOTAL = 0
+                infoCestas = ""
+                quantProdutos = 0
+                primeiraInfoCestas = true
                 pedidoscestas = pedido.pedidosCestas
                 for (let index = 0; index < pedidoscestas.length; index++) {
                     const cesta = pedidoscestas[index];
 
-                    if (cesta.cestaId == 2) {
-                        quantCRAS += cesta.cestaQuantidade
+                    if (primeiraInfoCestas) {
+                        infoCestas = infoCestas + " " + cesta.cestaNome + ": " + cesta.cestaQuantidade
+                        primeiraInfoCestas = false
                     } else {
-                        if (cesta.cestaId == 4) {
-                            quantVILA += cesta.cestaQuantidade
-                        } else {
-                            if ((cesta.cestaId == 3) || (cesta.cestaId == 7)){
-                                quantGRUPO += cesta.cestaQuantidade
-                            } else {
-                                if (cesta.cestaId == 5) {
-                                    quantEXTRA += cesta.cestaQuantidade
-                                }
-                            }
-                        }
+                        infoCestas = infoCestas + " - " + cesta.cestaNome + ": " + cesta.cestaQuantidade
                     }
+                    quantTOTAL = quantTOTAL + cesta.cestaQuantidade
+
                 }
 
-                quantTOTAL = quantCRAS + quantVILA + quantGRUPO + quantEXTRA
                 valorTotal = quantTOTAL * Number(pedido.valorReferencia)
 
                 dadosPedidosFornecedores.push ({
@@ -236,16 +227,9 @@ module.exports = {
                     produto: pedido.nome,
                     medida: pedido.medida,
                     valor: pedido.valorReferencia,
-                    CRAS: quantCRAS,
-                    VILA: quantVILA,
-                    GRUPO: quantGRUPO,
-                    EXTRA:quantEXTRA,
+                    cestas: infoCestas,
                     TOTAL: quantTOTAL,
                     ValorTotal: valorTotal
-                    //id: cicloOfertaProduto.id,
-                    //quantidadeOfertado: quantidadeOfertado,
-                    //fornecedorId: cicloOfertaProduto.fornecedorId,
-                    //pedidosCestas: pedidosCestas,
 
                 })
                 
