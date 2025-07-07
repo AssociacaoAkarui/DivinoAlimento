@@ -26,6 +26,14 @@ module.exports = {
         return res.render('pedidosConsumidoresCiclosSelecao',{ciclos: ciclos})
     },
 
+    async showTodosCiclosProdutos(req, res) {
+        
+        const data = await Ciclo.getCiclosMin_v2({ordem:'inversa'});
+        const ciclos = data.ciclos
+        
+        return res.render('relatorioProdutosCiclosSelecao',{ciclos: ciclos})
+    },
+
     async downloadPedidosFornecedoresCiclos(req, res) {
 
         'use strict';
@@ -457,6 +465,212 @@ module.exports = {
 
         //return res.render('pedidosConsumidoresTodos',{ produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo})
     },
+
+
+    async showRelatorioProdutosCiclos (req, res) {
+        const cicloId = req.body.ciclos
+
+        const dadosCiclo = await Ciclo.getCicloId(cicloId)
+        //ciclo = dadosCiclo.ciclo[0]
+
+        ciclos = dadosCiclo.ciclo
+    
+        var inputValue = req.body.relatorio;
+
+        if (req.query.usr) {
+            usuarioId = req.query.usr
+        } //else {
+            //usuarioId = 2
+        //}
+
+        /*if (req.query.view) {
+            view = req.query.view
+        } else {
+            view = "all_t"
+        }*/
+
+        usuarios = await Usuario.get()
+
+        const produtos = await Produto.get();
+
+
+        // Busca produtosOfertaDados
+
+        pedidosConsumidores = await PedidoConsumidores.getProdutosPedidosConsumidores(cicloId,usuarioId,view)
+        
+        pedidosConsumidores.sort((a,b) => (a.usuarioId > b.usuarioId) ? 1 : ((b.usuarioId > a.usuarioId) ? -1 : 0))
+
+        produtosPedidosConsumidorDados = []
+        let usuarioCorrente = 0
+        if ((pedidosConsumidores[0].usuarioId) > 0) {
+            usuarioCorrente =  pedidosConsumidores[0].usuarioId
+        }
+        for (let index = 0; index < pedidosConsumidores.length; index++) {
+            const pedidoConsumidor = pedidosConsumidores[index]
+            
+            produtoDados = produtos.find(produto => Number(produto.id) === Number(pedidoConsumidor.produtoId))
+            usuarioDados = usuarios.find(usuario => Number(usuario.id) === Number(pedidoConsumidor.usuarioId))
+            cicloDados = ciclos.find(cicl => Number(cicl.id) === Number(pedidoConsumidor.cicloId))
+            
+
+            if (pedidoConsumidor.quantidade > 0) {
+
+                if (usuarioCorrente != usuarioDados.id) {
+                    usuarioCorrente = usuarioDados.id
+                }
+
+                produtosPedidosConsumidorDados.push ({
+                    id: produtoDados.id,
+                    nome: produtoDados.nome,
+                    medida: produtoDados.medida,
+                    //TO-DO: alterar para valor real quando ok na base
+                    valorReferencia: produtoDados.valorReferencia,
+                    quantidade: pedidoConsumidor.quantidade,
+                    consumidorId: usuarioDados.id,
+                    consumidor: usuarioDados.nome,
+                    valorAcumuladoPedido: 0,
+                    cicloId: cicloDados.nome,
+                })
+
+            }
+            
+                
+        }
+
+        //cicloOfertaProdutosDados.sort()
+        produtosPedidosConsumidorDados.sort((a,b) => (a.consumidor > b.consumidor) ? 1 : ((b.consumidor > a.consumidor) ? -1 : 0))
+        // FIM Busca produtosOfertaDados
+
+
+        usuarioCorrente = 0
+        if ((produtosPedidosConsumidorDados[0].consumidorId) > 0) {
+            usuarioCorrente =  produtosPedidosConsumidorDados[0].consumidorId
+        }
+
+        valorAcumuladoPedido = 0
+        ultimaPosicao = 0
+
+        for (let index = 0; index < produtosPedidosConsumidorDados.length; index++) {
+            const produtoPedidosConsumidorDados = produtosPedidosConsumidorDados[index]
+            
+            if (usuarioCorrente != produtoPedidosConsumidorDados.consumidorId) {
+                produtosPedidosConsumidorDados[index-1].valorAcumuladoPedido = valorAcumuladoPedido
+                valorAcumuladoPedido = 0
+                usuarioCorrente = produtoPedidosConsumidorDados.consumidorId
+            }
+
+            valorAcumuladoPedido = valorAcumuladoPedido + (Number(produtoPedidosConsumidorDados.quantidade) * Number(produtoPedidosConsumidorDados.valorReferencia))     
+            
+            ultimaPosicao = index
+        }
+        produtosPedidosConsumidorDados[ultimaPosicao].valorAcumuladoPedido = valorAcumuladoPedido
+                
+        if (inputValue == 'produto') {
+            produtosPedidosConsumidorDados.sort((a,b) => (a.nome > b.nome) ? 1 : ((b.nome > a.nome) ? -1 : 0))
+        }
+        else
+        {
+            produtosPedidosConsumidorDados.sort((a,b) => (a.consumidor > b.consumidor) ? 1 : ((b.consumidor > a.consumidor) ? -1 : 0))
+        }
+        // FIM Busca produtosOfertaDados
+
+        // USUARIO V20210720
+        usuarioAtivo = []
+        user = req.oidc.user
+        if (user) {
+            
+            // Já é usuário cadastrado na base do sistema
+
+            usuarioCadastrado = await Usuario.retornaUsuarioCadastrado(user.email)
+
+            if (usuarioCadastrado != 0) {
+                usuarioAtivo.push({
+                    email: user.email,
+                    picture: user.picture,
+                    name: user.name,
+                    email_verified: user.email_verified,
+                    id: usuarioCadastrado.id,
+                    perfil: usuarioCadastrado.perfil
+                })
+
+                
+
+                if (inputValue == 'todosprodutos') {
+                    return res.render('relatorioProdutosTodos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo, view:view})
+                }
+                else {
+                    if (inputValue == 'download') {
+
+                        
+                        let dadosPedidosConsumidores = []
+            
+                        for (let index = 0; index < produtosPedidosConsumidorDados.length; index++) {
+                            const pedido = produtosPedidosConsumidorDados[index];
+            
+                            
+                            dadosPedidosConsumidores.push ({
+                                consumidor: pedido.consumidor,
+                                ciclo: pedido.cicloId,
+                                produto: pedido.nome,
+                                medida: pedido.medida,
+                                valor: pedido.valorReferencia,
+                                quantidade: pedido.quantidade,
+                                total: (Number(pedido.valorReferencia) * Number(pedido.quantidade))
+                            })
+                            
+                        }
+            
+                        const fs = require('fs');
+                        const pathDownloads = 'public/downloads/'
+                        const json2csv = require('json2csv').parse;
+                        const csvString = json2csv(dadosPedidosConsumidores,{ delimiter:";" });
+                        /*const csvString = json2csv(dadosPedidosFornecedores);*/
+                        fs.writeFileSync(pathDownloads + 'relatorioProdutos.csv', csvString);
+                        res.download(pathDownloads + 'relatorioProdutos.csv');
+                    } else {
+                        return res.render('relatorioProdutosCiclos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo, view:view})
+                    }
+                }
+    
+            }
+            else {
+
+                usuarioAtivo.push({
+                    email: user.email,
+                    picture: user.picture,
+                    name: user.name,
+                    email_verified: user.email_verified
+                })
+                
+                return res.render('usuarionovo',{usuarioAtivo: usuarioAtivo[0]})
+     
+            }  
+
+        }
+        /*else {
+            usuarioAtivo.push({
+                email: "jsfarinaci@gmail.com",
+                picture: "https://lh3.googleusercontent.com/a-/AOh14GgJtCHmUVeMyPR3OiAHnnsp4NCI3bupns-WFHIekQ=s96-c",
+                name: "Juliana Farinaci",
+                email_verified: "false",
+                id: 2,
+                perfil: ['admin','consumidor']
+            })
+
+            if (inputValue == 'produto') {
+                return res.render('pedidosConsumidoresCiclosProdutos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo, view:view})
+            }
+            else {
+                return res.render('pedidosConsumidoresCiclos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo, view:view})
+            }
+
+        }*/
+        // USUARIO FIM
+
+
+        //return res.render('pedidosConsumidoresTodos',{ produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo})
+    },
+
 
 
 

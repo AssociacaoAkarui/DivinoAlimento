@@ -151,6 +151,10 @@ routes.get('/pedidosfornecedores/:id', ComposicaoController.showPedidosFornecedo
 routes.get('/downloadpedidosfornecedoresciclos', RelatorioController.downloadPedidosFornecedoresCiclos)
 
 
+routes.get('/relatorioprodutosciclos', RelatorioController.showTodosCiclosProdutos)
+routes.post('/relatorioprodutosciclos', RelatorioController.showRelatorioProdutosCiclos)
+
+
 
 // teste login
 routes.get('/pedidoconsumidores/:id', PedidoConsumidoresController.showCreateEdit)

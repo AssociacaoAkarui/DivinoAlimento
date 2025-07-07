@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#41414C" />
+    <link rel="shortcut icon" href="images/favicon.png" type="image/png" />
+    <title>Divino Alimento - Akarui</title>
+
+    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/styles/partials/header.css" />
+    <link rel="stylesheet" href="/styles/partials/index-header.css" />
+    <link rel="stylesheet" href="/styles/partials/cards.css" />
+    <link rel="stylesheet" href="/styles/partials/buttons.css" />
+    <link rel="stylesheet" href="/styles/partials/modal.css" />
+    <link rel="stylesheet" href="/styles/partials/forms.css" />
+    <link rel="stylesheet" href="/styles/partials/animations.css" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- links bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+    <link rel="stylesheet" href="/styles/pages/relatorioProdutosCiclos.css" />
+
+  <script>
+    $(document).ready(function(){
+      $("#searchProduto").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        value = replaceSpecialChars(value)
+        $("#listaProdutos div.pedidoFornecedor").filter(function() {
+          //$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+          var value2 = $(this).text().toLowerCase()
+          value2 = replaceSpecialChars(value2)
+          $(this).toggle(value2.indexOf(value) > -1)
+        });
+      });
+    });
+
+    function replaceSpecialChars(str)	{
+      if (!str) return ''
+      str = str.toString()
+      str = str.replace(/[aáàãäâ]/,'a')
+      str = str.replace(/[eéèëê]/,'e')
+      str = str.replace(/[iíìïî]/,'i')
+      str = str.replace(/[oóòõöô]/,'o')
+      str = str.replace(/[uúùüû]/,'u')
+      str = str.replace(/[ç]/,"c")
+      return str 
+    }
+  </script>
+
+
+  </head>
+  <body id="page-relatorioProdutos">
+
+   
+    <%- include('parts/header', {
+      button_text:'vazio',
+      button_link:''
+      }) %>
+
+
+  <!--<div class="container flex animate-up delay-2">-->
+  <div class="container">
+      <main>
+          <div>
+
+            <!--<div class="info_ciclo">
+              <h2>CICLO&nbsp<e%= ciclo.nome %></h2>
+              <p>DATA INÍCIO:&nbsp<e% 
+                    if (ciclo.ofertaInicio) { %>
+                    <e%=
+                      ciclo.ofertaInicio.toISOString().substr(8,2)%>/<e%=
+                      ciclo.ofertaInicio.toISOString().substr(5,2)%>/<e%=
+                      ciclo.ofertaInicio.toISOString().substr(0,4)%>&nbsp&nbsp<e%=
+                      ciclo.ofertaInicio.toISOString().substr(11,5)%>
+                    <e% } %>
+              </p>
+              <p>DATA FIM:&nbsp<e%
+                    if (ciclo.retiradaConsumidorFim) { %>
+                    <e%=
+                      ciclo.retiradaConsumidorFim.toISOString().substr(8,2)%>/<e%=
+                      ciclo.retiradaConsumidorFim.toISOString().substr(5,2)%>/<e%=
+                      ciclo.retiradaConsumidorFim.toISOString().substr(0,4)%>&nbsp&nbsp<e%=
+                      ciclo.retiradaConsumidorFim.toISOString().substr(11,5)%>
+                    <e% } %> 
+              </p>
+            </div>
+            <br><br>-->
+
+            <!--<legend>Entregas e Pedidos</legend>-->
+
+            <!--<nav class="nav nav-pills nav-justified">
+              <a class="nav-item nav-link" href="#">Entregas</a>
+              <a class="nav-item nav-link active" href="../pedidosconsumidorestodos/ <%= ciclo.id %> ">Pedidos</a>
+            </nav>-->
+
+            <legend>Produtos Transacionados</legend>
+
+              <!--<div class="pesquisa">         
+
+                <p>Utilize o filtro de fornecedores/produtos para lhe auxiliar:</p>  
+                <input class="form-control" id="searchProduto" type="text" placeholder="Digite o nome do fornecedor/produto..">
+                <br>
+
+              </div>-->
+            
+          <% if (view == 'all_t') { %>
+            <div id="listaProdutos">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th scope="col">Produto</th>
+                    <th scope="col">Ciclo</th>
+                    <th scope="col">Consumidor</th>
+                    <th scope="col">Medida</th>
+                    <th scope="col" style="min-width:75px;">Valor</th>
+                    <th scope="col">Quant</th>
+                    <th scope="col" style="min-width:83px;">Total</th>
+
+                </thead>
+                <tbody>
+
+                  
+                      <% let produtoCorrente = 0
+                         let produtoAnterior = 0
+                         let valorTotalPedido = 0
+                         let corLinha = 0
+                        produtosPedidosConsumidorDados.forEach(produtoPedidoConsumidorDados => {
+                          produtoCorrente = produtoPedidoConsumidorDados.id
+                          if (produtoCorrente != produtoAnterior) {
+                      %>
+                      
+                          <% if (produtoAnterior != 0) {%>
+                            <% if (Number(corLinha) == 0) {%>
+                                <tr>
+                            <% } else { %>
+                                <tr class='linha_par'>
+                            <% } %>
+
+                              <!--<td>Total Pedido</td><td></td><td></td><td></td><td></td><td></td>
+                              <td>
+                                R$ <%= valorTotalPedido.toFixed(2).replace('.',',' ) %>
+                              </td>-->
+                            </tr>
+                         <% } 
+                            produtoAnterior = produtoCorrente
+                            if (Number(corLinha) == 0) {
+                              corLinha = 1
+                            } else {
+                              corLinha = 0
+                            }
+                         %>
+                         <% if (Number(corLinha) == 0) {%>
+                              <tr>
+                            <% } else { %>
+                              <tr class='linha_par'>
+                            <% } %>
+                        
+                          <td>
+                                <%= produtoPedidoConsumidorDados.nome.split('(')[0] %>
+                          </td>
+                          <td>
+                            <%= produtoPedidoConsumidorDados.cicloId %>
+                          </td>
+                          <td>
+                            <%= produtoPedidoConsumidorDados.consumidor %>
+                            <% valorTotalPedido = produtoPedidoConsumidorDados.valorAcumuladoPedido %>
+                          </td>
+                          <td>
+                            <%= produtoPedidoConsumidorDados.medida %>
+                          </td>
+                          <td>
+                            R$ <%= produtoPedidoConsumidorDados.valorReferencia.toFixed(2).replace('.',',' ) %>
+                          </td>
+                          <td>
+                            <%= produtoPedidoConsumidorDados.quantidade %> 
+                            <% valorTotalPedido = produtoPedidoConsumidorDados.valorAcumuladoPedido %>
+                          </td>
+                          <td>
+                            R$ <%= (produtoPedidoConsumidorDados.valorReferencia * produtoPedidoConsumidorDados.quantidade).toFixed(2).replace('.',',' ) %>
+                          </td>
+                      </tr>
+                    <% } else { %>
+                      <% if (Number(corLinha) == 0) {%>
+                              <tr>
+                            <% } else { %>
+                              <tr class='linha_par'>
+                            <% } %>
+
+                          <td>
+                                <%= produtoPedidoConsumidorDados.nome.split('(')[0] %>
+                          </td>
+                          <td>
+                            <%= produtoPedidoConsumidorDados.cicloId %>
+                          </td>
+                          <td>
+                            <%= produtoPedidoConsumidorDados.consumidor %>
+                          </td>
+                          <td>
+                            <%= produtoPedidoConsumidorDados.medida %>
+                          </td>
+                          <td>
+                            R$ <%= produtoPedidoConsumidorDados.valorReferencia.toFixed(2).replace('.',',' ) %>
+                          </td>
+                          <td>
+                            <%= produtoPedidoConsumidorDados.quantidade %>
+                            <% valorTotalPedido = produtoPedidoConsumidorDados.valorAcumuladoPedido %>
+                          </td>
+                          <td>
+                            R$ <%= (produtoPedidoConsumidorDados.valorReferencia * produtoPedidoConsumidorDados.quantidade).toFixed(2).replace('.',',' ) %>
+                          </td>
+
+                          </tr>
+                    <% } %>
+                    
+                    <% }) %>
+                    <% if (Number(corLinha) == 0) {%>
+                              <tr>
+                            <% } else { %>
+                              <tr class='linha_par'>
+                            <% } %>
+                    <!--<td>Total Pedido</td><td></td><td></td><td></td><td></td><td></td>
+                    <td>
+                       R$ <%= valorTotalPedido.toFixed(2).replace('.',',' ) %>
+                    </td>-->
+                  </tr>
+                </tbody>
+              </table>
+
+                  <!--<div class="btn_rodape">
+                    <e% if ((view != 'all') && (view != 'all_t')) { %>
+                      <a class="button green" href= "/pedidosconsumidoresTodos/<e%= ciclo.id %>?view=all">
+                        Ver Pedidos de Todos os Consumidores
+                      </a>
+                    <e% } else { %>
+                      <a class="button green" href= "/pedidosconsumidoresTodos/<e%= ciclo.id %>">
+                        Ver Pedido Individual
+                      </a>
+                    <e% } %>
+                  </div>-->
+                    
+                
+                
+              </div><!-- end cardPedidoFornecedor -->
+
+            </div><!-- end listaprodutos -->
+
+            <% } else { %>
+              <div id="listaProdutos">
+              <div class="cardPedidoFornecedor">
+                <!--<thead>
+                  <tr>
+                    <th scope="col">Fornecedor</th>
+                    <th scope="col">Produto</th>
+                    <th scope="col">Valor</th>
+                    <th scope="col">Para pedir</th>
+                    <th scope="col">Falta pedir</th>
+                    <th scope="col">Ofertados</th>
+
+                </thead>-->
+
+                  
+                      <% let consumidorCorrente = 0
+                         let consumidorAnterior = 0
+                         let valorTotalPedido = 0
+                        produtosPedidosConsumidorDados.forEach(produtoPedidoConsumidorDados => {
+                          consumidorCorrente = produtoPedidoConsumidorDados.consumidorId
+                          if (consumidorCorrente != consumidorAnterior) {
+                      %>
+                      
+                          <% if (consumidorAnterior != 0) {%>
+                            <div style= "font-size: 14px;margin-left: 20px; margin-top: 20px;">
+                                Total Pedido: R$ <%= valorTotalPedido.toFixed(2).replace('.',',' ) %>
+                            </div>
+                            </div>
+                         <% } 
+                            consumidorAnterior = consumidorCorrente
+                         %>
+                        <div class="pedidoFornecedor">
+                          <div style= "font-size: 18px;margin-top: 20px;">
+                                <%= produtoPedidoConsumidorDados.consumidor %>
+                          </div>
+                          <div style= "margin-left: 20px;">
+                            <%= produtoPedidoConsumidorDados.quantidade %> <%= produtoPedidoConsumidorDados.nome %> (<%= produtoPedidoConsumidorDados.medida %>)
+                            <% valorTotalPedido = produtoPedidoConsumidorDados.valorAcumuladoPedido %>
+                          </div>
+                    <% } else { %>
+                          <div style= "margin-left: 20px;">
+                            <%= produtoPedidoConsumidorDados.quantidade %> <%= produtoPedidoConsumidorDados.nome %> (<%= produtoPedidoConsumidorDados.medida %>)
+                            <% valorTotalPedido = produtoPedidoConsumidorDados.valorAcumuladoPedido %>
+                          </div>
+                    <% } %>
+                    
+                    <% }) %>
+                  <div style= "font-size: 14px;margin-left: 20px; margin-top: 20px;">
+                     Total Pedido: R$ <%= valorTotalPedido.toFixed(2).replace('.',',' ) %>
+                  </div>
+                  </div>
+
+                  <div class="btn_rodape">
+                    <% if ((view != 'all') && (view != 'all_t')) { %>
+                      <a class="button green" href= "/pedidosconsumidoresTodos/<%= ciclo.id %>?view=all">
+                        Ver Pedidos de Todos os Consumidores
+                      </a>
+                    <% } else { %>
+                      <a class="button green" href= "/pedidosconsumidoresTodos/<%= ciclo.id %>">
+                        Ver Pedido Individual
+                      </a>
+                    <% } %>
+                  </div>
+                    
+                
+                
+              </div><!-- end cardPedidoFornecedor -->
+
+            </div><!-- end listaprodutos -->
+         <% } %>
+
+          </div>
+  
+      </main>
+ 
+  </div><!-- end container -->
+
+  </body>
+</html>
+ 
