@@ -468,26 +468,55 @@ module.exports = {
 
 
     async showRelatorioProdutosCiclos (req, res) {
+        
+        
+        // USUARIO V20210720
+        usuarioAtivo = []
+
+        EhUsuarioCadastrado = false;
+        user = req.oidc.user
+        if (user) {
+            
+            // Já é usuário cadastrado na base do sistema
+
+            usuarioCadastrado = await Usuario.retornaUsuarioCadastrado(user.email)
+
+            if (usuarioCadastrado != 0) {
+                usuarioAtivo.push({
+                    email: user.email,
+                    picture: user.picture,
+                    name: user.name,
+                    email_verified: user.email_verified,
+                    id: usuarioCadastrado.id,
+                    perfil: usuarioCadastrado.perfil
+                })
+
+                EhUsuarioCadastrado = true;
+            }
+            else {
+
+                usuarioAtivo.push({
+                    email: user.email,
+                    picture: user.picture,
+                    name: user.name,
+                    email_verified: user.email_verified
+                })
+                
+                return res.render('usuarionovo',{usuarioAtivo: usuarioAtivo[0]})
+     
+            }  
+
+        }
+        
+        
         const cicloId = req.body.ciclos
 
         const dadosCiclo = await Ciclo.getCicloId(cicloId)
-        //ciclo = dadosCiclo.ciclo[0]
+        ciclo = dadosCiclo.ciclo[0]
 
         ciclos = dadosCiclo.ciclo
     
         var inputValue = req.body.relatorio;
-
-        if (req.query.usr) {
-            usuarioId = req.query.usr
-        } //else {
-            //usuarioId = 2
-        //}
-
-        /*if (req.query.view) {
-            view = req.query.view
-        } else {
-            view = "all_t"
-        }*/
 
         usuarios = await Usuario.get()
 
@@ -495,8 +524,16 @@ module.exports = {
 
 
         // Busca produtosOfertaDados
+        
+        usuarioId = usuarioAtivo[0].id
 
-        pedidosConsumidores = await PedidoConsumidores.getProdutosPedidosConsumidores(cicloId,usuarioId,view)
+        composicoes = await Composicao.getProdutosTodasComposicoes(cicloId);
+
+        console.log("___________________________________________", composicoes[2])
+        
+        pedidosConsumidores = await PedidoConsumidores.getProdutosPedidosConsumidores(cicloId,usuarioId,"all_t")
+
+        console.log("___________________________________________", pedidosConsumidores)
         
         pedidosConsumidores.sort((a,b) => (a.usuarioId > b.usuarioId) ? 1 : ((b.usuarioId > a.usuarioId) ? -1 : 0))
 
@@ -574,98 +611,44 @@ module.exports = {
         }
         // FIM Busca produtosOfertaDados
 
-        // USUARIO V20210720
-        usuarioAtivo = []
-        user = req.oidc.user
-        if (user) {
-            
-            // Já é usuário cadastrado na base do sistema
-
-            usuarioCadastrado = await Usuario.retornaUsuarioCadastrado(user.email)
-
-            if (usuarioCadastrado != 0) {
-                usuarioAtivo.push({
-                    email: user.email,
-                    picture: user.picture,
-                    name: user.name,
-                    email_verified: user.email_verified,
-                    id: usuarioCadastrado.id,
-                    perfil: usuarioCadastrado.perfil
-                })
+        
+        if (inputValue == 'todosprodutos') {
+            return res.render('relatorioProdutosTodos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo})
+        }
+        else {
+            if (inputValue == 'download') {
 
                 
-
-                if (inputValue == 'todosprodutos') {
-                    return res.render('relatorioProdutosTodos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo, view:view})
-                }
-                else {
-                    if (inputValue == 'download') {
-
-                        
-                        let dadosPedidosConsumidores = []
-            
-                        for (let index = 0; index < produtosPedidosConsumidorDados.length; index++) {
-                            const pedido = produtosPedidosConsumidorDados[index];
-            
-                            
-                            dadosPedidosConsumidores.push ({
-                                consumidor: pedido.consumidor,
-                                ciclo: pedido.cicloId,
-                                produto: pedido.nome,
-                                medida: pedido.medida,
-                                valor: pedido.valorReferencia,
-                                quantidade: pedido.quantidade,
-                                total: (Number(pedido.valorReferencia) * Number(pedido.quantidade))
-                            })
-                            
-                        }
-            
-                        const fs = require('fs');
-                        const pathDownloads = 'public/downloads/'
-                        const json2csv = require('json2csv').parse;
-                        const csvString = json2csv(dadosPedidosConsumidores,{ delimiter:";" });
-                        /*const csvString = json2csv(dadosPedidosFornecedores);*/
-                        fs.writeFileSync(pathDownloads + 'relatorioProdutos.csv', csvString);
-                        res.download(pathDownloads + 'relatorioProdutos.csv');
-                    } else {
-                        return res.render('relatorioProdutosCiclos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo, view:view})
-                    }
+                let dadosPedidosConsumidores = []
+    
+                for (let index = 0; index < produtosPedidosConsumidorDados.length; index++) {
+                    const pedido = produtosPedidosConsumidorDados[index];
+    
+                    
+                    dadosPedidosConsumidores.push ({
+                        consumidor: pedido.consumidor,
+                        ciclo: pedido.cicloId,
+                        produto: pedido.nome,
+                        medida: pedido.medida,
+                        valor: pedido.valorReferencia,
+                        quantidade: pedido.quantidade,
+                        total: (Number(pedido.valorReferencia) * Number(pedido.quantidade))
+                    })
+                    
                 }
     
+                const fs = require('fs');
+                const pathDownloads = 'public/downloads/'
+                const json2csv = require('json2csv').parse;
+                const csvString = json2csv(dadosPedidosConsumidores,{ delimiter:";" });
+                /*const csvString = json2csv(dadosPedidosFornecedores);*/
+                fs.writeFileSync(pathDownloads + 'relatorioProdutos.csv', csvString);
+                res.download(pathDownloads + 'relatorioProdutos.csv');
+            } else {
+                return res.render('relatorioProdutosCiclos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo})
             }
-            else {
-
-                usuarioAtivo.push({
-                    email: user.email,
-                    picture: user.picture,
-                    name: user.name,
-                    email_verified: user.email_verified
-                })
-                
-                return res.render('usuarionovo',{usuarioAtivo: usuarioAtivo[0]})
-     
-            }  
 
         }
-        /*else {
-            usuarioAtivo.push({
-                email: "jsfarinaci@gmail.com",
-                picture: "https://lh3.googleusercontent.com/a-/AOh14GgJtCHmUVeMyPR3OiAHnnsp4NCI3bupns-WFHIekQ=s96-c",
-                name: "Juliana Farinaci",
-                email_verified: "false",
-                id: 2,
-                perfil: ['admin','consumidor']
-            })
-
-            if (inputValue == 'produto') {
-                return res.render('pedidosConsumidoresCiclosProdutos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo, view:view})
-            }
-            else {
-                return res.render('pedidosConsumidoresCiclos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo, view:view})
-            }
-
-        }*/
-        // USUARIO FIM
 
 
         //return res.render('pedidosConsumidoresTodos',{ produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo})

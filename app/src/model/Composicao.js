@@ -13,6 +13,10 @@ module.exports ={
         data = await composicaoSql.getProdutosPorComposicao(composicaoId)
         return data
     },
+    async getProdutosTodasComposicoes(cicloId) {
+        data = await composicaoSql.getProdutosTodasComposicoes(cicloId)
+        return data
+    },
     async getQuantidadeComposicaoSobra(usuarioIdcicloIdprodutoId) {
         data = await composicaoSql.getQuantidadeComposicaoSobra(usuarioIdcicloIdprodutoId)
         return data

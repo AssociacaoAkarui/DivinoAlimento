@@ -96,6 +96,50 @@ module.exports = {
 
     },
 
+    async getProdutosTodasComposicoes(cicloId) {
+
+
+        composicoes = await db.CicloCestas.findAll ({
+            raw: true,
+            where: {
+                cicloId: cicloId,
+                cestaId: {
+                    [db.Sequelize.Op.ne]: 1 // desconsidera a cesta 1, da lista de produtos que foram ofertados no extra
+                }
+            },  
+            include: [{
+                model: db.Composicoes,
+                as: 'cicloCesta',
+            }]
+        })
+
+        produtosTodasComposicoes = []
+        
+        for (let index = 0; index < composicoes.length; index++) {
+            const composicaoId = composicoes[index].id;
+
+            produtosComposicao = await db.ComposicaoOfertaProdutos.findAll({
+                raw: true,
+                where: {
+                    composicaoId: composicaoId
+                },
+                order: ['id'],  
+                include: [{
+                    model: db.OfertaProdutos,
+                    as: 'ofertaProduto',
+                }]
+            })
+
+            produtosTodasComposicoes.push ({
+                produtosComposicao
+            })
+            
+        }
+
+        return produtosTodasComposicoes
+
+    },
+
     async getQuantidadeProdutosComposicaoOld(composicoesProdutoId) {
                 
         quantidadeProdutosComposicao = await db.ComposicaoOfertaProdutos.findAll({

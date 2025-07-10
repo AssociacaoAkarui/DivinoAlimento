@@ -114,7 +114,7 @@
 
               </div>-->
             
-          <% if (view == 'all_t') { %>
+          
             <div id="listaProdutos">
               <table class="table table-bordered">
                 <thead>
@@ -235,97 +235,13 @@
                     </td>-->
                   </tr>
                 </tbody>
-              </table>
-
-                  <!--<div class="btn_rodape">
-                    <e% if ((view != 'all') && (view != 'all_t')) { %>
-                      <a class="button green" href= "/pedidosconsumidoresTodos/<e%= ciclo.id %>?view=all">
-                        Ver Pedidos de Todos os Consumidores
-                      </a>
-                    <e% } else { %>
-                      <a class="button green" href= "/pedidosconsumidoresTodos/<e%= ciclo.id %>">
-                        Ver Pedido Individual
-                      </a>
-                    <e% } %>
-                  </div>-->
-                    
-                
+              </table>  
                 
               </div><!-- end cardPedidoFornecedor -->
 
             </div><!-- end listaprodutos -->
 
-            <% } else { %>
-              <div id="listaProdutos">
-              <div class="cardPedidoFornecedor">
-                <!--<thead>
-                  <tr>
-                    <th scope="col">Fornecedor</th>
-                    <th scope="col">Produto</th>
-                    <th scope="col">Valor</th>
-                    <th scope="col">Para pedir</th>
-                    <th scope="col">Falta pedir</th>
-                    <th scope="col">Ofertados</th>
-
-                </thead>-->
-
-                  
-                      <% let consumidorCorrente = 0
-                         let consumidorAnterior = 0
-                         let valorTotalPedido = 0
-                        produtosPedidosConsumidorDados.forEach(produtoPedidoConsumidorDados => {
-                          consumidorCorrente = produtoPedidoConsumidorDados.consumidorId
-                          if (consumidorCorrente != consumidorAnterior) {
-                      %>
-                      
-                          <% if (consumidorAnterior != 0) {%>
-                            <div style= "font-size: 14px;margin-left: 20px; margin-top: 20px;">
-                                Total Pedido: R$ <%= valorTotalPedido.toFixed(2).replace('.',',' ) %>
-                            </div>
-                            </div>
-                         <% } 
-                            consumidorAnterior = consumidorCorrente
-                         %>
-                        <div class="pedidoFornecedor">
-                          <div style= "font-size: 18px;margin-top: 20px;">
-                                <%= produtoPedidoConsumidorDados.consumidor %>
-                          </div>
-                          <div style= "margin-left: 20px;">
-                            <%= produtoPedidoConsumidorDados.quantidade %> <%= produtoPedidoConsumidorDados.nome %> (<%= produtoPedidoConsumidorDados.medida %>)
-                            <% valorTotalPedido = produtoPedidoConsumidorDados.valorAcumuladoPedido %>
-                          </div>
-                    <% } else { %>
-                          <div style= "margin-left: 20px;">
-                            <%= produtoPedidoConsumidorDados.quantidade %> <%= produtoPedidoConsumidorDados.nome %> (<%= produtoPedidoConsumidorDados.medida %>)
-                            <% valorTotalPedido = produtoPedidoConsumidorDados.valorAcumuladoPedido %>
-                          </div>
-                    <% } %>
-                    
-                    <% }) %>
-                  <div style= "font-size: 14px;margin-left: 20px; margin-top: 20px;">
-                     Total Pedido: R$ <%= valorTotalPedido.toFixed(2).replace('.',',' ) %>
-                  </div>
-                  </div>
-
-                  <div class="btn_rodape">
-                    <% if ((view != 'all') && (view != 'all_t')) { %>
-                      <a class="button green" href= "/pedidosconsumidoresTodos/<%= ciclo.id %>?view=all">
-                        Ver Pedidos de Todos os Consumidores
-                      </a>
-                    <% } else { %>
-                      <a class="button green" href= "/pedidosconsumidoresTodos/<%= ciclo.id %>">
-                        Ver Pedido Individual
-                      </a>
-                    <% } %>
-                  </div>
-                    
-                
-                
-              </div><!-- end cardPedidoFornecedor -->
-
-            </div><!-- end listaprodutos -->
-         <% } %>
-
+            
           </div>
   
       </main>
