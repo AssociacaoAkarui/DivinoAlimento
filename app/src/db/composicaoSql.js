@@ -133,10 +133,87 @@ module.exports = {
             produtosTodasComposicoes.push ({
                 produtosComposicao
             })
-            
         }
 
-        return produtosTodasComposicoes
+        produtosTransacionados = []
+
+        //console.log("_______________________________", produtosTodasComposicoes)
+
+        for (let index = 0; index < produtosTodasComposicoes.length; index++) {
+        
+            produtosTransacionados.push ({
+               // usuarioId: '',
+                //cicloId: cicloId,
+                produtoId: produtosTodasComposicoes[index].id,
+                //quantidade: produtosComposicao.ofertaProduto.quantidade
+                //quantidade: 0
+            })
+
+        }
+
+
+        
+        // busca produtos comprados diretamente pelos consumidores
+        
+        /*try {
+            pedidosConsumidores = await db.PedidoConsumidores.findAll({
+                raw: true,
+                where: {
+                    cicloId: cicloId
+                } 
+            })
+        } catch (error) {
+            console.log("nenhum pedido encontrado")
+        }
+
+        ProdutosPedidosConsumidores = []
+        for (let index = 0; index < pedidosConsumidores.length; index++) {
+            const pedidoConsumidores = pedidosConsumidores[index];
+
+            try {
+                produtosPedidosConsumidores = await db.PedidoConsumidoresProdutos.findAll({
+                    raw: true,
+                    where: {
+                        pedidoConsumidorId: pedidoConsumidores.id
+                    } 
+                })
+            } catch (error) {
+                console.log("nenhum produto encontrado")
+            }
+            
+
+            for (let index = 0; index < produtosPedidosConsumidores.length; index++) {
+                const produtoPedidoConsumidor = produtosPedidosConsumidores[index];
+    
+
+                    ProdutosPedidosConsumidores.push({
+                        usuarioId: pedidoConsumidores.usuarioId,
+                        cicloId: pedidoConsumidores.cicloId,
+                        produtoId: produtoPedidoConsumidor.produtoId,
+                        quantidade: produtoPedidoConsumidor.quantidade
+                    })
+            }
+
+
+        }*/
+
+        
+
+        //return ProdutosPedidosConsumidores
+
+
+
+
+
+
+
+
+
+
+            
+    
+
+        return produtosTransacionados
 
     },
 
