@@ -14,10 +14,7 @@ module.exports = {
     "dialect": "postgres"
   },
   "test": {
-    "username": "root",
-    "password": null,
-    "database": "database_test",
-    "host": "localhost",
-    "dialect": "postgres"
+    "dialect": "sqlite",
+    "storage": ":memory:"
   },
 }

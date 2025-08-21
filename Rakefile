@@ -3,11 +3,15 @@ require 'yaml'
 require 'digest'
 
 COMPOSE_LIVE = 'compose.live.yml'
+COMPOSE_TESTS = 'compose.tests.yml'
 
 def compose(*arg, compose: COMPOSE_LIVE)
   sh "docker compose -f #{compose} #{arg.join(' ')}"
 end
 
+def compose_tests(*arg, compose: COMPOSE_TESTS)
+  sh "docker compose -f #{compose} #{arg.join(' ')}"
+end
 
 desc 'Git - Submódulos'
 namespace :git do
@@ -79,5 +83,59 @@ namespace :vivo do
   desc 'Entrar no bash do banco de dados DivinoAlimento'
   task :psql do
     compose('exec', 'db.dev', 'psql', '-U', 'postgres')
+  end
+end
+
+desc 'Ambiente Testes'
+namespace :testes do
+  desc 'Construir ambiente'
+  task :constroi do
+      compose('up', '--build', '-d', compose: COMPOSE_TESTS)
+      sh "docker compose -f #{COMPOSE_TESTS} exec app_tests.dev npm install"
+  end
+
+  desc 'Eliminar ambiente e remover'
+  task :del do
+      compose('down', '-v', '--rmi', 'all', compose: COMPOSE_TESTS)
+  end
+
+  desc 'Eliminar ambiente'
+  task :elimina do
+      compose('down', compose: COMPOSE_TESTS)
+  end
+
+  desc 'Iniciar ambiente'
+  task :liga do
+      compose('start', compose: COMPOSE_TESTS)
+  end
+
+  desc 'Parar ambiente'
+  task :para do
+      compose('stop', compose: COMPOSE_TESTS)
+  end
+
+  desc 'Reiniciar ambiente'
+  task :reinicia do
+    compose('restart', compose: COMPOSE_TESTS)
+  end
+
+  desc 'Monitorar saída, últimas 50 linhas do programa'
+  task :mensagens do
+    compose('logs', '-f', '-n 100', 'app.dev', compose: 'compose.tests.yml')
+  end
+
+  desc 'Entrar no bash do app DivinoAlimento'
+  task :sh do
+    compose('exec', 'app_tests.dev', 'bash')
+  end
+
+  desc 'Npm Intall'
+  task :npm_install do
+    sh "docker compose -f #{COMPOSE_TESTS} exec app_tests.dev npm install"
+  end
+
+  desc 'Executar testes'
+  task :test do
+    sh "docker compose -f #{COMPOSE_TESTS} exec app_tests.dev npm test"
   end
 end

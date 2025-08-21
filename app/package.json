@@ -5,13 +5,15 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon ."
+    "dev": "nodemon .",
+    "test": "mocha  'models/test/*.test.js'"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "bootstrap": "^5.0.2",
+    "chai": "^4.3.6",
     "dotenv": "^9.0.1",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
@@ -23,9 +25,11 @@
     "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.1",
-    "sequelize-cli": "^6.6.2"
+    "sequelize-cli": "^6.6.2",
+    "sqlite3": "^5.0.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.7",
+    "mocha": "11.7.1"
   }
 }

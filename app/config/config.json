@@ -1,22 +1,16 @@
 {
   "development": {
-    "username": "carmen",
-    "password": "ztm14crm",
-    "database": "akarui_development",
-    "host": "localhost",
-    "dialect": "postgres"
+     "dialect": "sqlite",
+    "storage": ":memory:"
   },
   "test": {
-    "username": "root",
-    "password": null,
-    "database": "database_test",
-    "host": "localhost",
-    "dialect": "postgres"
+    "dialect": "sqlite",
+    "storage": ":memory:"
   },
   "production": {
-    "username": "carmen",
-    "password": "ztm14crm",
-    "database": "d4evh79fho3fnq",
+    "username": "user",
+    "password": "user",
+    "database": "user",
     "host": "localhost",
     "dialect": "postgres",
     "dialectOptions": {
