@@ -136,19 +136,34 @@ module.exports = {
         }
 
         produtosTransacionados = []
+        produtosComposicao = []
+
 
         //console.log("_______________________________", produtosTodasComposicoes)
 
         for (let index = 0; index < produtosTodasComposicoes.length; index++) {
-        
-            produtosTransacionados.push ({
-               // usuarioId: '',
-                //cicloId: cicloId,
-                produtoId: produtosTodasComposicoes[index].id,
-                //quantidade: produtosComposicao.ofertaProduto.quantidade
-                //quantidade: 0
-            })
+            const { produtosComposicao } = produtosTodasComposicoes[index];
 
+            if (Array.isArray(produtosComposicao)) {
+                    for (let index2 = 0; index2 < produtosComposicao.length; index2++) {
+                        const produtoComposicao = produtosComposicao[index2];
+                        
+                            produtosTransacionados.push ({
+                                nome: "produto_nome",
+                                id: produtoComposicao['ofertaProduto.id'],
+                                cicloId: 'ciclo',
+                                consumidor: 'consumidor',
+                                produtoId: produtoComposicao.id,
+                                valorAcumuladoPedido: 0,
+                                medida: 'medida',
+                                valorReferencia: 0,
+                                quantidade: produtoComposicao['ofertaProduto.quantidade']
+                            })
+                    }
+            
+            } else {
+                console.log("produtosComposicao não é um array:", produtosComposicao);
+            }
         }
 
 
@@ -211,7 +226,7 @@ module.exports = {
 
 
             
-    
+        //produtosTransacionados = produtosTodasComposicoes
 
         return produtosTransacionados
 

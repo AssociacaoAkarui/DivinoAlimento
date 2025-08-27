@@ -135,8 +135,8 @@
                          let produtoAnterior = 0
                          let valorTotalPedido = 0
                          let corLinha = 0
-                        produtosPedidosConsumidorDados.forEach(produtoPedidoConsumidorDados => {
-                          produtoCorrente = produtoPedidoConsumidorDados.id
+                        produtosTransacionadosDados.forEach(produtoTransacionado => {
+                          produtoCorrente = produtoTransacionado.id
                           if (produtoCorrente != produtoAnterior) {
                       %>
                       
@@ -167,27 +167,27 @@
                             <% } %>
                         
                           <td>
-                                <%= produtoPedidoConsumidorDados.nome.split('(')[0] %>
+                                <%= produtoTransacionado.nome.split('(')[0] %>
                           </td>
                           <td>
-                            <%= produtoPedidoConsumidorDados.cicloId %>
+                            <%= produtoTransacionado.cicloId %>
                           </td>
                           <td>
-                            <%= produtoPedidoConsumidorDados.consumidor %>
-                            <% valorTotalPedido = produtoPedidoConsumidorDados.valorAcumuladoPedido %>
+                            <%= produtoTransacionado.consumidor %>
+                            <% valorTotalPedido = produtoTransacionado.valorAcumuladoPedido %>
                           </td>
                           <td>
-                            <%= produtoPedidoConsumidorDados.medida %>
+                            <%= produtoTransacionado.medida %>
                           </td>
                           <td>
-                            R$ <%= produtoPedidoConsumidorDados.valorReferencia.toFixed(2).replace('.',',' ) %>
+                            R$ <%= produtoTransacionado.valorReferencia.toFixed(2).replace('.',',' ) %>
                           </td>
                           <td>
-                            <%= produtoPedidoConsumidorDados.quantidade %> 
-                            <% valorTotalPedido = produtoPedidoConsumidorDados.valorAcumuladoPedido %>
+                            <%= produtoTransacionado.quantidade %> 
+                            <% valorTotalPedido = produtoTransacionado.valorAcumuladoPedido %>
                           </td>
                           <td>
-                            R$ <%= (produtoPedidoConsumidorDados.valorReferencia * produtoPedidoConsumidorDados.quantidade).toFixed(2).replace('.',',' ) %>
+                            R$ <%= (produtoTransacionado.valorReferencia * produtoTransacionado.quantidade).toFixed(2).replace('.',',' ) %>
                           </td>
                       </tr>
                     <% } else { %>
@@ -198,26 +198,26 @@
                             <% } %>
 
                           <td>
-                                <%= produtoPedidoConsumidorDados.nome.split('(')[0] %>
+                                <%= produtoTransacionado.nome.split('(')[0] %>
                           </td>
                           <td>
-                            <%= produtoPedidoConsumidorDados.cicloId %>
+                            <%= produtoTransacionado.cicloId %>
                           </td>
                           <td>
-                            <%= produtoPedidoConsumidorDados.consumidor %>
+                            <%= produtoTransacionado.consumidor %>
                           </td>
                           <td>
-                            <%= produtoPedidoConsumidorDados.medida %>
+                            <%= produtoTransacionado.medida %>
                           </td>
                           <td>
-                            R$ <%= produtoPedidoConsumidorDados.valorReferencia.toFixed(2).replace('.',',' ) %>
+                            R$ <%= produtoTransacionado.valorReferencia.toFixed(2).replace('.',',' ) %>
                           </td>
                           <td>
-                            <%= produtoPedidoConsumidorDados.quantidade %>
-                            <% valorTotalPedido = produtoPedidoConsumidorDados.valorAcumuladoPedido %>
+                            <%= produtoTransacionado.quantidade %>
+                            <% valorTotalPedido = produtoTransacionado.valorAcumuladoPedido %>
                           </td>
                           <td>
-                            R$ <%= (produtoPedidoConsumidorDados.valorReferencia * produtoPedidoConsumidorDados.quantidade).toFixed(2).replace('.',',' ) %>
+                            R$ <%= (produtoTransacionado.valorReferencia * produtoTransacionado.quantidade).toFixed(2).replace('.',',' ) %>
                           </td>
 
                           </tr>

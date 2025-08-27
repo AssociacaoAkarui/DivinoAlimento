@@ -527,131 +527,53 @@ module.exports = {
         
         usuarioId = usuarioAtivo[0].id
 
-        composicoes = await Composicao.getProdutosTodasComposicoes(cicloId);
+        produtosTransacionados = await Composicao.getProdutosTodasComposicoes(cicloId);
 
-        console.log("___________________________________________", composicoes[2])
+        console.log("______________PRODUTOS", produtosTransacionados)
+
+        produtosTransacionadosDados = []
+
+        produtoDados = 0
         
-        pedidosConsumidores = await PedidoConsumidores.getProdutosPedidosConsumidores(cicloId,usuarioId,"all_t")
-
-        console.log("___________________________________________", pedidosConsumidores)
         
-        pedidosConsumidores.sort((a,b) => (a.usuarioId > b.usuarioId) ? 1 : ((b.usuarioId > a.usuarioId) ? -1 : 0))
-
-        produtosPedidosConsumidorDados = []
-        let usuarioCorrente = 0
-        if ((pedidosConsumidores[0].usuarioId) > 0) {
-            usuarioCorrente =  pedidosConsumidores[0].usuarioId
-        }
-        for (let index = 0; index < pedidosConsumidores.length; index++) {
-            const pedidoConsumidor = pedidosConsumidores[index]
+        for (let index = 0; index < produtosTransacionados.length; index++) {
+            const produtoTransacionado = produtosTransacionados[index]
             
-            produtoDados = produtos.find(produto => Number(produto.id) === Number(pedidoConsumidor.produtoId))
-            usuarioDados = usuarios.find(usuario => Number(usuario.id) === Number(pedidoConsumidor.usuarioId))
-            cicloDados = ciclos.find(cicl => Number(cicl.id) === Number(pedidoConsumidor.cicloId))
-            
-
-            if (pedidoConsumidor.quantidade > 0) {
-
-                if (usuarioCorrente != usuarioDados.id) {
-                    usuarioCorrente = usuarioDados.id
-                }
-
-                produtosPedidosConsumidorDados.push ({
-                    id: produtoDados.id,
-                    nome: produtoDados.nome,
-                    medida: produtoDados.medida,
-                    //TO-DO: alterar para valor real quando ok na base
-                    valorReferencia: produtoDados.valorReferencia,
-                    quantidade: pedidoConsumidor.quantidade,
-                    consumidorId: usuarioDados.id,
-                    consumidor: usuarioDados.nome,
-                    valorAcumuladoPedido: 0,
-                    cicloId: cicloDados.nome,
-                })
-
-            }
-            
+                produtoDados = produtos.find(produto => Number(produto.id) === Number(produtoTransacionado.produtoId))
+                //usuarioDados = usuarios.find(usuario => Number(usuario.id) === Number(produtoTransacionado.usuarioId))
+                //cicloDados = ciclos.find(cicl => Number(cicl.id) === Number(produtoTransacionado.cicloId))
                 
-        }
 
-        //cicloOfertaProdutosDados.sort()
-        produtosPedidosConsumidorDados.sort((a,b) => (a.consumidor > b.consumidor) ? 1 : ((b.consumidor > a.consumidor) ? -1 : 0))
-        // FIM Busca produtosOfertaDados
+                if (produtoTransacionado.quantidade > 0) {
 
-
-        usuarioCorrente = 0
-        if ((produtosPedidosConsumidorDados[0].consumidorId) > 0) {
-            usuarioCorrente =  produtosPedidosConsumidorDados[0].consumidorId
-        }
-
-        valorAcumuladoPedido = 0
-        ultimaPosicao = 0
-
-        for (let index = 0; index < produtosPedidosConsumidorDados.length; index++) {
-            const produtoPedidosConsumidorDados = produtosPedidosConsumidorDados[index]
-            
-            if (usuarioCorrente != produtoPedidosConsumidorDados.consumidorId) {
-                produtosPedidosConsumidorDados[index-1].valorAcumuladoPedido = valorAcumuladoPedido
-                valorAcumuladoPedido = 0
-                usuarioCorrente = produtoPedidosConsumidorDados.consumidorId
-            }
-
-            valorAcumuladoPedido = valorAcumuladoPedido + (Number(produtoPedidosConsumidorDados.quantidade) * Number(produtoPedidosConsumidorDados.valorReferencia))     
-            
-            ultimaPosicao = index
-        }
-        produtosPedidosConsumidorDados[ultimaPosicao].valorAcumuladoPedido = valorAcumuladoPedido
-                
-        if (inputValue == 'produto') {
-            produtosPedidosConsumidorDados.sort((a,b) => (a.nome > b.nome) ? 1 : ((b.nome > a.nome) ? -1 : 0))
-        }
-        else
-        {
-            produtosPedidosConsumidorDados.sort((a,b) => (a.consumidor > b.consumidor) ? 1 : ((b.consumidor > a.consumidor) ? -1 : 0))
-        }
-        // FIM Busca produtosOfertaDados
-
-        
-        if (inputValue == 'todosprodutos') {
-            return res.render('relatorioProdutosTodos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo})
-        }
-        else {
-            if (inputValue == 'download') {
-
-                
-                let dadosPedidosConsumidores = []
-    
-                for (let index = 0; index < produtosPedidosConsumidorDados.length; index++) {
-                    const pedido = produtosPedidosConsumidorDados[index];
-    
-                    
-                    dadosPedidosConsumidores.push ({
-                        consumidor: pedido.consumidor,
-                        ciclo: pedido.cicloId,
-                        produto: pedido.nome,
-                        medida: pedido.medida,
-                        valor: pedido.valorReferencia,
-                        quantidade: pedido.quantidade,
-                        total: (Number(pedido.valorReferencia) * Number(pedido.quantidade))
+                    produtosTransacionadosDados.push ({
+                        id: produtoDados.id,
+                        nome: produtoDados.nome,
+                        medida: produtoDados.medida,
+                        //TO-DO: alterar para valor real quando ok na base
+                        valorReferencia: produtoDados.valorReferencia,
+                        quantidade: produtoTransacionado.quantidade,
+                        //consumidorId: usuarioDados.id,
+                        //consumidor: usuarioDados.nome,
+                        valorAcumuladoPedido: 0,
+                        //cicloId: cicloDados.nome,
+                        cicloId: "ciclo"
                     })
-                    
-                }
-    
-                const fs = require('fs');
-                const pathDownloads = 'public/downloads/'
-                const json2csv = require('json2csv').parse;
-                const csvString = json2csv(dadosPedidosConsumidores,{ delimiter:";" });
-                /*const csvString = json2csv(dadosPedidosFornecedores);*/
-                fs.writeFileSync(pathDownloads + 'relatorioProdutos.csv', csvString);
-                res.download(pathDownloads + 'relatorioProdutos.csv');
-            } else {
-                return res.render('relatorioProdutosCiclos',{ usuarioAtivo: usuarioAtivo[0], produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo})
-            }
 
+                }
+            
+                
         }
 
+        produtosTransacionadosDados.sort((a,b) => (a.nome > b.nome) ? 1 : ((b.nome > a.nome) ? -1 : 0))
 
-        //return res.render('pedidosConsumidoresTodos',{ produtosPedidosConsumidorDados: produtosPedidosConsumidorDados, ciclo: ciclo})
+
+        
+
+        
+        
+        return res.render('relatorioProdutosCiclos',{ usuarioAtivo: usuarioAtivo[0], produtosTransacionadosDados: produtosTransacionadosDados, ciclo: ciclo})
+           
     },
 
 
