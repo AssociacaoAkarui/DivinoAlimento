@@ -538,10 +538,13 @@ module.exports = {
         
         for (let index = 0; index < produtosTransacionados.length; index++) {
             const produtoTransacionado = produtosTransacionados[index]
+
+                console.log("______________PRODUTO ESPECÍFICO", produtoTransacionado)
+                
             
-                produtoDados = produtos.find(produto => Number(produto.id) === Number(produtoTransacionado.produtoId))
+                produtoDados = produtos.find(produto => Number(produto.id) === Number(produtoTransacionado.id))
                 //usuarioDados = usuarios.find(usuario => Number(usuario.id) === Number(produtoTransacionado.usuarioId))
-                //cicloDados = ciclos.find(cicl => Number(cicl.id) === Number(produtoTransacionado.cicloId))
+                cicloDados = ciclos.find(cicl => Number(cicl.id) === Number(produtoTransacionado.cicloId))
                 
 
                 if (produtoTransacionado.quantidade > 0) {
@@ -556,8 +559,8 @@ module.exports = {
                         //consumidorId: usuarioDados.id,
                         //consumidor: usuarioDados.nome,
                         valorAcumuladoPedido: 0,
-                        //cicloId: cicloDados.nome,
-                        cicloId: "ciclo"
+                        cicloId: cicloDados.nome,
+                        //cicloId: "ciclo"
                     })
 
                 }

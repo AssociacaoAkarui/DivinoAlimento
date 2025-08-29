@@ -113,15 +113,17 @@ module.exports = {
             }]
         })
 
+        console.log("_________________COMPOSICOES:",composicoes)
+
         produtosTodasComposicoes = []
         
         for (let index = 0; index < composicoes.length; index++) {
-            const composicaoId = composicoes[index].id;
+            const composicao = composicoes[index];
 
             produtosComposicao = await db.ComposicaoOfertaProdutos.findAll({
                 raw: true,
                 where: {
-                    composicaoId: composicaoId
+                    composicaoId: composicao['cicloCesta.id']
                 },
                 order: ['id'],  
                 include: [{
@@ -130,16 +132,29 @@ module.exports = {
                 }]
             })
 
+            console.log("_______________________________PRODUTOCOMPOSICAO", produtosComposicao)
+
+            // Adiciona a coluna cicloId a cada linha retornada
+            produtosComposicao = produtosComposicao.map(produto => ({
+                ...produto,
+                cicloId: cicloId // Adiciona a nova propriedade cicloId
+            }));
+
+
             produtosTodasComposicoes.push ({
-                produtosComposicao
+                produtosComposicao,
             })
+
+
+
+
         }
 
         produtosTransacionados = []
         produtosComposicao = []
 
 
-        //console.log("_______________________________", produtosTodasComposicoes)
+        console.log("_______________________________produtosTODASCOMPOSICOES", produtosTodasComposicoes)
 
         for (let index = 0; index < produtosTodasComposicoes.length; index++) {
             const { produtosComposicao } = produtosTodasComposicoes[index];
@@ -150,14 +165,14 @@ module.exports = {
                         
                             produtosTransacionados.push ({
                                 nome: "produto_nome",
-                                id: produtoComposicao['ofertaProduto.id'],
-                                cicloId: 'ciclo',
+                                id: produtoComposicao['ofertaProduto.produtoId'],
+                                cicloId: produtoComposicao.cicloId,
                                 consumidor: 'consumidor',
                                 produtoId: produtoComposicao.id,
                                 valorAcumuladoPedido: 0,
                                 medida: 'medida',
                                 valorReferencia: 0,
-                                quantidade: produtoComposicao['ofertaProduto.quantidade']
+                                quantidade: produtoComposicao.quantidade,
                             })
                     }
             
@@ -165,6 +180,8 @@ module.exports = {
                 console.log("produtosComposicao não é um array:", produtosComposicao);
             }
         }
+
+        console.log("_______________________________", produtosTransacionados)
 
 
         
