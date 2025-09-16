@@ -3,7 +3,7 @@ const { expect } = require('chai');
 
 const { sequelize, Cesta, PontoEntrega } = require('../../models');
 const Factories = require('./support/factories')
-const CicloService = require('../../src/services/cicloService');
+const { CicloService } = require('../../src/services/services');
 
 Given('que eu quero criar uma nova Cesta', function() {
   this.novaCesta = Factories.CestaFactory.create();

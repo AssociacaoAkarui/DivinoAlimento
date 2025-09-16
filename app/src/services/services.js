@@ -20,4 +20,4 @@ class CicloService {
   }
 }
 
-module.exports = CicloService;
+module.exports = { CicloService };
