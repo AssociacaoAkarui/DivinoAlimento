@@ -2,9 +2,9 @@ version: '3.8'
 
 services:
   app_tests.dev:
-    image: node:14
+    image: node:24
     working_dir: /app
-    command: sleep 1h
+    command: sleep 4h
     volumes:
       - ./app:/app
       - /app/node_modules
