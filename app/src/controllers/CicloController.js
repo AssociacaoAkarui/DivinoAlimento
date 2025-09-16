@@ -3,20 +3,16 @@ const PontoEntrega = require('../model/PontoEntrega')
 const Cesta = require('../model/Cesta')
 const Produto = require('../model/Produto')
 const Profile = require('../model/Profile')
+const CicloService = require('../services/cicloService');
 
 module.exports = {
-    
-    
+
     async create(req, res) {
-        const pontosEntrega = await PontoEntrega.get();
-        const tiposCesta = await Cesta.getCestasAtivas();
-
-        // inserir verificacao da existência das cestas 1 e 5 e caso não exista criar estas linhas no banco
-        Cesta.verificaCriaCestasInternas();
-
-        return res.render("ciclo", { pontosEntrega: pontosEntrega, tiposCesta: tiposCesta })
+      const cicloService = new CicloService();
+      const data = req.body;
+      const ciclo = await cicloService.createCiclo(data);
+      return res.render("ciclo", ciclo)
     },
-
     
     async save(req, res) {      
         //inicio - cria vetor de atualização das datas de entrega
