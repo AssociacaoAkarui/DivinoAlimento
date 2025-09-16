@@ -1,0 +1,17 @@
+const Ciclo = require('../model/Ciclo')
+const PontoEntrega = require('../model/PontoEntrega')
+const Cesta = require('../model/Cesta')
+const Produto = require('../model/Produto')
+const Profile = require('../model/Profile')
+
+class CicloService {
+  async createCiclo(data) {
+    // Lógica para crear un ciclo
+    const pontosEntrega = await PontoEntrega.get();
+    const tiposCesta = await Cesta.getCestasAtivas();
+
+    // inserir verificacao da existência das cestas 1 e 5 e caso não exista criar estas linhas no banco
+    Cesta.verificaCriaCestasInternas();
+
+    return { pontosEntrega: pontosEntrega, tiposCesta: tiposCesta }
+  }
