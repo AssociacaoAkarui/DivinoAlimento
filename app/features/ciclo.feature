@@ -11,6 +11,6 @@ Funcionalidade: Gestión de Ciclos
     Então o Ponto de Entrega deve ser criado corretamente
 
   Cenário: Criar um novo ciclo com pontos de entrega e cestas ativas
-    Dado que o sistema possui pontos de entrega e cestas ativas
+    Dado que o sistema possui um ponto de entrega e 2 cestas ativas
     Quando o usuário cria um novo ciclo
     Então o ciclo deve ser criado com os pontos de entrega e cestas ativas
