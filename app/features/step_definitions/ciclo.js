@@ -35,13 +35,19 @@ Then('o Ponto de Entrega deve ser criado corretamente', function() {
   expect(createdPontoEntrega.status).to.equal(novoPontoEntrega.status);
 });
 
-Given('que o sistema possui pontos de entrega e cestas ativas', async function () {
-  novaCesta1 = Factories.CestaFactory.create();
-  createdCesta1 = await Cesta.create(novaCesta1);
-  novaCesta2 = Factories.CestaFactory.create();
-  createdCesta2 = await Cesta.create(novaCesta2);
-  novoPontoEntrega = Factories.PontoEntregaFactory.create();
-  createdPontoEntrega = await PontoEntrega.create(novoPontoEntrega);
+Given('que o sistema possui um ponto de entrega e {int} cestas ativas', async function (numeroDeCestas) {
+    novoPontoEntrega = Factories.PontoEntregaFactory.create();
+    createdPontoEntrega = await PontoEntrega.create(novoPontoEntrega);
+
+    const novasCestas = [];
+
+    for (let i = 0; i < numeroDeCestas; i++) {
+        novasCestas.push(Factories.CestaFactory.create());
+    }
+
+    const createdCestas = await Promise.all(novasCestas.map(async (novaCesta) => {
+        return await Cesta.create(novaCesta);
+    }));
 });
 
 When('o usuário cria um novo ciclo', async function () {
