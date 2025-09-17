@@ -6,42 +6,42 @@ const Factories = require('./support/factories')
 const { CicloService } = require('../../src/services/services');
 
 Given('que eu quero criar uma nova Cesta', function() {
-  this.novaCesta = Factories.CestaFactory.create();
+  novaCesta = Factories.CestaFactory.create();
 });
 
 When('eu crio a Cesta', async function() {
-  this.createdCesta = await Cesta.create(this.novaCesta);
+  createdCesta = await Cesta.create(novaCesta);
 });
 
 Then('a Cesta deve ser criada corretamente', function() {
-  expect(this.createdCesta).to.be.an('object');
-  expect(this.createdCesta.nome).to.equal(this.novaCesta.nome);
-  expect(this.createdCesta.valormaximo).to.equal(this.novaCesta.valormaximo);
-  expect(this.createdCesta.status).to.equal(this.novaCesta.status);
+  expect(createdCesta).to.be.an('object');
+  expect(createdCesta.nome).to.equal(novaCesta.nome);
+  expect(createdCesta.valormaximo).to.equal(novaCesta.valormaximo);
+  expect(createdCesta.status).to.equal(novaCesta.status);
 });
 
 Given('que eu quero criar um novo Ponto de Entrega', function() {
-  this.novoPontoEntrega = Factories.PontoEntregaFactory.create();
+  novoPontoEntrega = Factories.PontoEntregaFactory.create();
 });
 
 When('eu crio o Ponto de Entrega', async function() {
-  this.createdPontoEntrega = await PontoEntrega.create(this.novoPontoEntrega);
+  createdPontoEntrega = await PontoEntrega.create(novoPontoEntrega);
 });
 
 Then('o Ponto de Entrega deve ser criado corretamente', function() {
-  expect(this.createdPontoEntrega).to.be.an('object');
-  expect(this.createdPontoEntrega.nome).to.equal(this.novoPontoEntrega.nome);
-  expect(this.createdPontoEntrega.endereco).to.equal(this.novoPontoEntrega.endereco);
-  expect(this.createdPontoEntrega.status).to.equal(this.novoPontoEntrega.status);
+  expect(createdPontoEntrega).to.be.an('object');
+  expect(createdPontoEntrega.nome).to.equal(novoPontoEntrega.nome);
+  expect(createdPontoEntrega.endereco).to.equal(novoPontoEntrega.endereco);
+  expect(createdPontoEntrega.status).to.equal(novoPontoEntrega.status);
 });
 
 Given('que o sistema possui pontos de entrega e cestas ativas', async function () {
-  this.novaCesta1 = Factories.CestaFactory.create();
-  this.createdCesta1 = await Cesta.create(this.novaCesta1);
-  this.novaCesta2 = Factories.CestaFactory.create();
-  this.createdCesta2 = await Cesta.create(this.novaCesta2);    
-  this.novoPontoEntrega = Factories.PontoEntregaFactory.create();
-  this.createdPontoEntrega = await PontoEntrega.create(this.novoPontoEntrega);
+  novaCesta1 = Factories.CestaFactory.create();
+  createdCesta1 = await Cesta.create(novaCesta1);
+  novaCesta2 = Factories.CestaFactory.create();
+  createdCesta2 = await Cesta.create(novaCesta2);
+  novoPontoEntrega = Factories.PontoEntregaFactory.create();
+  createdPontoEntrega = await PontoEntrega.create(novoPontoEntrega);
 });
 
 When('o usuário cria um novo ciclo', async function () {
