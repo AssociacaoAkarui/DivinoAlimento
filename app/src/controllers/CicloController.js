@@ -3,14 +3,14 @@ const PontoEntrega = require('../model/PontoEntrega')
 const Cesta = require('../model/Cesta')
 const Produto = require('../model/Produto')
 const Profile = require('../model/Profile')
-const CicloService = require('../services/cicloService');
+const { CicloService } = require('../services/services');
 
 module.exports = {
 
     async create(req, res) {
       const cicloService = new CicloService();
       const data = req.body;
-      const ciclo = await cicloService.createCiclo(data);
+      const ciclo = await cicloService.criarCiclo();
       return res.render("ciclo", ciclo)
     },
     
