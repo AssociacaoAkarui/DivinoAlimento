@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class CicloCestas extends Model {
     /**
@@ -17,23 +15,27 @@ module.exports = (sequelize, DataTypes) => {
         as: 'CicloCestas'
       });
 
-      CicloCestas.belongsTo(models.Cesta, { 
-        foreignKey: 'cestaId', 
-        as: 'Cesta' 
+      CicloCestas.belongsTo(models.Cesta, {
+        foreignKey: 'cestaId',
+        as: 'Cesta'
       });*/
 
       CicloCestas.hasMany(models.Composicoes, {
-        foreignKey: 'cicloCestaId', 
-        as: 'cicloCesta'
+        foreignKey: "cicloCestaId",
+        as: "cicloCesta",
       });
-      
     }
-  };
-  CicloCestas.init({
-    quantidadeCestas: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'CicloCestas',
-  });
+  }
+  CicloCestas.init(
+    {
+      quantidadeCestas: DataTypes.INTEGER,
+      cestaId: DataTypes.INTEGER,
+      cicloId: DataTypes.INTEGER,
+    },
+    {
+      sequelize,
+      modelName: "CicloCestas",
+    },
+  );
   return CicloCestas;
 };

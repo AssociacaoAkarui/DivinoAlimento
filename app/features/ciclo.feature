@@ -13,7 +13,17 @@ Funcionalidade: Gestión de Ciclos
 
   Cenário: Criar um novo ciclo com pontos de entrega e cestas ativas
     Dado que eu quero criar um novo Ciclo
-    Quando eu crio 2 Ponto de Entrega
-    Quando eu crio 2 Cesta
+    Quando eu crio 1 Ponto de Entrega
+    Quando eu crio 1 Cesta
+    Quando eu oferta inicio '2023-01-01'
+    Quando eu oferta fim '2023-01-31'
+    Quando eu itens adicionais inicio '2023-01-01'
+    Quando eu itens adicionais fim '2023-01-31'
+    Quando eu retirada consumidor inicio '2023-01-01'
+    Quando eu retirada consumidor fim '2023-01-31'
+    Quando observacao 'test'
+    Quando entrega fornecedor inicio '2023-01-01'
+    Quando entrega fornecedor fim '2023-01-31'
+    Quando quantidade cestas '1'
     Quando o usuário cria um novo ciclo
     Então o ciclo deve ser criado com os pontos de entrega e cestas ativas

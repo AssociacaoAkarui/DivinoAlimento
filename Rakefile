@@ -72,17 +72,17 @@ namespace :vivo do
 
   desc 'Entrar no bash do app DivinoAlimento'
   task :sh do
-    compose('exec', 'app.dev', 'bash')
+    compose('exec', '-T', 'app.dev', 'bash')
   end
 
   desc 'Popular Entorno'
   task :popular do
-    compose('exec', 'db.dev', 'psql', '-U', 'postgres', '-d', 'divinoalimento',  '-f',  '/opt/sql_populate.sql')
+    compose('exec', '-T', 'db.dev', 'psql', '-U', 'postgres', '-d', 'divinoalimento',  '-f',  '/opt/sql_populate.sql')
   end
 
   desc 'Entrar no bash do banco de dados DivinoAlimento'
   task :psql do
-    compose('exec', 'db.dev', 'psql', '-U', 'postgres')
+    compose('exec', '-T', 'db.dev', 'psql', '-U', 'postgres')
   end
 end
 
@@ -91,7 +91,7 @@ namespace :testes do
   desc 'Construir ambiente'
   task :constroi do
       compose('up', '--build', '-d', compose: COMPOSE_TESTS)
-      sh "docker compose -f #{COMPOSE_TESTS} exec app_tests.dev npm install"
+      sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm install"
   end
 
   desc 'Eliminar ambiente e remover'
@@ -126,16 +126,16 @@ namespace :testes do
 
   desc 'Entrar no bash do app DivinoAlimento'
   task :sh do
-    compose('exec', 'app_tests.dev', 'bash')
+    compose('exec', '-T', 'app_tests.dev', 'bash')
   end
 
   desc 'Npm Intall'
   task :npm_install do
-    sh "docker compose -f #{COMPOSE_TESTS} exec app_tests.dev npm install"
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm install"
   end
 
   desc 'Executar testes'
   task :test do
-    sh "docker compose -f #{COMPOSE_TESTS} exec app_tests.dev npm test"
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
   end
 end
