@@ -1,4 +1,4 @@
-# language: pt_br
+# language: pt
 Funcionalidade: Gestión de Ciclos
 
   Cenário: Criar uma Nova Cesta
