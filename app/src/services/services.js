@@ -4,7 +4,87 @@ const {
   Cesta,
   CicloEntregas,
   CicloCestas,
+  Usuario,
+  Session,
 } = require("../../models");
+
+class UsuarioService {
+  async create(requiredParams, optionalParams = {}) {
+    // Extract required parameters
+    const { email, password, phoneNumber } = requiredParams;
+
+    // Extract optional parameters with defaults
+    const {
+      nome = email.split("@")[0],
+      // TODO implementar resto
+      perfil = ["admin"],
+      status = "ativo",
+    } = optionalParams;
+
+    const user = await Usuario.create({
+      nome: nome,
+      celular: phoneNumber,
+      email: email,
+      perfil: perfil,
+      status: status,
+    });
+    return user;
+  }
+
+  async login(email, password) {
+    const user = await Usuario.findOne({
+      where: {
+        email: email,
+        status: "ativo",
+      },
+    });
+
+    if (!user) {
+      throw new Error("User not found or inactive");
+    }
+
+    // For this implementation, we're not storing/checking passwords
+    // In a real application, you would hash and verify passwords
+
+    // Create a new session in the database
+    const session = await Session.create({
+      usuarioId: user.id,
+    });
+
+    // Clean up expired sessions
+    await this.cleanupExpiredSessions();
+
+    return {
+      sessionId: session.id,
+      usuarioId: user.id,
+      email: user.email,
+      perfil: user.perfil,
+      loggedIn: true,
+      session: session.toJSON(),
+    };
+  }
+
+  async logout(sessionId) {
+    const session = await Session.findByPk(sessionId);
+    if (session) {
+      await session.destroy();
+      return { success: true, message: "Logged out successfully" };
+    }
+    throw new Error("Session not found");
+  }
+
+  async cleanupExpiredSessions() {
+    // Clean up sessions older than 24 hours
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    await Session.destroy({
+      where: {
+        createdAt: {
+          [require("sequelize").Op.lt]: twentyFourHoursAgo,
+        },
+      },
+    });
+  }
+}
 
 class CicloService {
   async criarCiclo(dados) {
@@ -88,4 +168,4 @@ class CicloService {
   }
 }
 
-module.exports = { CicloService };
+module.exports = { CicloService, UsuarioService };
