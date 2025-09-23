@@ -135,7 +135,7 @@ namespace :testes do
   end
 
   desc 'Executar testes'
-  task :test do
-    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
+  task :test,[:test] do |_, args|
+  sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test #{args.test}"
   end
 end
