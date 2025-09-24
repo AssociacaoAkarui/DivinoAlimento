@@ -15,6 +15,7 @@ Funcionalidade: Gestión de Ciclos
     Dado que eu quero criar um novo Ciclo
     Quando eu crio 1 Ponto de Entrega
     Quando eu crio 1 Cesta
+    Quando eu nome 'Ciclo de Teste'
     Quando eu oferta inicio '2023-01-01'
     Quando eu oferta fim '2023-01-31'
     Quando eu itens adicionais inicio '2023-01-01'
@@ -27,3 +28,9 @@ Funcionalidade: Gestión de Ciclos
     Quando quantidade cestas '1'
     Quando o usuário cria um novo ciclo
     Então o ciclo deve ser criado com os pontos de entrega e cestas ativas
+
+  Cenário: Atualizar um ciclo existente alterando ou não os pontos de entrega e cestas ativas
+    Dado que eu quero atualizar um ciclo selecionado
+    Quando eu altero o campo nome com o nome 'ciclo_modificado'
+    Quando o usuário altera um ciclo selecionado
+  

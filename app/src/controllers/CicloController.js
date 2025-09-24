@@ -19,7 +19,7 @@ module.exports = {
 
   async save(req, res) {
     const cicloService = new CicloService();
-    cicloService.createCiclo(req.body);
+    cicloService.criarCiclo(req.body);
 
     console.log("ATENÇÃO ATENÇÃO ATENÇÃO ATENÇÃO ATENÇÃO ATENÇÃO TESTE_4");
 
@@ -63,94 +63,7 @@ module.exports = {
   },
 
   async update(req, res) {
-    const cicloId = req.params.id;
-
-    const dadosCiclo = await Ciclo.getCicloIdMin(cicloId);
-    const ciclo = dadosCiclo.ciclo[0];
-
-    console.log(
-      "---------------------------------------------------------------------------------------------------------------entrou no Controller update",
-    );
-
-    //const data = await Ciclo.get()
-    //const ciclos = data.ciclos
-    //const ciclo = ciclos.find(ciclo => Number(ciclo.id) === Number(cicloId))
-
-    if (!ciclo) {
-      return res.send("Ciclo não existe!");
-    }
-
-    //inicio - cria vetor de atualização das datas de entrega
-    var countEntregas = 1;
-
-    entregaFornecedorInicio = req.body.entregaFornecedorInicio1;
-    entregaFornecedorFim = req.body.entregaFornecedorFim1;
-
-    var cicloEntregas = [];
-
-    while (entregaFornecedorInicio) {
-      cicloEntregas.push({
-        entregaFornecedorInicio: entregaFornecedorInicio,
-        entregaFornecedorFim: entregaFornecedorFim,
-      });
-
-      countEntregas += 1;
-
-      newEntregaFornecedorInicio =
-        "entregaFornecedorInicio" + countEntregas.toString();
-      newEntregaFornecedorFim =
-        "entregaFornecedorFim" + countEntregas.toString();
-
-      entregaFornecedorInicio = req.body[newEntregaFornecedorInicio];
-      entregaFornecedorFim = req.body[newEntregaFornecedorFim];
-    }
-    //fim - cria vetor de atualização das datas de entrega
-
-    //inicio - cria vetor de atualização das cestas e quantidades
-    var countCestas = 1;
-
-    cestaId = req.body.cestaId1;
-    quantidadeCestas = req.body.quantidadeCestas1;
-
-    var cicloCestas = [];
-
-    while (quantidadeCestas) {
-      if (quantidadeCestas >= 0) {
-        cicloCestas.push({
-          cestaId: cestaId,
-          quantidadeCestas: quantidadeCestas,
-        });
-      }
-
-      countCestas += 1;
-
-      newCestaId = "cestaId" + countCestas.toString();
-      newQuantidadeCestas = "quantidadeCestas" + countCestas.toString();
-
-      cestaId = req.body[newCestaId];
-      quantidadeCestas = req.body[newQuantidadeCestas];
-    }
-    //fim - cria vetor de atualização das cestas e quantidade
-
-    const updatedCiclo = {
-      id: cicloId,
-      nome: req.body.nome,
-      pontoEntregaId: req.body.pontoEntregaId,
-      ofertaInicio: req.body.ofertaInicio,
-      ofertaFim: req.body.ofertaFim,
-      itensAdicionaisInicio: req.body.itensAdicionaisInicio,
-      itensAdicionaisFim: req.body.itensAdicionaisFim,
-      retiradaConsumidorInicio: req.body.retiradaConsumidorInicio,
-      retiradaConsumidorFim: req.body.retiradaConsumidorFim,
-      observacao: req.body.observacao,
-      cicloEntregas: cicloEntregas,
-      cicloCestas: cicloCestas,
-      //cicloProdutos: cicloProdutos
-    };
-
-    await Ciclo.update(updatedCiclo);
-
-    res.redirect("/ciclo/" + cicloId);
+    
   },
 
   delete(req, res) {

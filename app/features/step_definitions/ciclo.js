@@ -12,8 +12,9 @@ let createdPontosEntrega = [];
 let cicloService;
 let ciclo;
 let cicloData = {};
+let cicloUpdateData = {};
 
-Given("que eu quero criar uma nova Cesta", function () {});
+Given("que eu quero criar uma nova Cesta", function () { });
 
 When("eu crio {int} Cesta", async function (numeroDeCestas) {
   novasCestas = [];
@@ -36,7 +37,7 @@ Then("a Cesta deve ser criada corretamente", function () {
   expect(createdCestas[0].status).to.equal(novasCestas[0].status);
 });
 
-Given("que eu quero criar um novo Ponto de Entrega", function () {});
+Given("que eu quero criar um novo Ponto de Entrega", function () { });
 
 When("eu crio {int} Ponto de Entrega", async function (numeroDePontoEntrega) {
   novosPontosEntrega = [];
@@ -122,6 +123,7 @@ When("o usuário cria um novo ciclo", async function () {
   cicloData.nome = "Ciclo de Teste";
 
   ciclo = await cicloService.criarCiclo(cicloData);
+
 });
 
 Then(
@@ -131,3 +133,23 @@ Then(
     expect(ciclo.tiposCesta).to.have.lengthOf(createdCestas.length);
   },
 );
+
+Given("que eu quero atualizar um ciclo selecionado", async function () {
+  // Carregar os dados do ciclo selecionado
+  cicloUpdateData = {};
+});
+
+When("eu altero o campo nome com o nome {string}", function (nome) {
+  cicloUpdateData.nome = nome;
+});
+
+When("o usuário altera um ciclo selecionado", async function () {
+  cicloService = new CicloService();
+
+  cicloId = ciclo.id
+
+  expect(ciclo.id).to.equal(2);
+  
+  cicloAtualizado = await cicloService.atualizarCiclo(cicloId, cicloUpdateData);
+
+});
