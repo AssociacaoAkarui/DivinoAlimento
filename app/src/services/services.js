@@ -1,53 +1,90 @@
-const Ciclo = require('../model/Ciclo')
-const PontoEntrega = require('../model/PontoEntrega')
-const Cesta = require('../model/Cesta')
-const Produto = require('../model/Produto')
-const Profile = require('../model/Profile')
-
-
-class PontoEntregaModel {
-    constructor(dados) {
-    this.id = dados.id;
-    this.nome = dados.nome;
-    this.endereco = dados.endereco;
-    this.status = dados.status;
-  }
-}
-
-class TipoCestaModel {
-  constructor(dados) {
-    this.id = dados.id;
-    this.nomes = dados.nome;
-    this.valormaximo = dados.valormaximo;
-    this.status = dados.status;
-  }
-}
-
+const {
+  Ciclo,
+  PontoEntrega,
+  Cesta,
+  CicloEntregas,
+  CicloCestas,
+} = require("../../models");
 
 class CicloService {
-  async criarCiclo() {
-    try {
-      const pontosEntrega = await PontoEntrega.get();
-      const tiposCesta = await Cesta.getCestasAtivas();
+  async criarCiclo(dados) {
+    // Create the main cycle first
+    const novoCiclo = await Ciclo.create({
+      nome: dados.nome,
+      pontoEntregaId: dados.pontoEntregaId,
+      ofertaInicio: dados.ofertaInicio,
+      ofertaFim: dados.ofertaFim,
+      itensAdicionaisInicio: dados.itensAdicionaisInicio,
+      itensAdicionaisFim: dados.itensAdicionaisFim,
+      retiradaConsumidorInicio: dados.retiradaConsumidorInicio,
+      retiradaConsumidorFim: dados.retiradaConsumidorFim,
+      observacao: dados.observacao,
+      status: "ativo",
+    });
 
-      await Cesta.verificaCriaCestasInternas();
+    // Create cycle delivery dates if provided
+    if (dados.entregaFornecedorInicio1 && dados.entregaFornecedorFim1) {
+      let countEntregas = 1;
+      let entregaFornecedorInicio = dados.entregaFornecedorInicio1;
+      let entregaFornecedorFim = dados.entregaFornecedorFim1;
 
-      return {
-        pontosEntrega: this.criarInstanciasPontoEntrega(pontosEntrega),
-        tiposCesta: this.criarInstanciasTipoCesta(tiposCesta)
-      };
-    } catch (error) {
-      console.error('Erro ao criar ciclo:', error);
-      throw error;
+      while (entregaFornecedorInicio && entregaFornecedorFim) {
+        await CicloEntregas.create({
+          cicloId: novoCiclo.id,
+          entregaFornecedorInicio: entregaFornecedorInicio,
+          entregaFornecedorFim: entregaFornecedorFim,
+        });
+
+        countEntregas += 1;
+        const newEntregaFornecedorInicio =
+          "entregaFornecedorInicio" + countEntregas.toString();
+        const newEntregaFornecedorFim =
+          "entregaFornecedorFim" + countEntregas.toString();
+
+        entregaFornecedorInicio = dados[newEntregaFornecedorInicio];
+        entregaFornecedorFim = dados[newEntregaFornecedorFim];
+      }
     }
-  }
 
-  criarInstanciasPontoEntrega(dados) {
-    return dados.map(dado => new PontoEntregaModel(dado));
-  }
+    // Create cycle baskets if provided
+    if (dados.cestaId1 && dados.quantidadeCestas1) {
+      let countCestas = 1;
+      let cestaId = dados.cestaId1;
+      let quantidadeCestas = dados.quantidadeCestas1;
 
-  criarInstanciasTipoCesta(dados) {
-    return dados.map(dado => new TipoCestaModel(dado));
+      while (cestaId && quantidadeCestas > 0) {
+        await CicloCestas.create({
+          cicloId: novoCiclo.id,
+          cestaId: cestaId,
+          quantidadeCestas: quantidadeCestas,
+        });
+
+        countCestas += 1;
+        const newCestaId = "cestaId" + countCestas.toString();
+        const newQuantidadeCestas = "quantidadeCestas" + countCestas.toString();
+
+        cestaId = dados[newCestaId];
+        quantidadeCestas = dados[newQuantidadeCestas];
+      }
+    }
+
+    // Get active delivery points and baskets to return
+    const pontosEntrega = await PontoEntrega.findAll({
+      where: { status: "ativo" },
+    });
+
+    const tiposCesta = await Cesta.findAll({
+      where: { status: "ativo" },
+    });
+
+    // Return an object that matches the expected structure in tests
+    return {
+      id: novoCiclo.id,
+      nome: novoCiclo.nome,
+      pontosEntrega: pontosEntrega,
+      tiposCesta: tiposCesta,
+      ...novoCiclo.toJSON(),
+    };
   }
 }
 
