@@ -1,0 +1,32 @@
+const { faker } = require('@faker-js/faker');
+
+class CestaFactory {
+  static createCesta(override = {}) {
+    return {
+      nome: faker.commerce.productName(),
+      valormaximo: parseFloat(faker.commerce.price()),
+      status: faker.helpers.arrayElement(['active', 'inactive'])
+    };
+  }
+
+  static createMultipleCestas(count = 3) {
+    return Array.from({ length: count }, () => this.createCesta());
+  }
+}
+
+class PontoEntregaFactory {
+  static createPontoEntrega(override = {}) {
+    return {
+      nome: faker.commerce.productName(),
+      status: faker.helpers.arrayElement(['active', 'inactive']),
+      endereco: faker.location.direction()
+    };
+  }
+
+  static createMultiplePontosEntrga(count = 3) {
+    return Array.from({ length: count }, () => this.createPontoEntrega());
+  }
+}
+
+module.exports = { CestaFactory,
+		   PontoEntregaFactory };

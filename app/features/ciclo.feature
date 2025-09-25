@@ -30,7 +30,7 @@ Funcionalidade: Gestión de Ciclos
     Então o ciclo deve ser criado com os pontos de entrega e cestas ativas
 
   Cenário: Atualizar um ciclo existente alterando ou não os pontos de entrega e cestas ativas
-    Dado que eu quero atualizar um ciclo selecionado
+    Dado que eu quero criar e atualizar um ciclo
     Quando eu altero o campo nome com o nome 'ciclo_modificado'
     Quando o usuário altera um ciclo selecionado
   

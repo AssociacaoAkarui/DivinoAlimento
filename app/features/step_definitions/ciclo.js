@@ -67,6 +67,10 @@ Given("que eu quero criar um novo Ciclo", async function () {
   cicloData = {};
 });
 
+When("eu nome {string}", function (nome) {
+  cicloData.nome = nome;
+});
+
 When("eu oferta inicio {string}", function (dataInicio) {
   cicloData.ofertaInicio = dataInicio;
 });
@@ -119,11 +123,7 @@ When("o usuário cria um novo ciclo", async function () {
     cicloData.pontoEntregaId = createdPontosEntrega[0].id;
   }
 
-  // Add cycle name
-  cicloData.nome = "Ciclo de Teste";
-
   ciclo = await cicloService.criarCiclo(cicloData);
-
 });
 
 Then(
@@ -134,22 +134,18 @@ Then(
   },
 );
 
-Given("que eu quero atualizar um ciclo selecionado", async function () {
-  // Carregar os dados do ciclo selecionado
-  cicloUpdateData = {};
+Given("que eu quero criar e atualizar um ciclo", async function () {
+  cicloService = new CicloService();
+  novoCiclo = Factories.CicloFactory.create();
+  ciclo2 = await cicloService.criarCiclo(novoCiclo);
 });
 
-When("eu altero o campo nome com o nome {string}", function (nome) {
+When("eu altero o campo nome com o nome {string}", async function (nome) {
+  cicloUpdateData = {};
   cicloUpdateData.nome = nome;
+  cicloUpdate = await cicloService.atualizarCiclo(ciclo2.id, cicloUpdateData);
 });
 
 When("o usuário altera um ciclo selecionado", async function () {
-  cicloService = new CicloService();
-
-  cicloId = ciclo.id
-
-  expect(ciclo.id).to.equal(2);
-  
-  cicloAtualizado = await cicloService.atualizarCiclo(cicloId, cicloUpdateData);
 
 });

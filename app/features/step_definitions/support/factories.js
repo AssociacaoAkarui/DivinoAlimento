@@ -28,4 +28,21 @@ class PontoEntregaFactory {
   }
 }
 
-module.exports = { CestaFactory, PontoEntregaFactory };
+class CicloFactory {
+  static create(override = {}) {
+    return {
+      nome: faker.name,
+      pontoEntregaId: null,
+      ofertaInicio: faker.date.recent,
+      ofertaFim: faker.date.soon,
+      itensAdicionaisInicio: faker.date.recent,
+      itensAdicionaisFim: faker.date.soon,
+      retiradaConsumidorInicio: faker.date.recent,
+      retiradaConsumidorFim: faker.date.soon,
+      observacao: "Observação",
+      status: "ativo",
+    }
+  }
+};
+
+module.exports = { CestaFactory, PontoEntregaFactory, CicloFactory };
