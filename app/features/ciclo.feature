@@ -29,8 +29,23 @@ Funcionalidade: Gestión de Ciclos
     Quando o usuário cria um novo ciclo
     Então o ciclo deve ser criado com os pontos de entrega e cestas ativas
 
-  Cenário: Atualizar um ciclo existente alterando ou não os pontos de entrega e cestas ativas
+  Cenário: Atualizar um ciclo existente alterando dados básicos
     Dado que eu quero criar e atualizar um ciclo
     Quando eu altero o campo nome com o nome 'ciclo_modificado'
-    Quando o usuário altera um ciclo selecionado
-  
+    Quando eu altero a observacao para 'observacao modificada'
+    Quando eu altero a oferta inicio para '2023-02-01'
+    Quando eu altero a oferta fim para '2023-02-28'
+    Quando o usuário atualiza o ciclo
+    Então o ciclo deve estar atualizado com os novos dados
+
+  Cenário: Atualizar um ciclo existente alterando entregas e cestas
+    Dado que eu quero criar e atualizar um ciclo com associações
+    Quando eu crio 1 Ponto de Entrega para atualização
+    Quando eu crio 2 Cesta para atualização
+    Quando eu altero o ponto de entrega
+    Quando eu adiciono nova entrega fornecedor inicio '2023-03-01' e fim '2023-03-05'
+    Quando eu adiciono segunda entrega fornecedor inicio '2023-03-10' e fim '2023-03-15'
+    Quando eu altero primeira cesta com quantidade '10'
+    Quando eu adiciono segunda cesta com quantidade '5'
+    Quando o usuário atualiza o ciclo com associações
+    Então o ciclo deve estar atualizado com as novas entregas e cestas

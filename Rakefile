@@ -91,7 +91,7 @@ namespace :testes do
   desc 'Construir ambiente'
   task :constroi do
       compose('up', '--build', '-d', compose: COMPOSE_TESTS)
-      sh "docker compose -f #{COMPOSE_TESTS} exec app_tests.dev npm install"
+      sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm install"
   end
 
   desc 'Eliminar ambiente e remover'
@@ -131,11 +131,11 @@ namespace :testes do
 
   desc 'Npm Intall'
   task :npm_install do
-    sh "docker compose -f #{COMPOSE_TESTS} exec app_tests.dev npm install"
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm install"
   end
 
   desc 'Executar testes'
   task :test do
-    sh "docker compose -f #{COMPOSE_TESTS} exec app_tests.dev npm test"
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
   end
 end

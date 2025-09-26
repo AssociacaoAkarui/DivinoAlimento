@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class CicloCestas extends Model {
     /**
@@ -12,28 +10,30 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
 
-      /*CicloCestas.belongsTo(models.Ciclo, {
-        foreignKey: 'id',
-        as: 'CicloCestas'
+      CicloCestas.belongsTo(models.Ciclo, {
+        foreignKey: "cicloId",
+        as: "ciclo",
       });
 
-      CicloCestas.belongsTo(models.Cesta, { 
-        foreignKey: 'cestaId', 
-        as: 'Cesta' 
-      });*/
+      CicloCestas.belongsTo(models.Cesta, {
+        foreignKey: "cestaId",
+        as: "cesta",
+      });
 
       CicloCestas.hasMany(models.Composicoes, {
-        foreignKey: 'cicloCestaId', 
-        as: 'cicloCesta'
+        foreignKey: "cicloCestaId",
+        as: "cicloCesta",
       });
-      
     }
-  };
-  CicloCestas.init({
-    quantidadeCestas: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'CicloCestas',
-  });
+  }
+  CicloCestas.init(
+    {
+      quantidadeCestas: DataTypes.INTEGER,
+    },
+    {
+      sequelize,
+      modelName: "CicloCestas",
+    }
+  );
   return CicloCestas;
 };

@@ -31,18 +31,19 @@ class PontoEntregaFactory {
 class CicloFactory {
   static create(override = {}) {
     return {
-      nome: faker.name,
+      nome: faker.person.firstName(),
       pontoEntregaId: null,
-      ofertaInicio: faker.date.recent,
-      ofertaFim: faker.date.soon,
-      itensAdicionaisInicio: faker.date.recent,
-      itensAdicionaisFim: faker.date.soon,
-      retiradaConsumidorInicio: faker.date.recent,
-      retiradaConsumidorFim: faker.date.soon,
+      ofertaInicio: faker.date.recent(),
+      ofertaFim: faker.date.soon(),
+      itensAdicionaisInicio: faker.date.recent(),
+      itensAdicionaisFim: faker.date.soon(),
+      retiradaConsumidorInicio: faker.date.recent(),
+      retiradaConsumidorFim: faker.date.soon(),
       observacao: "Observação",
       status: "ativo",
-    }
+      ...override,
+    };
   }
-};
+}
 
 module.exports = { CestaFactory, PontoEntregaFactory, CicloFactory };
