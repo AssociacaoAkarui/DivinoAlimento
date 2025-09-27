@@ -63,7 +63,6 @@ Then("o Ponto de Entrega deve ser criado corretamente", function () {
 });
 
 Given("que eu quero criar um novo Ciclo", async function () {
-  // Initialize cicloData object to store all cycle configuration
   cicloData = {};
 });
 
@@ -108,7 +107,6 @@ When("entrega fornecedor fim {string}", function (dataFim) {
 });
 
 When("quantidade cestas {string}", function (quantidade) {
-  // Store basket quantities - assumes first basket created
   if (createdCestas.length > 0) {
     cicloData.cestaId1 = createdCestas[0].id;
     cicloData.quantidadeCestas1 = parseInt(quantidade);
@@ -117,8 +115,6 @@ When("quantidade cestas {string}", function (quantidade) {
 
 When("o usuário cria um novo ciclo", async function () {
   cicloService = new CicloService();
-
-  // Add point of delivery ID if available
   if (createdPontosEntrega.length > 0) {
     cicloData.pontoEntregaId = createdPontosEntrega[0].id;
   }
@@ -162,13 +158,11 @@ When("o usuário atualiza o ciclo", async function () {
 });
 
 Then("o ciclo deve estar atualizado com os novos dados", async function () {
-  // Buscar o ciclo atualizado para verificar os dados
   const cicloAtualizado = await cicloService.buscarCicloPorId(ciclo2.id);
 
   expect(cicloAtualizado.nome).to.equal(cicloUpdateData.nome);
   expect(cicloAtualizado.observacao).to.equal(cicloUpdateData.observacao);
 
-  // Comparar datas convertindo ambas a string no formato ISO
   if (cicloUpdateData.ofertaInicio) {
     const dataEsperada = new Date(cicloUpdateData.ofertaInicio)
       .toISOString()
@@ -190,7 +184,6 @@ Then("o ciclo deve estar atualizado com os novos dados", async function () {
   }
 });
 
-// Novos step definitions para o segundo cenário
 let pontosEntregaUpdate = [];
 let cestasUpdate = [];
 let cicloComAssociacoes;
@@ -275,24 +268,20 @@ When("o usuário atualiza o ciclo com associações", async function () {
 Then(
   "o ciclo deve estar atualizado com as novas entregas e cestas",
   async function () {
-    // Buscar o ciclo atualizado com todas as associações
     const cicloAtualizado = await cicloService.buscarCicloPorId(
       cicloComAssociacoes.id,
     );
 
-    // Verificar ponto de entrega
     if (cicloUpdateData.pontoEntregaId) {
       expect(cicloAtualizado.pontoEntregaId).to.equal(
         cicloUpdateData.pontoEntregaId,
       );
     }
 
-    // Verificar entregas
     if (cicloUpdateData.entregaFornecedorInicio1) {
       expect(cicloAtualizado.cicloEntregas).to.have.length.at.least(1);
       const primeiraEntrega = cicloAtualizado.cicloEntregas[0];
 
-      // Comparar datas de entrega convertindo ambas a string no formato ISO
       const dataInicioEsperada = new Date(
         cicloUpdateData.entregaFornecedorInicio1,
       )
@@ -316,7 +305,6 @@ Then(
       expect(cicloAtualizado.cicloEntregas).to.have.length.at.least(2);
       const segundaEntrega = cicloAtualizado.cicloEntregas[1];
 
-      // Comparar datas de entrega convertindo ambas a string no formato ISO
       const dataInicioEsperada = new Date(
         cicloUpdateData.entregaFornecedorInicio2,
       )
@@ -336,7 +324,6 @@ Then(
       expect(dataFimAtual).to.equal(dataFimEsperada);
     }
 
-    // Verificar cestas
     if (cicloUpdateData.cestaId1) {
       expect(cicloAtualizado.CicloCestas).to.have.length.at.least(1);
       const primeiraCesta = cicloAtualizado.CicloCestas.find(

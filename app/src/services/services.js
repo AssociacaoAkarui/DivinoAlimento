@@ -20,10 +20,8 @@ class CicloService {
     const transaction = await sequelize.transaction();
 
     try {
-      // Validar dados obrigatórios
       this._validarDadosCiclo(dados);
 
-      // Criar o ciclo principal
       const novoCiclo = await Ciclo.create(
         {
           nome: dados.nome,
@@ -37,21 +35,17 @@ class CicloService {
           observacao: dados.observacao || null,
           status: dados.status || "ativo",
         },
-        { transaction }
+        { transaction },
       );
 
-      // Criar entregas do ciclo
       await this._criarEntregasCiclo(novoCiclo.id, dados, transaction);
 
-      // Criar cestas do ciclo
       await this._criarCestasCiclo(novoCiclo.id, dados, transaction);
 
-      // Criar produtos do ciclo se fornecidos
       await this._criarProdutosCiclo(novoCiclo.id, dados, transaction);
 
       await transaction.commit();
 
-      // Buscar dados completos do ciclo criado
       const cicloCriado = await this.buscarCicloPorId(novoCiclo.id);
 
       return cicloCriado;
@@ -71,13 +65,11 @@ class CicloService {
     const transaction = await sequelize.transaction();
 
     try {
-      // Verificar se o ciclo existe
       const cicloExistente = await Ciclo.findByPk(cicloId);
       if (!cicloExistente) {
         throw new Error(`Ciclo com ID ${cicloId} não encontrado`);
       }
 
-      // Atualizar dados básicos do ciclo
       await cicloExistente.update(
         {
           nome: dadosAtualizacao.nome || cicloExistente.nome,
@@ -106,39 +98,35 @@ class CicloService {
               : cicloExistente.observacao,
           status: dadosAtualizacao.status || cicloExistente.status,
         },
-        { transaction }
+        { transaction },
       );
 
-      // Atualizar entregas se fornecidas
       if (this._temDadosEntrega(dadosAtualizacao)) {
         await this._atualizarEntregasCiclo(
           cicloId,
           dadosAtualizacao,
-          transaction
+          transaction,
         );
       }
 
-      // Atualizar cestas se fornecidas
       if (this._temDadosCesta(dadosAtualizacao)) {
         await this._atualizarCestasCiclo(
           cicloId,
           dadosAtualizacao,
-          transaction
+          transaction,
         );
       }
 
-      // Atualizar produtos se fornecidos
       if (this._temDadosProduto(dadosAtualizacao)) {
         await this._atualizarProdutosCiclo(
           cicloId,
           dadosAtualizacao,
-          transaction
+          transaction,
         );
       }
 
       await transaction.commit();
 
-      // Buscar e retornar o ciclo atualizado com todas as associações
       const cicloAtualizado = await this.buscarCicloPorId(cicloId);
 
       return cicloAtualizado;
@@ -185,7 +173,6 @@ class CicloService {
       throw new Error(`Ciclo com ID ${cicloId} não encontrado`);
     }
 
-    // Buscar pontos de entrega e cestas ativos para compatibilidade
     const pontosEntrega = await PontoEntrega.findAll({
       where: { status: "ativo" },
     });
@@ -243,7 +230,6 @@ class CicloService {
         throw new Error(`Ciclo com ID ${cicloId} não encontrado`);
       }
 
-      // As associações serão deletadas automaticamente devido ao CASCADE
       await ciclo.destroy({ transaction });
 
       await transaction.commit();
@@ -254,8 +240,6 @@ class CicloService {
     }
   }
 
-  // Métodos privados auxiliares
-
   _validarDadosCiclo(dados) {
     const camposObrigatorios = ["nome"];
 
@@ -265,11 +249,10 @@ class CicloService {
       }
     }
 
-    // Validar datas se fornecidas
     if (dados.ofertaInicio && dados.ofertaFim) {
       if (new Date(dados.ofertaInicio) > new Date(dados.ofertaFim)) {
         throw new Error(
-          "Data de início da oferta não pode ser posterior à data de fim"
+          "Data de início da oferta não pode ser posterior à data de fim",
         );
       }
     }
@@ -285,7 +268,7 @@ class CicloService {
           entregaFornecedorInicio: entrega.inicio,
           entregaFornecedorFim: entrega.fim,
         },
-        { transaction }
+        { transaction },
       );
     }
   }
@@ -300,7 +283,7 @@ class CicloService {
           cestaId: cesta.id,
           quantidadeCestas: cesta.quantidade,
         },
-        { transaction }
+        { transaction },
       );
     }
   }
@@ -315,41 +298,35 @@ class CicloService {
           produtoId: produto.id,
           quantidade: produto.quantidade,
         },
-        { transaction }
+        { transaction },
       );
     }
   }
 
   async _atualizarEntregasCiclo(cicloId, dados, transaction) {
-    // Deletar entregas existentes
     await CicloEntregas.destroy({
       where: { cicloId },
       transaction,
     });
 
-    // Criar novas entregas
     await this._criarEntregasCiclo(cicloId, dados, transaction);
   }
 
   async _atualizarCestasCiclo(cicloId, dados, transaction) {
-    // Deletar cestas existentes
     await CicloCestas.destroy({
       where: { cicloId },
       transaction,
     });
 
-    // Criar novas cestas
     await this._criarCestasCiclo(cicloId, dados, transaction);
   }
 
   async _atualizarProdutosCiclo(cicloId, dados, transaction) {
-    // Deletar produtos existentes
     await CicloProdutos.destroy({
       where: { cicloId },
       transaction,
     });
 
-    // Criar novos produtos
     await this._criarProdutosCiclo(cicloId, dados, transaction);
   }
 
@@ -368,7 +345,6 @@ class CicloService {
       contador++;
     }
 
-    // Suportar formato alternativo com '1' no final
     if (entregas.length === 0 && dados.entregaFornecedorInicio1) {
       let contador = 1;
       while (dados[`entregaFornecedorInicio${contador}`]) {
@@ -401,7 +377,6 @@ class CicloService {
       contador++;
     }
 
-    // Suportar formato alternativo
     if (cestas.length === 0 && dados.cestaId1) {
       let contador = 1;
       while (dados[`cestaId${contador}`]) {
