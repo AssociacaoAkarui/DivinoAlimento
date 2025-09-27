@@ -28,7 +28,7 @@ services:
     env_file:
       - .env
   app.dev:
-    image: node:14
+    image: node:22
     working_dir: /app
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
@@ -42,7 +42,6 @@ services:
       - .env
     networks:
       - network_name
-
 
 networks:
   network_name:
