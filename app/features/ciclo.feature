@@ -49,3 +49,8 @@ Funcionalidade: Gestión de Ciclos
     Quando eu adiciono segunda cesta com quantidade '5'
     Quando o usuário atualiza o ciclo com associações
     Então o ciclo deve estar atualizado com as novas entregas e cestas
+
+  Cenário: Deletar um ciclo existente
+    Dado que eu quero criar e deletar um ciclo
+    Quando o usuário deleta o ciclo
+    Então o ciclo não deve mais existir no sistema

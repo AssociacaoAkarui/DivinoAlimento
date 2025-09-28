@@ -170,7 +170,7 @@ class CicloService {
     });
 
     if (!ciclo) {
-      throw new Error(`Ciclo com ID ${cicloId} não encontrado`);
+      return null;
     }
 
     const pontosEntrega = await PontoEntrega.findAll({

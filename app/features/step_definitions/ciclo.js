@@ -347,3 +347,18 @@ Then(
     }
   },
 );
+
+Given("que eu quero criar e deletar um ciclo", async function () {
+  cicloService = new CicloService();
+  const novoCiclo = Factories.CicloFactory.create();
+  ciclo = await cicloService.criarCiclo(novoCiclo);
+});
+
+When("o usuário deleta o ciclo", async function () {
+  await cicloService.deletarCiclo(ciclo.id);
+});
+
+Then("o ciclo não deve mais existir no sistema", async function () {
+  const cicloDeletado = await cicloService.buscarCicloPorId(ciclo.id);
+  expect(cicloDeletado).to.be.null;
+});
