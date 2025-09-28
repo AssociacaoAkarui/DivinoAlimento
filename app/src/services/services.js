@@ -9,8 +9,27 @@ const {
 } = require("../../models");
 
 const CicloModel = require("../model/Ciclo");
+const PontoEntregaModel = require("../model/PontoEntrega");
+const CestaModel = require("../model/Cesta");
 
 class CicloService {
+  /**
+   * Prepara os dados necessários para a página de criação de ciclo
+   * @returns {Promise<Object>} Objeto com pontos de entrega e tipos de cesta
+   */
+  async prepararDadosCriacaoCiclo() {
+    try {
+      await CestaModel.verificaCriaCestasInternas();
+      const pontosEntrega = await PontoEntregaModel.get();
+      const tiposCesta = await CestaModel.getCestasAtivas();
+      return { pontosEntrega, tiposCesta };
+    } catch (error) {
+      throw new Error(
+        `Erro ao preparar dados para criação de ciclo: ${error.message}`,
+      );
+    }
+  }
+
   /**
    * Cria um novo ciclo com suas associações
    * @param {Object} dados - Dados do ciclo a ser criado
@@ -170,7 +189,7 @@ class CicloService {
     });
 
     if (!ciclo) {
-      return null;
+      throw new Error(`Ciclo com ID ${cicloId} não encontrado`);
     }
 
     const pontosEntrega = await PontoEntrega.findAll({

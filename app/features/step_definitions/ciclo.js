@@ -359,6 +359,10 @@ When("o usuário deleta o ciclo", async function () {
 });
 
 Then("o ciclo não deve mais existir no sistema", async function () {
-  const cicloDeletado = await cicloService.buscarCicloPorId(ciclo.id);
-  expect(cicloDeletado).to.be.null;
+  try {
+    await cicloService.buscarCicloPorId(ciclo.id);
+    expect.fail("O ciclo foi encontrado, mas deveria ter sido deletado.");
+  } catch (error) {
+    expect(error.message).to.equal(`Ciclo com ID ${ciclo.id} não encontrado`);
+  }
 });

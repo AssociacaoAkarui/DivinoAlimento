@@ -8,13 +8,10 @@ const { CicloService } = require("../services/services");
 module.exports = {
   async create(req, res) {
     try {
-      const pontosEntrega = await PontoEntrega.get();
-      const tiposCesta = await Cesta.getCestasAtivas();
-      const ciclo = { pontosEntrega, tiposCesta };
+      const cicloService = new CicloService();
+      const dadosCriacao = await cicloService.prepararDadosCriacaoCiclo();
 
-      await Cesta.verificaCriaCestasInternas();
-
-      return res.render("ciclo", ciclo);
+      return res.render("ciclo", dadosCriacao);
     } catch (error) {
       console.error("Erro ao carregar página de criação:", error);
       return res.status(500).send("Erro ao carregar página de criação");
@@ -25,7 +22,6 @@ module.exports = {
     try {
       const cicloService = new CicloService();
 
-      // Aguardar a criação do ciclo
       const novoCiclo = await cicloService.criarCiclo(req.body);
 
       console.log("Ciclo criado com sucesso:", novoCiclo.id);
@@ -42,23 +38,17 @@ module.exports = {
       const cicloId = req.params.id;
       const cicloService = new CicloService();
 
-      // Buscar ciclo usando o serviço
       const cicloCompleto = await cicloService.buscarCicloPorId(cicloId);
 
-      // Buscar dados adicionais para o formulário
-      const pontosEntrega = await PontoEntrega.get();
-      const tiposCesta = await Cesta.getCestasAtivas();
-
-      // Preparar dados para a view
       const cicloEntregas = cicloCompleto.cicloEntregas || [];
       const cicloCestas = cicloCompleto.CicloCestas || [];
 
       return res.render("ciclo-edit", {
         ciclo: cicloCompleto,
-        pontosEntrega: pontosEntrega,
+        pontosEntrega: cicloCompleto.pontosEntrega,
         cicloEntregas: cicloEntregas,
         cicloCestas: cicloCestas,
-        tiposCesta: tiposCesta,
+        tiposCesta: cicloCompleto.tiposCesta,
       });
     } catch (error) {
       console.error("Erro ao buscar ciclo:", error);
@@ -71,41 +61,7 @@ module.exports = {
       const cicloId = req.params.id;
       const cicloService = new CicloService();
 
-      // Preparar dados para atualização
-      const dadosAtualizacao = {
-        nome: req.body.nome,
-        pontoEntregaId: req.body.pontoEntregaId,
-        ofertaInicio: req.body.ofertaInicio,
-        ofertaFim: req.body.ofertaFim,
-        itensAdicionaisInicio: req.body.itensAdicionaisInicio,
-        itensAdicionaisFim: req.body.itensAdicionaisFim,
-        retiradaConsumidorInicio: req.body.retiradaConsumidorInicio,
-        retiradaConsumidorFim: req.body.retiradaConsumidorFim,
-        observacao: req.body.observacao,
-      };
-
-      // Adicionar entregas se existirem
-      let countEntregas = 1;
-      while (req.body[`entregaFornecedorInicio${countEntregas}`]) {
-        dadosAtualizacao[`entregaFornecedorInicio${countEntregas}`] =
-          req.body[`entregaFornecedorInicio${countEntregas}`];
-        dadosAtualizacao[`entregaFornecedorFim${countEntregas}`] =
-          req.body[`entregaFornecedorFim${countEntregas}`];
-        countEntregas++;
-      }
-
-      // Adicionar cestas se existirem
-      let countCestas = 1;
-      while (req.body[`cestaId${countCestas}`]) {
-        dadosAtualizacao[`cestaId${countCestas}`] =
-          req.body[`cestaId${countCestas}`];
-        dadosAtualizacao[`quantidadeCestas${countCestas}`] =
-          req.body[`quantidadeCestas${countCestas}`];
-        countCestas++;
-      }
-
-      // Atualizar ciclo usando o serviço
-      await cicloService.atualizarCiclo(cicloId, dadosAtualizacao);
+      await cicloService.atualizarCiclo(cicloId, req.body);
 
       return res.redirect(`/ciclo/${cicloId}`);
     } catch (error) {
@@ -132,7 +88,6 @@ module.exports = {
     try {
       const cicloService = new CicloService();
 
-      // Paginação
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const offset = (page - 1) * limit;
