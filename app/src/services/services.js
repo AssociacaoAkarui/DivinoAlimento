@@ -5,6 +5,8 @@ const {
   CicloEntregas,
   CicloCestas,
   CicloProdutos,
+  Produto,
+  CategoriaProdutos,
   sequelize,
 } = require("../../models");
 
@@ -13,10 +15,6 @@ const PontoEntregaModel = require("../model/PontoEntrega");
 const CestaModel = require("../model/Cesta");
 
 class CicloService {
-  /**
-   * Prepara os dados necessários para a página de criação de ciclo
-   * @returns {Promise<Object>} Objeto com pontos de entrega e tipos de cesta
-   */
   async prepararDadosCriacaoCiclo() {
     try {
       await CestaModel.verificaCriaCestasInternas();
@@ -30,11 +28,6 @@ class CicloService {
     }
   }
 
-  /**
-   * Cria um novo ciclo com suas associações
-   * @param {Object} dados - Dados do ciclo a ser criado
-   * @returns {Promise<Object>} Ciclo criado com pontos de entrega e cestas
-   */
   async criarCiclo(dados) {
     const transaction = await sequelize.transaction();
 
@@ -74,12 +67,6 @@ class CicloService {
     }
   }
 
-  /**
-   * Atualiza um ciclo existente
-   * @param {Number} cicloId - ID do ciclo a ser atualizado
-   * @param {Object} dadosAtualizacao - Dados para atualização
-   * @returns {Promise<Object>} Ciclo atualizado
-   */
   async atualizarCiclo(cicloId, dadosAtualizacao) {
     const transaction = await sequelize.transaction();
 
@@ -155,11 +142,6 @@ class CicloService {
     }
   }
 
-  /**
-   * Busca um ciclo por ID com todas as suas associações
-   * @param {Number} cicloId - ID do ciclo
-   * @returns {Promise<Object>} Ciclo com suas associações
-   */
   async buscarCicloPorId(cicloId) {
     const ciclo = await Ciclo.findByPk(cicloId, {
       include: [
@@ -207,12 +189,6 @@ class CicloService {
     };
   }
 
-  /**
-   * Lista todos os ciclos com paginação
-   * @param {Number} limite - Limite de registros
-   * @param {Number} offset - Offset para paginação
-   * @returns {Promise<Object>} Lista de ciclos e metadados
-   */
   async listarCiclos(limite = 10, offset = 0) {
     const { count, rows } = await Ciclo.findAndCountAll({
       limit: limite,
@@ -234,11 +210,6 @@ class CicloService {
     };
   }
 
-  /**
-   * Deleta um ciclo e suas associações
-   * @param {Number} cicloId - ID do ciclo a ser deletado
-   * @returns {Promise<Boolean>} true se deletado com sucesso
-   */
   async deletarCiclo(cicloId) {
     const transaction = await sequelize.transaction();
 
@@ -444,4 +415,67 @@ class CicloService {
   }
 }
 
-module.exports = { CicloService };
+class ProdutoService {
+  async criarProduto(dadosProduto) {
+    try {
+      if (!dadosProduto || !dadosProduto.nome) {
+        throw new Error("O nome do produto é obrigatório.");
+      }
+
+      const produto = await Produto.create(dadosProduto);
+      return produto;
+    } catch (error) {
+      throw new Error(`Erro ao criar produto: ${error.message}`);
+    }
+  }
+
+  async buscarProdutoPorId(id) {
+    const produto = await Produto.findByPk(id, {
+      include: [
+        {
+          model: CategoriaProdutos,
+          as: "categoria",
+        },
+      ],
+    });
+
+    if (!produto) {
+      throw new Error(`Produto com ID ${id} não encontrado`);
+    }
+
+    return produto;
+  }
+
+  async atualizarProduto(id, dadosParaAtualizar) {
+    try {
+      const produto = await Produto.findByPk(id);
+
+      if (!produto) {
+        throw new Error(`Produto com ID ${id} não encontrado`);
+      }
+
+      await produto.update(dadosParaAtualizar);
+
+      return produto;
+    } catch (error) {
+      throw new Error(`Erro ao atualizar produto: ${error.message}`);
+    }
+  }
+
+  async deletarProduto(id) {
+    try {
+      const produto = await Produto.findByPk(id);
+
+      if (!produto) {
+        throw new Error(`Produto com ID ${id} não encontrado`);
+      }
+
+      await produto.destroy();
+      return true;
+    } catch (error) {
+      throw new Error(`Erro ao deletar produto: ${error.message}`);
+    }
+  }
+}
+
+module.exports = { CicloService, ProdutoService };
