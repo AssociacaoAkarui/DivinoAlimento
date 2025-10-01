@@ -72,17 +72,17 @@ namespace :vivo do
 
   desc 'Entrar no bash do app DivinoAlimento'
   task :sh do
-    compose('exec', 'app.dev', 'bash')
+    compose('exec', '-T', 'app.dev', 'bash')
   end
 
   desc 'Popular Entorno'
   task :popular do
-    compose('exec', 'db.dev', 'psql', '-U', 'postgres', '-d', 'divinoalimento',  '-f',  '/opt/sql_populate.sql')
+    compose('exec', '-T', 'db.dev', 'psql', '-U', 'postgres', '-d', 'divinoalimento',  '-f',  '/opt/sql_populate.sql')
   end
 
   desc 'Entrar no bash do banco de dados DivinoAlimento'
   task :psql do
-    compose('exec', 'db.dev', 'psql', '-U', 'postgres')
+    compose('exec', '-T', 'db.dev', 'psql', '-U', 'postgres')
   end
 end
 
@@ -126,7 +126,7 @@ namespace :testes do
 
   desc 'Entrar no bash do app DivinoAlimento'
   task :sh do
-    compose('exec', 'app_tests.dev', 'bash')
+    compose('exec', '-T', 'app_tests.dev', 'bash')
   end
 
   desc 'Npm Intall'
@@ -134,8 +134,103 @@ namespace :testes do
     sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm install"
   end
 
-  desc 'Executar testes'
-  task :test do
-    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
+  desc 'Executar todos os testes'
+  desc 'Uso: rake testes:test # rápido (só pontos)'
+  desc '      rake testes:test # detalhe é opcional e mostra cada step + backtrace'
+  task :test, [:detalhe] do |_, args|
+    args.with_defaults(detalhe: 'false')
+
+    flags = []
+
+    if args.detalhe == 'detalhe'
+      flags << '--format-options \'{"colorsEnabled": true}\''
+      flags << '--backtrace'
+      puts "\n#{'='*60}"
+      puts "🐛 DEBUG"
+      puts "#{'='*60}"
+      puts "📊 Mostra cada step + backtrace de erros"
+      puts "#{'='*60}\n\n"
+    end
+
+    cmd = "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
+    cmd += " -- #{flags.join(' ')}" unless flags.empty?
+
+    sh cmd
+  end
+
+  desc 'Executar testes por funcionalidade'
+  desc 'Uso: rake testes:funcionalidade[ciclo] # rápido (só pontos)'
+  desc '      rake testes:funcionalidade[produto,detalhe] # detalhe é opcional e mostra cada step + backtrace'
+  task :funcionalidade, [:nome_arquivo, :detalhe] do |_, args|
+    if args.nome_arquivo.nil?
+      puts "\n❌ Erro: Nome do arquivo não especificado"
+      puts "\nUso: rake testes:funcionalidade[nome_arquivo,detalhe]"
+      puts "\nExemplos:"
+      puts "  rake testes:funcionalidade[ciclo]"
+      puts "  rake testes:funcionalidade[produto,detalhe]"
+      exit 1
+    end
+
+    args.with_defaults(detalhe: 'false')
+
+    flags = []
+
+    if args.detalhe == 'detalhe'
+      flags << '--format-options \'{"colorsEnabled": true}\''  #
+      flags << '--backtrace'
+      puts "\n#{'='*60}"
+      puts "🐛 DEBUG"
+      puts "#{'='*60}"
+      puts "🎯 Funcionalidade: #{args.nome_arquivo}"
+      puts "📊 Mostra cada step + backtrace de erros"
+      puts "#{'='*60}\n\n"
+    else
+      flags << "--format progress"
+    end
+
+    cmd = "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test -- features/#{args.nome_arquivo}.feature"
+    cmd += " #{flags.join(' ')}" unless flags.empty?
+
+    sh cmd
+  end
+
+  desc 'Executar teste por código de cenário'
+  desc 'Uso: rake testes:cenario[CIC-01] # rápido (só pontos)'
+  desc '      rake testes:cenario[PRO-03,detalhe] # detalhe é opcional e mostra cada step + backtrace'
+  task :cenario, [:codigo, :detalhe] do |_, args|
+    if args.codigo.nil?
+      puts "\n❌ Erro: Código do cenário não especificado"
+      puts "\nUso: rake testes:cenario[codigo,detalhe]"
+      puts "\nExemplos:"
+      puts "  rake testes:cenario[CIC-01]"
+      puts "  rake testes:cenario[PRO-03,detalhe]"
+      exit 1
+    end
+
+    args.with_defaults(detalhe: 'false')
+
+    flags = []
+    flags << "--name '#{args.codigo}'"
+
+    if args.detalhe == 'detalhe'
+      flags << '--backtrace'
+      flags << '--format-options \'{"colorsEnabled": true}\''
+      puts "\n#{'='*60}"
+      puts "🐛 DEBUG"
+      puts "#{'='*60}"
+      puts "🎯 Cenário: #{args.codigo}"
+      puts "📊 Mostra cada step + backtrace de erros"
+      puts "#{'='*60}\n\n"
+    else
+      flags << "--format progress"
+    end
+
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test -- #{flags.join(' ')}"
+  end
+
+  desc 'Listar todos os cenários disponíveis'
+  task :listar do
+    puts "\n📋 Cenários disponíveis:\n\n"
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npx cucumber-js --dry-run --format json | grep -o '\"name\":\"[^\"]*\"' | sed 's/\"name\":\"/  /' | sed 's/\"//' || true"
   end
 end
