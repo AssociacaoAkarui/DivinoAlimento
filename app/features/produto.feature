@@ -1,7 +1,7 @@
 # language: pt
 Funcionalidade: Gestão de Produtos
 
-  Cenário: Criar um novo produto com sucesso
+  Cenário: PRO-01 Criar um novo produto com sucesso
     Dado que eu quero criar um novo Produto
     Quando eu preencho o nome com "Maçã Fuji"
     E a medida como "unidade"
@@ -13,19 +13,19 @@ Funcionalidade: Gestão de Produtos
     Quando eu salvo o novo produto
     Então o produto "Maçã Fuji" deve ser criado com sucesso
 
-  Cenário: Ver os detalhes de um produto existente
+  Cenário: PRO-02 Ver os detalhes de um produto existente
     Dado que existe um produto "Banana Prata" cadastrado na categoria "Frutas"
     Quando eu peço os detalhes do produto "Banana Prata"
     Então eu devo ver os detalhes do produto "Banana Prata" com a categoria "Frutas"
 
-  Cenário: Atualizar um produto existente
+  Cenário: PRO-03 Atualizar um produto existente
     Dado que existe um produto "Pera Williams" cadastrado na categoria "Frutas"
     Quando eu preencho o nome com "Pera Portuguesa"
     E o valor de referência com "4.50"
     E eu salvo as alterações do produto
     Então o nome do produto na base de dados deve ser "Pera Portuguesa"
 
-  Cenário: Deletar um produto existente
+  Cenário: PRO-04 Deletar um produto existente
     Dado que existe um produto "Uva Itália" cadastrado na categoria "Frutas"
     Quando eu deleto o produto "Uva Itália"
     Então o produto "Uva Itália" não deve mais existir no sistema
