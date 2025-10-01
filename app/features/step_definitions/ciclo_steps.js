@@ -14,7 +14,7 @@ let ciclo;
 let cicloData = {};
 let cicloUpdateData = {};
 
-Given("que eu quero criar uma nova Cesta", function () {});
+Given("que eu quero criar uma nova Cesta para o ciclo", function () {});
 
 When("eu crio {int} Cesta", async function (numeroDeCestas) {
   novasCestas = [];

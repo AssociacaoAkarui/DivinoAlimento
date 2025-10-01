@@ -1,8 +1,8 @@
 # language: pt
 Funcionalidade: Gestão de Ciclos
 
-  Cenário: CIC-01 Criar uma Nova Cesta
-    Dado que eu quero criar uma nova Cesta
+  Cenário: CIC-01 Criar uma Nova Cesta para o ciclo
+    Dado que eu quero criar uma nova Cesta para o ciclo
     Quando eu crio 1 Cesta
     Então a Cesta deve ser criada corretamente
 
