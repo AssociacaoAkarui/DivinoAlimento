@@ -37,3 +37,9 @@ Funcionalidade: Gestão de Pontos de Entrega
     E que não exista nenhum ciclo associado ao ponto de entrega "Ponto Temporário"
     Quando eu deleto o ponto de entrega "Ponto Temporário"
     Então o ponto de entrega "Ponto Temporário" não deve mais existir no sistema
+
+ Cenário: PEN-07 Listar todos os pontos de entrega ativos
+    Dado que existem pontos de entrega "Bairro Norte", "Centro Antigo" e "Centro - Rua das Flores" cadastrados
+    E todos os pontos de entrega estão com status "ativo"
+    Quando eu solicito a lista de pontos de entrega ativos
+    Então eu devo ver os pontos de entrega "Bairro Norte", "Centro Antigo" e "Centro - Rua das Flores"
