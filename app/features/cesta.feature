@@ -34,6 +34,6 @@ Funcionalidade: Gestão de Cestas
 
   Cenário: CST-06 Deletar uma cesta existente
     Dado que existe uma cesta "Divino Alimento"
-    Dado que não exista nenhum ciclo que seja composto pela cesta "Divino Alimento"
+    E que não exista nenhum ciclo que seja composto pela cesta "Divino Alimento"
     Quando eu deleto a cesta "Divino Alimento"
     Então a cesta "Divino Alimento" não deve mais existir no sistema
