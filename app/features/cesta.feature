@@ -37,3 +37,9 @@ Funcionalidade: Gestão de Cestas
     E que não exista nenhum ciclo que seja composto pela cesta "Divino Alimento"
     Quando eu deleto a cesta "Divino Alimento"
     Então a cesta "Divino Alimento" não deve mais existir no sistema
+
+  Cenário: CST-07 Listar todas as cestas ativas
+    Dado que existem cestas "Cesta 01", "Divino Alimento" e "Vila Dona Mariana" cadastradas
+    E todas as cestas estão com status "ativo"
+    Quando eu solicito a lista de cestas ativas
+    Então eu devo ver as cestas "Cesta 01", "Divino Alimento" e "Vila Dona Mariana"
