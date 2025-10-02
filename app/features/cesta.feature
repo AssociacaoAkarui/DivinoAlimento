@@ -26,7 +26,7 @@ Funcionalidade: Gestão de Cestas
     E salvo as alterações da cesta
     Então o valor máximo da cesta deve ser 100
    
-   Cenário: CST-05 Atualizar o status de uma cesta existente
+  Cenário: CST-05 Atualizar o status de uma cesta existente
     Dado que existe uma cesta com status "ativo"
     Quando eu edito o status da cesta para "inativo"
     E salvo as alterações da cesta
