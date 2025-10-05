@@ -17,6 +17,10 @@ module.exports = (sequelize, DataTypes) => {
           key: "id",
         },
       },
+      token: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
     },
     {
       sequelize,

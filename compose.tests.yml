@@ -1,5 +1,6 @@
 services:
   app_tests.dev:
+    user: "${UID}:${GID}"
     image: node:24
     working_dir: /app
     command: sleep 4h

@@ -8,7 +8,20 @@ const {
   Session,
 } = require("../../models");
 
+class UUIDService {
+  constructor() {
+    this.crypto = require("crypto");
+  }
+
+  uuid4() {
+    return this.crypto.randomUUID();
+  }
+}
 class UsuarioService {
+  constructor(uuid_service) {
+    this.uuid_service = uuid_service;
+  }
+
   async create(requiredParams, optionalParams = {}) {
     // Extract required parameters
     const { email, password, phoneNumber } = requiredParams;
@@ -28,7 +41,7 @@ class UsuarioService {
       perfil: perfil,
       status: status,
     });
-    return user;
+    return user.toJSON();
   }
 
   async login(email, password) {
@@ -49,6 +62,7 @@ class UsuarioService {
     // Create a new session in the database
     const session = await Session.create({
       usuarioId: user.id,
+      token: this.uuid_service.uuid4(),
     });
 
     // Clean up expired sessions
@@ -60,7 +74,7 @@ class UsuarioService {
       email: user.email,
       perfil: user.perfil,
       loggedIn: true,
-      session: session.toJSON(),
+      token: session.token,
     };
   }
 

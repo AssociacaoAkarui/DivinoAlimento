@@ -31,6 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       descritivo: DataTypes.STRING,
       email: DataTypes.STRING,
       cientepolitica: DataTypes.STRING,
+      token: DataTypes.STRING,
       perfil: DataTypes.ARRAY(
         DataTypes.ENUM("info", "master", "admin", "fornecedor", "consumidor"),
       ),

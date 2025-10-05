@@ -10,7 +10,7 @@ def compose(*arg, compose: COMPOSE_LIVE)
 end
 
 def compose_tests(*arg, compose: COMPOSE_TESTS)
-  sh "docker compose -f #{compose} #{arg.join(' ')}"
+  sh "UID=#{ENV['UID']} GID=#{ENV['GID']} docker compose -f #{compose} #{arg.join(' ')}"
 end
 
 desc 'Git - Submódulos'

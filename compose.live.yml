@@ -28,6 +28,7 @@ services:
     env_file:
       - .env
   app.dev:
+    user: "${UID}:${GID}"
     image: node:14
     working_dir: /app
     ports:
