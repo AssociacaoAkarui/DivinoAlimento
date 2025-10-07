@@ -1,10 +1,12 @@
-import db from "../models/index.js";
-const { sequelize } = db;
 import { UsuarioService } from "../src/services/services.js";
-
+import { createRequire } from "module";
 import { buildSchema, graphql } from "graphql";
 
 import { expect } from "chai";
+
+const require = createRequire(import.meta.url);
+const { sequelize } = require("../models/index.js");
+const { default: APIGraphql } = require("../src/api-graphql.js");
 
 describe("Array", function () {
   describe("ejemplo", function () {
@@ -101,26 +103,6 @@ describe("Graphql", async function () {
       },
     });
 
-    const schema = buildSchema(`
-      type ActiveSession {
-        usuarioId: ID!
-        token: String!
-      }
-
-      input LoginInput {
-        email: String!
-        password: String!
-      }
-
-      type Query {
-        _empty: String
-      }
-
-      type Mutation {
-        sessionLogin(input: LoginInput!): ActiveSession!
-      }
-      `);
-
     const queryLogin = `
       mutation Login($input: LoginInput!) {
         sessionLogin(input: $input) {
@@ -135,27 +117,13 @@ describe("Graphql", async function () {
       password: "password",
     });
 
-    const root = {
-      sessionLogin: async (args, context) => {
-        const session = await context.usuarioService.login(
-          args.input.email,
-          args.input.password,
-        );
-
-        return {
-          usuarioId: session.usuarioId,
-          token: session.token,
-        };
-      },
-    };
-
     const resultLogin = await graphql({
-      schema,
+      schema: APIGraphql.schema,
       source: queryLogin,
       variableValues: {
         input: { email: "john@example.com", password: "password" },
       },
-      rootValue: root,
+      rootValue: APIGraphql.rootValue,
       contextValue: { usuarioService }, // mock database, authorization, loaders, etc.
     });
 

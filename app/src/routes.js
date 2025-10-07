@@ -40,8 +40,6 @@ const ProfileController = require("./controllers/ProfileController");
 
 const RelatorioController = require("./controllers/RelatorioController");
 
-const ProdutoAPIController = require("./controllers/ProdutoController.api");
-
 // codigo que precisou no do myke - meu não deu mesmo erro
 const views = __dirname + "/views/";
 
@@ -58,7 +56,7 @@ const profile = {
 const { requiresAuth } = require("express-openid-connect");
 
 // Middleware para CORS (se necessário)
-router.use((req, res, next) => {
+routes.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
@@ -98,8 +96,6 @@ routes.post("/cesta", CestaController.save);
 routes.get("/cesta/:id", CestaController.show);
 routes.post("/cesta/:id", CestaController.update);
 routes.post("/cesta/delete/:id", CestaController.delete);
-
-routes.get("/api/produto-index", ProductoAPIController.index);
 
 routes.get("/produto-index", ProdutoIndexController.index);
 routes.get("/produto", ProdutoController.create);

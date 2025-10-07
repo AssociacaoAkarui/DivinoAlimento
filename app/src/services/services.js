@@ -17,6 +17,7 @@ class UUIDService {
     return this.crypto.randomUUID();
   }
 }
+
 class UsuarioService {
   constructor(uuid_service) {
     this.uuid_service = uuid_service;
@@ -182,4 +183,4 @@ class CicloService {
   }
 }
 
-module.exports = { CicloService, UsuarioService };
+module.exports = { CicloService, UsuarioService, UUIDService };
