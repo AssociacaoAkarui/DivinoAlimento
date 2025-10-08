@@ -194,23 +194,23 @@ namespace :testes do
     sh cmd
   end
 
-  desc 'Executar teste por código de cenário'
-  desc 'Uso: rake testes:cenario[CIC-01] # rápido (só pontos)'
-  desc '      rake testes:cenario[PRO-03,detalhe] # detalhe é opcional e mostra cada step + backtrace'
-  task :cenario, [:codigo, :detalhe] do |_, args|
-    if args.codigo.nil?
+  desc 'Executar teste por @tags de cenário'
+  desc 'Uso: rake testes:tags[@tag] # rápido (só pontos)'
+  desc '      rake testes:tags[@tag,detalhe] # detalhe é opcional e mostra cada step + backtrace'
+  task :tags, [:tag, :detalhe] do |_, args|
+    if args.tag.nil?
       puts "\n❌ Erro: Código do cenário não especificado"
       puts "\nUso: rake testes:cenario[codigo,detalhe]"
       puts "\nExemplos:"
-      puts "  rake testes:cenario[CIC-01]"
-      puts "  rake testes:cenario[PRO-03,detalhe]"
+      puts "  rake testes:tags[@CIC-01]"
+      puts "  rake testes:tags[@PRO-03,detalhe]"
       exit 1
     end
 
     args.with_defaults(detalhe: 'false')
 
     flags = []
-    flags << "--name '#{args.codigo}'"
+    flags << "--tags '#{args.tag}'"
 
     if args.detalhe == 'detalhe'
       flags << '--backtrace'
@@ -218,7 +218,7 @@ namespace :testes do
       puts "\n#{'='*60}"
       puts "🐛 DEBUG"
       puts "#{'='*60}"
-      puts "🎯 Cenário: #{args.codigo}"
+      puts "🎯 Cenário: #{args.tag}"
       puts "📊 Mostra cada step + backtrace de erros"
       puts "#{'='*60}\n\n"
     else
