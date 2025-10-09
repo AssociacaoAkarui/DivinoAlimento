@@ -54,3 +54,8 @@ Funcionalidade: Gestão de Ciclos
     Dado que eu quero criar e deletar um ciclo
     Quando o usuário deleta o ciclo
     Então o ciclo não deve mais existir no sistema
+
+  Cenário: CIC-07 Erro o criar um novo ciclo
+    Dado que eu quero cria um novo ciclo con erro
+    Quando o usuário cria um novo ciclo con erro
+    Então o mensagem do erro contem 'Erro ao criar ciclo'

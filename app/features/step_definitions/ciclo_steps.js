@@ -366,3 +366,23 @@ Then("o ciclo não deve mais existir no sistema", async function () {
     expect(error.message).to.equal(`Ciclo com ID ${ciclo.id} não encontrado`);
   }
 });
+
+Given('que eu quero cria um novo ciclo con erro', function () {
+  const unexistentPonteEntregaId = 123213;
+  cicloWithError = Factories.CicloFactory.create({pontoEntregaId: unexistentPonteEntregaId});
+});
+
+When('o usuário cria um novo ciclo con erro', async function () {
+  cicloService = new CicloService();
+  try {
+      ciclo = await cicloService.criarCiclo(cicloWithError);
+  } catch(error) {
+      errorOnCreateCiclo = error;
+  }
+});
+
+Then('o mensagem do erro contem {string}', function (message) {
+  expect(errorOnCreateCiclo.message).to.contains(message);
+  // validate type of error
+  /* expect(errorOnCreateCiclo instanceof 'database' ).is.true(); */
+});

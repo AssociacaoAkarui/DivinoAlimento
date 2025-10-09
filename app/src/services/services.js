@@ -22,9 +22,8 @@ class CicloService {
       const tiposCesta = await CestaModel.getCestasAtivas();
       return { pontosEntrega, tiposCesta };
     } catch (error) {
-      throw new Error(
-        `Erro ao preparar dados para criação de ciclo: ${error.message}`,
-      );
+      error.message = `Erro ao preparar dados para criação de ciclo: ${error.message}`;
+      throw error;
     }
   }
 
@@ -62,8 +61,8 @@ class CicloService {
 
       return cicloCriado;
     } catch (error) {
-      await transaction.rollback();
-      throw new Error(`Erro ao criar ciclo: ${error.message}`);
+      error.message = `Erro ao criar ciclo: ${error.message}`;
+      throw error;
     }
   }
 
@@ -138,7 +137,8 @@ class CicloService {
       return cicloAtualizado;
     } catch (error) {
       await transaction.rollback();
-      throw new Error(`Erro ao atualizar ciclo: ${error.message}`);
+      error.message = `Erro ao atualizar ciclo: ${error.message}`;
+      throw error;
     }
   }
 
@@ -226,7 +226,8 @@ class CicloService {
       return true;
     } catch (error) {
       await transaction.rollback();
-      throw new Error(`Erro ao deletar ciclo: ${error.message}`);
+      error.message = `Erro ao deletar ciclo: ${error.message}`;
+      throw error;
     }
   }
 
