@@ -1,6 +1,7 @@
 # language: pt
 Funcionalidade: Gestão de Usuários
 
+  @usuario
   Cenário: USR-01 Criar um novo usuário com sucesso
     Dado que eu quero criar um novo usuário
     Quando eu preencho o nome do usuário com "João da Silva Santos"
@@ -14,11 +15,13 @@ Funcionalidade: Gestão de Usuários
     Quando eu salvo o novo usuário
     Então o usuário "João da Silva Santos" deve ser criado com sucesso
 
+  @usuario
   Cenário: USR-02 Ver os detalhes de um usuário existente
     Dado que existe um usuário "Maria Santos" cadastrado
     Quando eu solicito os detalhes do usuário "Maria Santos"
     Então eu devo ver os detalhes do usuário "Maria Santos"
 
+  @usuario
   Cenário: USR-03 Atualizar um usuário existente
     Dado que existe um usuário "Pedro Costa"
     Quando eu edito o nome do usuário para "Pedro Costa Junior"
@@ -39,6 +42,7 @@ Funcionalidade: Gestão de Usuários
     Então o perfil do usuário deve ser "{fornecedor,consumidor}"
     Então o status do usuário deve ser "inativo"
 
+  @usuario
   Cenário: USR-04 Deletar um usuário existente
     Dado que existe um usuário "Usuário Teste"
     E que não existam ofertas ou pedidos associados ao usuário "Usuário Teste"
@@ -47,6 +51,7 @@ Funcionalidade: Gestão de Usuários
     Quando eu deleto o usuário "Usuário Teste"
     Então o usuário "Usuário Teste" não deve mais existir no sistema
 
+  @usuario
   Cenário: USR-05 Acesso ao sistema do primeiro usuário
     Dado quero fazer login no sistema
     E estou logado no AUTH
@@ -58,6 +63,7 @@ Funcionalidade: Gestão de Usuários
     Então o usuário "Admin Sistema" deve ser criado com sucesso
     E deve ter perfil de "{consumidor,admin}"
 
+  @usuario
   Cenário: USR-06 Acesso ao sistema quando este já possui pelo menos um usuário admin
     Dado quero fazer login no sistema
     E estou logado no AUTH
@@ -69,6 +75,7 @@ Funcionalidade: Gestão de Usuários
     Então o usuário "Novo Usuário" deve ser criado com sucesso
     E deve ter perfil de "{consumidor}"
 
+  @usuario
   Cenário: USR-07 Acesso ao sistema por usuário já cadastrado
     Dado quero fazer login no sistema
     E estou logado no AUTH
