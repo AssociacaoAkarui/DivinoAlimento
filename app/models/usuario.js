@@ -31,12 +31,11 @@ module.exports = (sequelize, DataTypes) => {
       descritivo: DataTypes.STRING,
       email: DataTypes.STRING,
       cientepolitica: DataTypes.STRING,
-      token: DataTypes.STRING,
-      perfil: DataTypes.ARRAY(
+      perfis: DataTypes.ARRAY(
         DataTypes.ENUM("info", "master", "admin", "fornecedor", "consumidor"),
       ),
-      status_v2: DataTypes.ENUM("ativo", "inativo", "pendente"),
-      status: DataTypes.STRING, //TODO
+      status: DataTypes.ENUM("ativo", "inativo", "pendente"),
+      senha: DataTypes.STRING,
     },
     {
       sequelize,

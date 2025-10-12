@@ -15,49 +15,52 @@ end
 
 desc 'Git - Submódulos'
 namespace :git do
+  desc 'Iniciar e atualizar submódulos'
+  task :submodules_inicia do
+    sh 'git submodule init && git submodule update'
+  end
 
- desc 'Iniciar e atualizar submódulos'
- task :submodules_inicia do
-  sh "git submodule init && git submodule update"
- end
+  desc 'Atualizar submódulos, últimos commits'
+  task :submodules_atualiza do
+    sh 'git submodule update --recursive --remote'
+  end
 
- desc 'Atualizar submódulos, últimos commits'
- task :submodules_atualiza do
-  sh "git submodule update --recursive --remote"
- end
-
- desc 'Limpar e remover submódulos'
- task :submodules_zera do
-  sh "git submodule deinit -f --all"
- end
+  desc 'Limpar e remover submódulos'
+  task :submodules_zera do
+    sh 'git submodule deinit -f --all'
+  end
 end
 
 desc 'Ambiente Vivo'
 namespace :vivo do
+  desc 'DB migração'
+  task :migracao do
+    compose('exec', 'app.dev', 'npx', 'sequelize', 'db:migrate', compose: COMPOSE_LIVE)
+  end
 
   desc 'Construir ambiente'
   task :constroi do
-      compose('up', '--build', '-d', compose: COMPOSE_LIVE)
+    compose('up', '--build', '-d', compose: COMPOSE_LIVE)
   end
 
   desc 'Eliminar ambiente e remover'
   task :del do
-      compose('down', '-v', '--rmi', 'all', compose: COMPOSE_LIVE)
+    compose('down', '-v', '--rmi', 'all', compose: COMPOSE_LIVE)
   end
 
   desc 'Eliminar ambiente'
   task :elimina do
-      compose('down', compose: COMPOSE_LIVE)
+    compose('down', compose: COMPOSE_LIVE)
   end
 
   desc 'Iniciar ambiente'
   task :liga do
-      compose('start', compose: COMPOSE_LIVE)
+    compose('start', compose: COMPOSE_LIVE)
   end
 
   desc 'Parar ambiente'
   task :para do
-      compose('stop', compose: COMPOSE_LIVE)
+    compose('stop', compose: COMPOSE_LIVE)
   end
 
   desc 'Reiniciar ambiente'
@@ -72,17 +75,17 @@ namespace :vivo do
 
   desc 'Entrar no bash do app DivinoAlimento'
   task :sh do
-    compose('exec', '-T', 'app.dev', 'bash')
+    compose('exec', 'app.dev', 'bash')
   end
 
   desc 'Popular Entorno'
   task :popular do
-    compose('exec', '-T', 'db.dev', 'psql', '-U', 'postgres', '-d', 'divinoalimento',  '-f',  '/opt/sql_populate.sql')
+    compose('exec', '-T', 'db.dev', 'psql', '-U', 'postgres', '-d', 'divinoalimento', '-f', '/opt/sql_populate.sql')
   end
 
   desc 'Entrar no bash do banco de dados DivinoAlimento'
   task :psql do
-    compose('exec', '-T', 'db.dev', 'psql', '-U', 'postgres')
+    compose('exec', 'db.dev', 'psql', '-U', 'postgres')
   end
 end
 
@@ -90,28 +93,28 @@ desc 'Ambiente Testes'
 namespace :testes do
   desc 'Construir ambiente'
   task :constroi do
-      compose('up', '--build', '-d', compose: COMPOSE_TESTS)
-      sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm install"
+    compose('up', '--build', '-d', compose: COMPOSE_TESTS)
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm install"
   end
 
   desc 'Eliminar ambiente e remover'
   task :del do
-      compose('down', '-v', '--rmi', 'all', compose: COMPOSE_TESTS)
+    compose('down', '-v', '--rmi', 'all', compose: COMPOSE_TESTS)
   end
 
   desc 'Eliminar ambiente'
   task :elimina do
-      compose('down', compose: COMPOSE_TESTS)
+    compose('down', compose: COMPOSE_TESTS)
   end
 
   desc 'Iniciar ambiente'
   task :liga do
-      compose('start', compose: COMPOSE_TESTS)
+    compose('start', compose: COMPOSE_TESTS)
   end
 
   desc 'Parar ambiente'
   task :para do
-      compose('stop', compose: COMPOSE_TESTS)
+    compose('stop', compose: COMPOSE_TESTS)
   end
 
   desc 'Reiniciar ambiente'
@@ -135,7 +138,7 @@ namespace :testes do
   end
 
   desc 'Executar testes'
-  task :test,[:test] do |_, args|
-  sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test #{args.test}"
+  task :test, [:test] do |_, args|
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test #{args.test}"
   end
 end

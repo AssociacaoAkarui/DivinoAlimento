@@ -2,6 +2,7 @@ const dns = require("dns");
 const express = require("express");
 const server = express();
 const routes = require("./routes");
+const { createHandler } = require("graphql-http/lib/use/express");
 
 var baseUrl = process.env.BASE_URL_APP;
 let baseUrlAuth = process.env.BASE_URL_APP;
@@ -52,9 +53,15 @@ server.use("/js", express.static("node_modules/bootstrap/dist/js"));
 server.use("/js", express.static("node_modules/jquery/dist"));
 
 // API GRAPHQL
-const { injectRoute } = require("./api-graphql");
-
-injectRoute(server);
+const { default: APIGraphql } = require("./api-graphql");
+server.all(
+  "/graphql",
+  createHandler({
+    schema: APIGraphql.schema,
+    rootValue: APIGraphql.rootValue,
+    context: APIGraphql.context,
+  }),
+);
 
 // Auth
 const { auth } = require("express-openid-connect");

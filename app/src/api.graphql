@@ -9,7 +9,7 @@ type HealthCheck {
 
 input LoginInput {
     email: String!
-    password: String!
+    senha: String!
 }
 
 type Query {

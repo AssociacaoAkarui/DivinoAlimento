@@ -8,7 +8,7 @@ const {
   Session,
 } = require("../../models");
 
-class UUIDService {
+class CryptoUUIDService {
   constructor() {
     this.crypto = require("crypto");
   }
@@ -25,7 +25,7 @@ class UsuarioService {
 
   async create(requiredParams, optionalParams = {}) {
     // Extract required parameters
-    const { email, password, phoneNumber } = requiredParams;
+    const { email, senha, phoneNumber } = requiredParams;
 
     // Extract optional parameters with defaults
     const {
@@ -41,14 +41,16 @@ class UsuarioService {
       email: email,
       perfil: perfil,
       status: status,
+      senha: senha,
     });
     return user.toJSON();
   }
 
-  async login(email, password) {
+  async login(email, senha) {
     const user = await Usuario.findOne({
       where: {
         email: email,
+        senha: senha,
         status: "ativo",
       },
     });
@@ -183,4 +185,4 @@ class CicloService {
   }
 }
 
-module.exports = { CicloService, UsuarioService, UUIDService };
+module.exports = { CicloService, UsuarioService, CryptoUUIDService };

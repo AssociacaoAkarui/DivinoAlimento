@@ -8,7 +8,7 @@ delete from "CicloCestas";
 
 delete from "Cesta";
 
-delete from "Ciclos"; 
+delete from "Ciclos";
 
 delete from "Oferta";
 
@@ -19,3 +19,5 @@ insert into "Cesta" (id, nome, valormaximo, status,"createdAt", "updatedAt") val
 insert into "Cesta" (id, nome, valormaximo, status,"createdAt", "updatedAt") values (4, 'Vila São Vicente de Paulo', 30, 'ativo',CURRENT_DATE, CURRENT_DATE);
 
 insert into "Cesta" (id, nome, valormaximo, status,"createdAt", "updatedAt") values (7, 'Grupo de Compras SLP', 31.5, 'ativo',CURRENT_DATE, CURRENT_DATE);
+
+insert into "Usuarios" (id, nome, email, senha, perfis, status, "createdAt", "updatedAt") values (1, 'admin', 'admin@example.com', 'admin123', ARRAY['admin'::"enum_Usuarios_perfis"], 'ativo', CURRENT_DATE, CURRENT_DATE);

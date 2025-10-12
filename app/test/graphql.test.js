@@ -114,20 +114,64 @@ describe("Graphql", async function () {
 
     const currentUsuario = await usuarioService.create({
       email: "john@example.com",
-      password: "password",
+      senha: "password",
     });
 
     const resultLogin = await graphql({
       schema: APIGraphql.schema,
       source: queryLogin,
       variableValues: {
-        input: { email: "john@example.com", password: "password" },
+        input: { email: "john@example.com", senha: "password" },
       },
       rootValue: APIGraphql.rootValue,
       contextValue: { usuarioService }, // mock database, authorization, loaders, etc.
     });
 
     expect(resultLogin).to.deep.equal({
+      data: {
+        sessionLogin: {
+          usuarioId: `${currentUsuario.id}`,
+          token: "1234567890",
+        },
+      },
+    });
+  });
+
+  it("not login when parameters is invalid", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const queryLogin = `
+      mutation Login($input: LoginInput!) {
+        sessionLogin(input: $input) {
+          usuarioId
+          token
+        }
+      }
+    `;
+
+    const currentUsuario = await usuarioService.create({
+      email: "john@example.com",
+      senha: "password",
+    });
+
+    const resultLogin = await graphql({
+      schema: APIGraphql.schema,
+      source: queryLogin,
+      variableValues: {
+        input: { email: "john@example.com", senha: "invalid" },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: { usuarioService }, // mock database, authorization, loaders, etc.
+    });
+
+    // TODO
+    expect(resultLogin).to.not.deep.equal({
       data: {
         sessionLogin: {
           usuarioId: `${currentUsuario.id}`,
