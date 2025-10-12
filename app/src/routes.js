@@ -1,5 +1,6 @@
 const express = require("express");
 const routes = express.Router();
+const { createHandler } = require("graphql-http/lib/use/express");
 
 const IndexController = require("./controllers/IndexController");
 const LimiteSolarController = require("./controllers/LimiteSolarController");
@@ -68,6 +69,17 @@ routes.use((req, res, next) => {
   }
   next();
 });
+
+// API GRAPHQL
+const { default: APIGraphql } = require("./api-graphql");
+routes.use(
+  "/graphql",
+  createHandler({
+    schema: APIGraphql.schema,
+    rootValue: APIGraphql.rootValue,
+    context: APIGraphql.context,
+  }),
+);
 
 //routes.get('/', (req, res) => {IndexController.showIndex(JSON.stringify(req.oidc.user))})
 
