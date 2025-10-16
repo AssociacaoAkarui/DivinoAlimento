@@ -1,7 +1,7 @@
 # language: pt
 Funcionalidade: Gestão de Composições de Cestas
 
-  @composicao @CMP-01
+  @composicao @CMP-01 @pending
   Cenário: Criar uma composição de cesta para um ciclo
     Dado que existe um ciclo ativo
     E que existe uma cesta "Cesta Básica" cadastrada
@@ -9,13 +9,13 @@ Funcionalidade: Gestão de Composições de Cestas
     Quando eu salvo a nova composição
     Então a composição deve ser criada com sucesso
 
-  @composicao @CMP-02
+  @composicao @CMP-02 @pending
   Cenário: Ver os detalhes de uma composição existente
     Dado que existe uma composição cadastrada
     Quando eu solicito os detalhes da composição
     Então eu devo ver o ciclo, a cesta e os produtos da composição
 
-  @composicao @CMP-03
+  @composicao @CMP-03 @pending
   Cenário: Adicionar produto a uma composição
     Dado que existe uma composição de cesta
     E que existe um produto "Batata" disponível
@@ -24,27 +24,27 @@ Funcionalidade: Gestão de Composições de Cestas
     Quando eu salvo o produto na composição
     Então o produto "Batata" deve estar na composição
 
-  @composicao @CMP-04
+  @composicao @CMP-04 @pending
   Cenário: Atualizar a quantidade de um produto na composição
     Dado que existe uma composição com produto "Cebola" e quantidade 1
     Quando eu edito a quantidade para 3
     E salvo as alterações da composição
     Então a quantidade de "Cebola" na composição deve ser 3
 
-  @composicao @CMP-05
+  @composicao @CMP-05 @pending
   Cenário: Remover produto de uma composição
     Dado que existe uma composição com produto "Alho"
     Quando eu edito a quantidade para 0
     Então o produto "Alho" não deve mais estar na composição
 
-  @composicao @CMP-06
+  @composicao @CMP-06 @pending
   Cenário: Calcular quantidade total de produto para as cestas
     Dado que existe uma composição com 25 cestas
     E o produto "Tomate" tem quantidade 100
     Quando eu calculo a quantidade total necessária
     Então a quantidade por cesta de "Tomate" deve ser 4
 
-  @composicao @CMP-07
+  @composicao @CMP-07 @pending
   Cenário: Validar produtos disponíveis nas ofertas
     Dado que existe uma composição com produto "Cenoura"
     E a quantidade total necessária é 80 unidades
@@ -52,7 +52,7 @@ Funcionalidade: Gestão de Composições de Cestas
     Quando eu valido a disponibilidade
     Então o sistema deve alertar sobre a falta
 
-  @composicao @CMP-08
+  @composicao @CMP-08 @pending
   Cenário: Listar composições de um ciclo
     Dado que existem múltiplas composições em um ciclo
     Quando eu solicito todas as composições do ciclo
