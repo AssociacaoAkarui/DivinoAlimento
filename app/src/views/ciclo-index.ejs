@@ -30,7 +30,7 @@
     <%- include('parts/index-header', {
       button_text:'Adicionar Novo Ciclo',
       button_link:'../ciclo'
-      }) %> 
+      }) %>
 
     <div class="container">
       <main class="animate-up delay-2">
@@ -41,22 +41,22 @@
           <%  let i = 0
               ciclos.forEach((ciclo) => {
               i += 1  %>
-           
+
             <div class="card <%= ciclo.status %> " data-id="<%= ciclo.id %> ">
               <div class="id column"><%= i %> </div>
               <div class="name column">
-                <%= ciclo.nome %> 
+                <%= ciclo.nome %>
               </div>
               <div class="status badge column">
                 <p>
-                <% 
+                <%
                     if (ciclo.ofertaInicio) { %>de <%=
                       ciclo.ofertaInicio.toISOString().substr(8,2)%>/<%=
                       ciclo.ofertaInicio.toISOString().substr(5,2)%>/<%=
                       ciclo.ofertaInicio.toISOString().substr(0,4)%> <%=
                       ciclo.ofertaInicio.toISOString().substr(11,5)%>
                     <% } %>
-                <% 
+                <%
                     if (ciclo.retiradaConsumidorFim) { %>a&nbsp;<%=
                       ciclo.retiradaConsumidorFim.toISOString().substr(8,2)%>/<%=
                       ciclo.retiradaConsumidorFim.toISOString().substr(5,2)%>/<%=
@@ -64,63 +64,63 @@
                       ciclo.retiradaConsumidorFim.toISOString().substr(11,5)%>
                       <% } %></p>
               </div>
-              
+
               <div class="actions column flex">
                 <p class="sr-only">Ações</p>
-                <a 
-                  href="/ciclo/<%= ciclo.id %> " 
-                  class="button white edit" 
+                <a
+                  href="/ciclo/<%= ciclo.id %> "
+                  class="button white edit"
                   title="Editar Ciclo">
                   <img src="/images/edit-24.svg" alt="Editar Ciclo" />
                 </a>
                 <!--<button class="delete button white" title="Excluir Ciclo">
                   <img src="/images/trash-24.svg" alt="Excluir Ciclo" />
                 </button>-->
-                <a 
-                  href="/oferta/<%= ciclo.id %>" 
-                  class="button white edit cicloicones" 
+                <a
+                  href="/oferta/<%= ciclo.id %>"
+                  class="button white edit cicloicones"
                   title="Inserir Ofertas">
                   <img src="/images/oferta.svg" alt="Inserir Ofertas" />
                 </a>
-                <a 
-                  href="/composicao/<%= ciclo.id %>" 
-                  class="button white edit cicloicones" 
+                <a
+                  href="/composicao/<%= ciclo.id %>"
+                  class="button white edit cicloicones"
                   title="Composição Cestas">
                   <img src="/images/composicao.svg" alt="Composição Cestas" />
                 </a>
-                <a 
-                  href="/pedidosfornecedoressobra/<%= ciclo.id %>" 
-                  class="button white edit cicloicones" 
+                <a
+                  href="/pedidosfornecedoressobra/<%= ciclo.id %>"
+                  class="button white edit cicloicones"
                   title="Relatório Produtos Ofertados e Sobras">
                   <img src="/images/produto.svg" alt="Relatório Produtos Ofertados e Sobras" />
                 </a>
-                <a 
-                  href="/composicao/<%= ciclo.id %>?cst=<%= ciclo.cicloCestaOfertas_1 %>" 
-                  class="button white edit cicloicones" 
+                <a
+                  href="/composicao/<%= ciclo.id %>?cst=<%= ciclo.cicloCestaOfertas_1 %>"
+                  class="button white edit cicloicones"
                   title="Lista de Ofertas Extras">
                   <img src="/images/ofertasPE.png" alt="Lista de Ofertas Extras" />
                 </a>
-                <a 
-                  href="/pedidoConsumidores/<%= ciclo.id %>" 
-                  class="button white edit cicloicones" 
+                <a
+                  href="/pedidoConsumidores/<%= ciclo.id %>"
+                  class="button white edit cicloicones"
                   title="Formulário Pedidos Consumidores">
                   <img src="/images/pedidoConsumidores.svg" alt="Formulário Pedidos Consumidores" />
                 </a>
-                <a 
-                  href="/composicao/<%= ciclo.id %>?cst=<%= ciclo.cicloCestaPedidosExtras_5 %>" 
-                  class="button white edit cicloicones" 
+                <a
+                  href="/composicao/<%= ciclo.id %>?cst=<%= ciclo.cicloCestaPedidosExtras_5 %>"
+                  class="button white edit cicloicones"
                   title="Composição Pedidos Extras">
                   <img src="/images/composicaoPE.png" alt="Composição Pedidos Extras" />
                 </a>
-                <a 
-                  href="/pedidosfornecedorestodos/<%= ciclo.id %>" 
-                  class="button white edit cicloicones" 
+                <a
+                  href="/pedidosfornecedorestodos/<%= ciclo.id %>"
+                  class="button white edit cicloicones"
                   title="Relatório Pedidos Fornecedores">
                   <img src="/images/entrega.svg" alt="Relatorio Fornecedores" />
                 </a>
-                <a 
-                  href="/pedidosconsumidorestodos/<%= ciclo.id %>?view=all_t" 
-                  class="button white edit cicloicones" 
+                <a
+                  href="/pedidosconsumidorestodos/<%= ciclo.id %>?view=all_t"
+                  class="button white edit cicloicones"
                   title="Relatório Pedidos Consumidores">
                   <img src="/images/pontoentrega.svg" alt="Relatorio Consumidores" />
                 </a>
@@ -129,6 +129,17 @@
             <!-- end card -->
 
           <% }) %>
+        </div>
+
+        <% if (nextCursor) { %>
+        <div class="pagination">
+          <a
+            href="/ciclo-index?limit=<%= limit %>&cursor=<%= nextCursor %>"
+            class="button"
+            >Carregar Mais</a
+          >
+        </div>
+        <% } %>
       </main>
     </div>
     <!-- end container -->
@@ -138,11 +149,11 @@
         <img src="/images/trash-48.svg" alt="Excluir Ciclo" title="Excluir Ciclo" />
         <h3>Excluir Ciclo</h3>
         <p>Quer mesmo excluir esse ciclo? <br/>
-        Ele será apagado para sempre.  
+        Ele será apagado para sempre.
         <p>
         <footer>
-          <a 
-            class="button gray" 
+          <a
+            class="button gray"
             href="#">Cancelar</a>
           <button
             class="button red"
@@ -150,8 +161,8 @@
             form="delete-ciclo">Excluir Ciclo</button>
         </footer>
       </div>
-      <form 
-        method="post" 
+      <form
+        method="post"
         action="/ciclo/delete/"
         id="delete-ciclo"></form>
     </div>

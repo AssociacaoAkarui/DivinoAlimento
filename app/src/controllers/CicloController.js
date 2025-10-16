@@ -88,17 +88,16 @@ module.exports = {
     try {
       const cicloService = new CicloService();
 
-      const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
-      const offset = (page - 1) * limit;
+      const cursor = req.query.cursor || null;
 
-      const resultado = await cicloService.listarCiclos(limit, offset);
+      const resultado = await cicloService.listarCiclos(limit, cursor);
 
       return res.render("ciclo-index", {
         ciclos: resultado.ciclos,
         total: resultado.total,
-        currentPage: page,
-        totalPages: Math.ceil(resultado.total / limit),
+        nextCursor: resultado.nextCursor,
+        limit,
       });
     } catch (error) {
       console.error("Erro ao listar ciclos:", error);

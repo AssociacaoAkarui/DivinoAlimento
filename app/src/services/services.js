@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const {
   Ciclo,
   PontoEntrega,
@@ -27,8 +28,8 @@ class CicloService {
     }
   }
 
-  async criarCiclo(dados) {
-    const transaction = await sequelize.transaction();
+  async criarCiclo(dados, options = {}) {
+    const transaction = options.transaction || (await sequelize.transaction());
 
     try {
       this._validarDadosCiclo(dados);
@@ -55,19 +56,24 @@ class CicloService {
 
       await this._criarProdutosCiclo(novoCiclo.id, dados, transaction);
 
-      await transaction.commit();
+      if (!options.transaction) {
+        await transaction.commit();
+      }
 
       const cicloCriado = await this.buscarCicloPorId(novoCiclo.id);
 
       return cicloCriado;
     } catch (error) {
+      if (!options.transaction) {
+        await transaction.rollback();
+      }
       error.message = `Erro ao criar ciclo: ${error.message}`;
       throw error;
     }
   }
 
-  async atualizarCiclo(cicloId, dadosAtualizacao) {
-    const transaction = await sequelize.transaction();
+  async atualizarCiclo(cicloId, dadosAtualizacao, options = {}) {
+    const transaction = options.transaction || (await sequelize.transaction());
 
     try {
       const cicloExistente = await Ciclo.findByPk(cicloId);
@@ -130,13 +136,17 @@ class CicloService {
         );
       }
 
-      await transaction.commit();
+      if (!options.transaction) {
+        await transaction.commit();
+      }
 
       const cicloAtualizado = await this.buscarCicloPorId(cicloId);
 
       return cicloAtualizado;
     } catch (error) {
-      await transaction.rollback();
+      if (!options.transaction) {
+        await transaction.rollback();
+      }
       error.message = `Erro ao atualizar ciclo: ${error.message}`;
       throw error;
     }
@@ -189,10 +199,17 @@ class CicloService {
     };
   }
 
-  async listarCiclos(limite = 10, offset = 0) {
+  async listarCiclos(limite = 10, cursor = null) {
+    const where = {};
+    if (cursor) {
+      where.createdAt = {
+        [Op.lt]: new Date(cursor),
+      };
+    }
+
     const { count, rows } = await Ciclo.findAndCountAll({
+      where,
       limit: limite,
-      offset: offset,
       include: [
         {
           model: PontoEntrega,
@@ -202,16 +219,18 @@ class CicloService {
       order: [["createdAt", "DESC"]],
     });
 
+    const nextCursor = rows.length > 0 ? rows[rows.length - 1].createdAt : null;
+
     return {
       total: count,
       ciclos: rows,
       limite,
-      offset,
+      nextCursor,
     };
   }
 
-  async deletarCiclo(cicloId) {
-    const transaction = await sequelize.transaction();
+  async deletarCiclo(cicloId, options = {}) {
+    const transaction = options.transaction || (await sequelize.transaction());
 
     try {
       const ciclo = await Ciclo.findByPk(cicloId);
@@ -222,10 +241,14 @@ class CicloService {
 
       await ciclo.destroy({ transaction });
 
-      await transaction.commit();
+      if (!options.transaction) {
+        await transaction.commit();
+      }
       return true;
     } catch (error) {
-      await transaction.rollback();
+      if (!options.transaction) {
+        await transaction.rollback();
+      }
       error.message = `Erro ao deletar ciclo: ${error.message}`;
       throw error;
     }

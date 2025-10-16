@@ -367,22 +367,63 @@ Then("o ciclo não deve mais existir no sistema", async function () {
   }
 });
 
-Given('que eu quero cria um novo ciclo con erro', function () {
+Given("que eu quero cria um novo ciclo con erro", function () {
   const unexistentPonteEntregaId = 123213;
-  cicloWithError = Factories.CicloFactory.create({pontoEntregaId: unexistentPonteEntregaId});
+  cicloWithError = Factories.CicloFactory.create({
+    pontoEntregaId: unexistentPonteEntregaId,
+  });
 });
 
-When('o usuário cria um novo ciclo con erro', async function () {
+When("o usuário cria um novo ciclo con erro", async function () {
   cicloService = new CicloService();
   try {
-      ciclo = await cicloService.criarCiclo(cicloWithError);
-  } catch(error) {
-      errorOnCreateCiclo = error;
+    ciclo = await cicloService.criarCiclo(cicloWithError);
+  } catch (error) {
+    errorOnCreateCiclo = error;
   }
 });
 
-Then('o mensagem do erro contem {string}', function (message) {
+Then("o mensagem do erro contem {string}", function (message) {
   expect(errorOnCreateCiclo.message).to.contains(message);
-  // validate type of error
-  /* expect(errorOnCreateCiclo instanceof 'database' ).is.true(); */
+});
+
+let paginacaoResult;
+
+Given("que existem {int} ciclos cadastrados", async function (numCiclos) {
+  cicloService = new CicloService();
+  await sequelize.transaction(async (t) => {
+    for (let i = 0; i < numCiclos; i++) {
+      const novoCiclo = Factories.CicloFactory.create();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      await cicloService.criarCiclo(novoCiclo, { transaction: t });
+    }
+  });
+});
+
+When("eu listo os ciclos com limite de {int}", async function (limite) {
+  cicloService = new CicloService();
+  paginacaoResult = await cicloService.listarCiclos(limite);
+});
+
+Then(
+  "eu devo receber {int} ciclos e um cursor para a próxima página",
+  function (numCiclos) {
+    expect(paginacaoResult.ciclos).to.have.lengthOf(numCiclos);
+    expect(paginacaoResult.nextCursor).to.not.be.null;
+  },
+);
+
+When(
+  "eu listo os ciclos novamente usando o cursor recebido",
+  async function () {
+    const limite = 10;
+    paginacaoResult = await cicloService.listarCiclos(
+      limite,
+      paginacaoResult.nextCursor,
+    );
+  },
+);
+
+Then("eu devo receber os {int} ciclos restantes", function (numCiclos) {
+  expect(paginacaoResult.ciclos).to.have.lengthOf(numCiclos);
 });
