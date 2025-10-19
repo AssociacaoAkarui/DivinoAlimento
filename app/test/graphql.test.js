@@ -137,6 +137,120 @@ describe("Graphql", async function () {
     });
   });
 
+  it("error logout unauthenticated", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const queryLogin = `
+      mutation Login($input: LoginInput!) {
+        sessionLogin(input: $input) {
+          usuarioId
+          token
+        }
+      }
+    `;
+
+    const currentUsuario = await usuarioService.create({
+      email: "john@example.com",
+      senha: "password",
+    });
+
+    const resultLogin = await graphql({
+      schema: APIGraphql.schema,
+      source: queryLogin,
+      variableValues: {
+        input: { email: "john@example.com", senha: "password" },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: { usuarioService }, // mock database, authorization, loaders, etc.
+    });
+
+    const queryLogout = `
+      mutation Logout {
+        sessionLogout {
+        success
+        }
+      }
+    `;
+
+    const resultLogout = await graphql({
+      schema: APIGraphql.schema,
+      source: queryLogout,
+      variableValues: {
+        input: {},
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: { usuarioService, sessionToken: "invalidtoken" }, // mock database, authorization, loaders, etc.
+    });
+
+    expect(resultLogout.errors).to.exist;
+  });
+
+  it("logout authenticated", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const queryLogin = `
+      mutation Login($input: LoginInput!) {
+        sessionLogin(input: $input) {
+          usuarioId
+          token
+        }
+      }
+    `;
+
+    const currentUsuario = await usuarioService.create({
+      email: "john@example.com",
+      senha: "password",
+    });
+
+    const resultLogin = await graphql({
+      schema: APIGraphql.schema,
+      source: queryLogin,
+      variableValues: {
+        input: { email: "john@example.com", senha: "password" },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: { usuarioService }, // mock database, authorization, loaders, etc.
+    });
+
+    const queryLogout = `
+      mutation Logout {
+        sessionLogout {
+        success
+        }
+      }
+    `;
+
+    const resultLogout = await graphql({
+      schema: APIGraphql.schema,
+      source: queryLogout,
+      variableValues: {
+        input: {},
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: { usuarioService, sessionToken: "1234567890" }, // mock database, authorization, loaders, etc.
+    });
+
+    expect(resultLogout).to.deep.equal({
+      data: {
+        sessionLogout: {
+          success: true,
+        },
+      },
+    });
+  });
+
   it("not login when parameters is invalid", async function () {
     await sequelize.sync({ force: true });
 

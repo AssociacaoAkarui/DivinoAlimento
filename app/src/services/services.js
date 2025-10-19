@@ -81,13 +81,14 @@ class UsuarioService {
     };
   }
 
-  async logout(sessionId) {
-    const session = await Session.findByPk(sessionId);
+  async logout(token) {
+    const session = await Session.findOne({ where: { token } });
     if (session) {
       await session.destroy();
       return { success: true, message: "Logged out successfully" };
+    } else if (!session) {
+      return { success: false, message: "Session not found" };
     }
-    throw new Error("Session not found");
   }
 
   async cleanupExpiredSessions() {

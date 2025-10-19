@@ -12,10 +12,15 @@ input LoginInput {
     senha: String!
 }
 
+type LogoutResponse {
+    success: Boolean!
+}
+
 type Query {
     healthcheck: HealthCheck!
 }
 
 type Mutation {
     sessionLogin(input: LoginInput!): ActiveSession!
+    sessionLogout: LogoutResponse!
 }

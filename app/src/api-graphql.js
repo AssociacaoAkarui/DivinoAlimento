@@ -1,10 +1,27 @@
 const fs = require("fs");
 const path = require("path");
 const { buildSchema } = require("graphql");
+const { Session } = require("../models");
+
 const {
   UsuarioService,
   CryptoUUIDService,
 } = require("../src/services/services.js");
+
+async function setupSession(context) {
+  if (!context.sessionToken) {
+    throw new Error("Unauthorized");
+  }
+  const session = await Session.findOne({
+    where: { token: context.sessionToken },
+  });
+
+  if (session == null) {
+    throw new Error("Session not found");
+  }
+
+  context.session = session;
+}
 
 const rootValue = {
   healthcheck: async () => {
@@ -21,6 +38,14 @@ const rootValue = {
     return {
       usuarioId: session.usuarioId,
       token: session.token,
+    };
+  },
+  sessionLogout: async (args, context) => {
+    await setupSession(context);
+    const session = await context.usuarioService.logout(context.session.token);
+
+    return {
+      success: session.success,
     };
   },
 };
