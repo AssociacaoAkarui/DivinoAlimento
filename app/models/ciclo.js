@@ -101,7 +101,16 @@ module.exports = (sequelize, DataTypes) => {
       retiradaConsumidorInicio: DataTypes.DATE,
       retiradaConsumidorFim: DataTypes.DATE,
       observacao: DataTypes.STRING,
-      status: DataTypes.STRING,
+      status: {
+        type: DataTypes.STRING,
+        defaultValue: "oferta",
+        validate: {
+          isIn: {
+            args: [["oferta", "composicao", "atribuicao", "finalizado"]],
+            msg: "O status do ciclo deve ser 'oferta', 'composicao', 'atribuicao' ou 'finalizado'.",
+          },
+        },
+      },
     },
     {
       sequelize,
