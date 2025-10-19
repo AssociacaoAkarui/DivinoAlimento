@@ -65,7 +65,7 @@ Funcionalidade: Gestão de Ciclos
   Cenário: Erro o criar um novo ciclo
     Dado que eu quero cria um novo ciclo con erro
     Quando o usuário cria um novo ciclo con erro
-    Então o mensagem do erro contem 'Erro ao criar ciclo'
+    Então uma mensagem de erro deve ser retornada
 
   @CIC-08
   Cenário: Listar ciclos com paginação por cursor

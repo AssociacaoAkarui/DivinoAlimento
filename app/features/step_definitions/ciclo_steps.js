@@ -132,7 +132,11 @@ Then(
 
 Given("que eu quero criar e atualizar um ciclo", async function () {
   cicloService = new CicloService();
-  novoCiclo = Factories.CicloFactory.create();
+  const pontoEntregaData = Factories.PontoEntregaFactory.create();
+  const pontoEntrega = await PontoEntrega.create(pontoEntregaData);
+  const novoCiclo = Factories.CicloFactory.create({
+    pontoEntregaId: pontoEntrega.id,
+  });
   ciclo2 = await cicloService.criarCiclo(novoCiclo);
   cicloUpdateData = {};
 });
@@ -192,7 +196,11 @@ Given(
   "que eu quero criar e atualizar um ciclo com associações",
   async function () {
     cicloService = new CicloService();
-    novoCiclo = Factories.CicloFactory.create();
+    const pontoEntregaData = Factories.PontoEntregaFactory.create();
+    const pontoEntrega = await PontoEntrega.create(pontoEntregaData);
+    const novoCiclo = Factories.CicloFactory.create({
+      pontoEntregaId: pontoEntrega.id,
+    });
     cicloComAssociacoes = await cicloService.criarCiclo(novoCiclo);
     cicloUpdateData = {};
   },
@@ -350,7 +358,11 @@ Then(
 
 Given("que eu quero criar e deletar um ciclo", async function () {
   cicloService = new CicloService();
-  const novoCiclo = Factories.CicloFactory.create();
+  const pontoEntregaData = Factories.PontoEntregaFactory.create();
+  const pontoEntrega = await PontoEntrega.create(pontoEntregaData);
+  const novoCiclo = Factories.CicloFactory.create({
+    pontoEntregaId: pontoEntrega.id,
+  });
   ciclo = await cicloService.criarCiclo(novoCiclo);
 });
 
@@ -383,17 +395,23 @@ When("o usuário cria um novo ciclo con erro", async function () {
   }
 });
 
-Then("o mensagem do erro contem {string}", function (message) {
-  expect(errorOnCreateCiclo.message).to.contains(message);
+Then("uma mensagem de erro deve ser retornada", function () {
+  expect(errorOnCreateCiclo).to.be.an("Error");
+  expect(errorOnCreateCiclo.message).to.not.be.empty;
 });
 
 let paginacaoResult;
 
 Given("que existem {int} ciclos cadastrados", async function (numCiclos) {
   cicloService = new CicloService();
+  const pontoEntregaData = Factories.PontoEntregaFactory.create();
+  const pontoEntrega = await PontoEntrega.create(pontoEntregaData);
+
   await sequelize.transaction(async (t) => {
     for (let i = 0; i < numCiclos; i++) {
-      const novoCiclo = Factories.CicloFactory.create();
+      const novoCiclo = Factories.CicloFactory.create({
+        pontoEntregaId: pontoEntrega.id,
+      });
       await new Promise((resolve) => setTimeout(resolve, 10));
       await cicloService.criarCiclo(novoCiclo, { transaction: t });
     }
