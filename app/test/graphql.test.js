@@ -5,7 +5,7 @@ import { buildSchema, graphql } from "graphql";
 import { expect } from "chai";
 
 const require = createRequire(import.meta.url);
-const { sequelize } = require("../models/index.js");
+const { sequelize, Usuario } = require("../models/index.js");
 const { default: APIGraphql } = require("../src/api-graphql.js");
 
 describe("Array", function () {
@@ -13,6 +13,34 @@ describe("Array", function () {
     it("ejemplo", function () {
       expect([1, 2, 3]).to.have.lengthOf(3);
     });
+  });
+});
+
+describe("Howto", function () {
+  it("query user perfis", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const currentUsuario = await usuarioService.create({
+      email: "john@example.com",
+      senha: "password",
+    });
+
+    const dbUsuario = await Usuario.findOne({
+      where: {
+        email: currentUsuario.email,
+        senha: currentUsuario.senha,
+        status: "ativo",
+      },
+      attributes: ["id", "email", "perfis"],
+    });
+
+    expect(currentUsuario.perfis).to.equal(dbUsuario.perfis);
   });
 });
 
@@ -108,6 +136,7 @@ describe("Graphql", async function () {
         sessionLogin(input: $input) {
           usuarioId
           token
+          perfis
         }
       }
     `;
@@ -132,6 +161,7 @@ describe("Graphql", async function () {
         sessionLogin: {
           usuarioId: `${currentUsuario.id}`,
           token: "1234567890",
+          perfis: ["admin"],
         },
       },
     });

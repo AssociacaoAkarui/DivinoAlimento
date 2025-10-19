@@ -25,17 +25,26 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      await loginUsuarioMutation.mutateAsync({ email, senha: password });
+      const sessionlogin = await loginUsuarioMutation.mutateAsync({
+        email,
+        senha: password,
+      });
+      if (sessionlogin.perfis && sessionlogin.perfis.includes("admain")) {
+        throw new Error("only implemented admin dashboard");
+      }
+
       setIsLoading(false);
       toast({
         title: "Login realizado com sucesso!",
         description: "Redirecionando para o dashboard...",
       });
-      navigate("/dashboard");
+      navigate("/admin/dashboard");
     } catch (error) {
+      console.error(error);
       toast({
         title: "Invalid login",
       });
+      setIsLoading(false);
     }
   };
 

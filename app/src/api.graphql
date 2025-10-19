@@ -1,6 +1,7 @@
 type ActiveSession {
     usuarioId: ID!
     token: String!
+    perfis: [String!]!
 }
 
 type HealthCheck {
@@ -20,7 +21,12 @@ type Query {
     healthcheck: HealthCheck!
 }
 
+type SystemInformation {
+    version: String!
+}
+
 type Mutation {
     sessionLogin(input: LoginInput!): ActiveSession!
     sessionLogout: LogoutResponse!
+    systemInformation: SystemInformation!
 }

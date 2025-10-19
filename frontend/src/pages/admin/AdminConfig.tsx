@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { ArrowLeft, Settings, Bell, Shield, LogOut, Save } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import { ArrowLeft, Settings, Bell, Shield, LogOut, Save } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { useSystemInformation } from "@/hooks/graphql";
 
 const AdminConfig = () => {
   const [settings, setSettings] = useState({
@@ -15,14 +16,14 @@ const AdminConfig = () => {
     autoApproval: false,
     maintenanceMode: false,
     dataExport: true,
-    userRegistration: true
+    userRegistration: true,
   });
 
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSettingChange = (key: keyof typeof settings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const saveSettings = () => {
@@ -33,24 +34,25 @@ const AdminConfig = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
-    navigate('/');
+    localStorage.removeItem("adminAuth");
+    navigate("/");
   };
 
+  // TODO: ni idea, como llamar useSystemInformation
   const systemInfo = {
-    version: '1.2.3',
-    lastUpdate: '15/02/2024',
-    database: 'PostgreSQL 14',
-    environment: 'Produção'
+    version: "1.2.3",
+    lastUpdate: "15/02/2024",
+    database: "PostgreSQL 14",
+    environment: "Produção",
   };
 
   return (
-    <ResponsiveLayout 
+    <ResponsiveLayout
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon-sm"
-          onClick={() => navigate('/admin/dashboard')}
+          onClick={() => navigate("/admin/dashboard")}
           className="focus-ring text-primary-foreground hover:bg-primary-hover"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -60,7 +62,9 @@ const AdminConfig = () => {
       <div className="flex-1 p-4 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gradient-primary">Configurações do Sistema</h1>
+          <h1 className="text-2xl font-bold text-gradient-primary">
+            Configurações do Sistema
+          </h1>
           <p className="text-sm text-muted-foreground">
             Configure permissões e preferências do sistema
           </p>
@@ -81,7 +85,9 @@ const AdminConfig = () => {
                 <p className="font-medium">{systemInfo.version}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Última Atualização:</span>
+                <span className="text-muted-foreground">
+                  Última Atualização:
+                </span>
                 <p className="font-medium">{systemInfo.lastUpdate}</p>
               </div>
               <div>
@@ -106,24 +112,32 @@ const AdminConfig = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="email-notifications" className="text-sm font-medium">
+              <Label
+                htmlFor="email-notifications"
+                className="text-sm font-medium"
+              >
                 Notificações por E-mail
               </Label>
               <Switch
                 id="email-notifications"
                 checked={settings.emailNotifications}
-                onCheckedChange={() => handleSettingChange('emailNotifications')}
+                onCheckedChange={() =>
+                  handleSettingChange("emailNotifications")
+                }
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
-              <Label htmlFor="push-notifications" className="text-sm font-medium">
+              <Label
+                htmlFor="push-notifications"
+                className="text-sm font-medium"
+              >
                 Notificações Push
               </Label>
               <Switch
                 id="push-notifications"
                 checked={settings.pushNotifications}
-                onCheckedChange={() => handleSettingChange('pushNotifications')}
+                onCheckedChange={() => handleSettingChange("pushNotifications")}
               />
             </div>
           </CardContent>
@@ -143,26 +157,33 @@ const AdminConfig = () => {
                 <Label htmlFor="auto-approval" className="text-sm font-medium">
                   Aprovação Automática
                 </Label>
-                <p className="text-xs text-muted-foreground">Aprovar produtos automaticamente</p>
+                <p className="text-xs text-muted-foreground">
+                  Aprovar produtos automaticamente
+                </p>
               </div>
               <Switch
                 id="auto-approval"
                 checked={settings.autoApproval}
-                onCheckedChange={() => handleSettingChange('autoApproval')}
+                onCheckedChange={() => handleSettingChange("autoApproval")}
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="user-registration" className="text-sm font-medium">
+                <Label
+                  htmlFor="user-registration"
+                  className="text-sm font-medium"
+                >
                   Registro de Usuários
                 </Label>
-                <p className="text-xs text-muted-foreground">Permitir novos registros</p>
+                <p className="text-xs text-muted-foreground">
+                  Permitir novos registros
+                </p>
               </div>
               <Switch
                 id="user-registration"
                 checked={settings.userRegistration}
-                onCheckedChange={() => handleSettingChange('userRegistration')}
+                onCheckedChange={() => handleSettingChange("userRegistration")}
               />
             </div>
 
@@ -171,26 +192,33 @@ const AdminConfig = () => {
                 <Label htmlFor="data-export" className="text-sm font-medium">
                   Exportação de Dados
                 </Label>
-                <p className="text-xs text-muted-foreground">Permitir export de relatórios</p>
+                <p className="text-xs text-muted-foreground">
+                  Permitir export de relatórios
+                </p>
               </div>
               <Switch
                 id="data-export"
                 checked={settings.dataExport}
-                onCheckedChange={() => handleSettingChange('dataExport')}
+                onCheckedChange={() => handleSettingChange("dataExport")}
               />
             </div>
 
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="maintenance-mode" className="text-sm font-medium">
+                <Label
+                  htmlFor="maintenance-mode"
+                  className="text-sm font-medium"
+                >
                   Modo Manutenção
                 </Label>
-                <p className="text-xs text-muted-foreground">Bloquear acesso de usuários</p>
+                <p className="text-xs text-muted-foreground">
+                  Bloquear acesso de usuários
+                </p>
               </div>
               <Switch
                 id="maintenance-mode"
                 checked={settings.maintenanceMode}
-                onCheckedChange={() => handleSettingChange('maintenanceMode')}
+                onCheckedChange={() => handleSettingChange("maintenanceMode")}
               />
             </div>
           </CardContent>
@@ -198,15 +226,12 @@ const AdminConfig = () => {
 
         {/* Actions */}
         <div className="space-y-3">
-          <Button 
-            onClick={saveSettings} 
-            className="w-full"
-          >
+          <Button onClick={saveSettings} className="w-full">
             <Save className="w-4 h-4 mr-2" />
             Salvar Configurações
           </Button>
 
-          <Button 
+          <Button
             onClick={handleLogout}
             variant="outline"
             className="w-full border-red-200 text-red-700 hover:bg-red-50"

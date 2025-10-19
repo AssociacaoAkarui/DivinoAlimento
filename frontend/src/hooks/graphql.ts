@@ -15,6 +15,11 @@ interface LoginInput {
 interface SessionLogin {
   usuarioId: string;
   token: string;
+  perfis: string[];
+}
+
+interface SystemInformation {
+  version: string;
 }
 
 export function useLoginUsuario(
@@ -32,6 +37,27 @@ export function useLoginUsuario(
     onSuccess: (data) => {
       const sessionLogin = data.sessionLogin;
       queryClient.setQueryData<SessionLogin>(["usuario"], sessionLogin);
+    },
+  });
+}
+
+export function useSystemInformation(
+  options?: UseMutationOptions<{ sessionLogin: SessionLogin }, Error>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation<{ sessionLogin: SessionLogin }, Error>({
+    mutationFn: () => {
+      systemInformation: {
+        version: "1.0.0";
+      }
+    },
+    onSuccess: (data) => {
+      const systemInformation = data.systemInformation;
+      queryClient.setQueryData<SystemInformation>(
+        ["system"],
+        systemInformation,
+      );
     },
   });
 }

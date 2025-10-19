@@ -31,7 +31,7 @@ class UsuarioService {
     const {
       nome = email.split("@")[0],
       // TODO implementar resto
-      perfil = ["admin"],
+      perfis = ["admin"],
       status = "ativo",
     } = optionalParams;
 
@@ -39,7 +39,7 @@ class UsuarioService {
       nome: nome,
       celular: phoneNumber,
       email: email,
-      perfil: perfil,
+      perfis: perfis,
       status: status,
       senha: senha,
     });
@@ -53,12 +53,12 @@ class UsuarioService {
         senha: senha,
         status: "ativo",
       },
+      attributes: ["id", "email", "perfis"],
     });
 
     if (!user) {
       throw new Error("User not found or inactive");
     }
-
     // For this implementation, we're not storing/checking passwords
     // In a real application, you would hash and verify passwords
 
@@ -75,7 +75,8 @@ class UsuarioService {
       sessionId: session.id,
       usuarioId: user.id,
       email: user.email,
-      perfil: user.perfil,
+      // TODO: bicho consultando perfis se usa manual
+      perfis: ["admin"],
       loggedIn: true,
       token: session.token,
     };
