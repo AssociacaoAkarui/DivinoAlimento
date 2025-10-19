@@ -1,37 +1,45 @@
-const _ = require("lodash");
+function filterPayload(model, payload, allowedFields) {
+  const modelAttributes = Object.keys(model.getAttributes());
 
-// A "blacklist" padrão de campos reservados que nunca devem vir do cliente.
-const DEFAULT_RESERVED_FIELDS = ["id", "createdAt", "updatedAt"];
+  const invalidFields = allowedFields.filter(
+    (field) => !modelAttributes.includes(field),
+  );
 
-function sanitizePayload(payload, options = {}) {
-  let fieldsToOmit = [...DEFAULT_RESERVED_FIELDS];
-
-  // Se a opção 'allow' for fornecida, remove campos da blacklist padrão.
-  // Ex: permitir 'createdAt' em um script de importação de dados.
-  if (options.allow && Array.isArray(options.allow)) {
-    fieldsToOmit = _.difference(fieldsToOmit, options.allow);
+  if (invalidFields.length > 0) {
+    console.warn(
+      `[modelUtils] The following fields are not part of the model's attributes: ${invalidFields.join(
+        ", ",
+      )}`,
+    );
   }
 
-  // Se a opção 'additionalOmit' for fornecida, adiciona mais campos à blacklist.
-  // Ex: não permitir que o usuário defina o campo 'status' na criação.
-  if (options.additionalOmit && Array.isArray(options.additionalOmit)) {
-    fieldsToOmit = [...fieldsToOmit, ...options.additionalOmit];
+  const validAllowedFields = allowedFields.filter((field) =>
+    modelAttributes.includes(field),
+  );
+
+  const filteredPayload = {};
+  for (const key of validAllowedFields) {
+    if (Object.prototype.hasOwnProperty.call(payload, key)) {
+      filteredPayload[key] = payload[key];
+    }
   }
 
-  return _.omit(payload, fieldsToOmit);
+  return filteredPayload;
 }
 
 module.exports = {
-  sanitizePayload,
+  filterPayload,
 
   normalizePayload(model, payload) {
     const attributes = model.getAttributes();
 
     for (const key in payload) {
-      if (payload.hasOwnProperty(key) && attributes[key]) {
+      if (
+        Object.prototype.hasOwnProperty.call(payload, key) &&
+        attributes[key]
+      ) {
         const attributeType = attributes[key].type;
 
-        // Verifica se o campo é do tipo Data e se o valor é uma string vazia
         if (
           ["DATE", "DATEONLY"].includes(attributeType.key) &&
           payload[key] === ""

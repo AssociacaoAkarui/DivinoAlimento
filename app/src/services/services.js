@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { sanitizePayload, normalizePayload } = require("../utils/modelUtils");
+const { filterPayload, normalizePayload } = require("../utils/modelUtils");
 const {
   Ciclo,
   PontoEntrega,
@@ -33,7 +33,22 @@ class CicloService {
     const transaction = options.transaction || (await sequelize.transaction());
     try {
       const dadosNormalizados = normalizePayload(Ciclo, dados);
-      const payloadSeguro = sanitizePayload(dadosNormalizados);
+      const allowedFields = [
+        "nome",
+        "ofertaInicio",
+        "ofertaFim",
+        "pontoEntregaId",
+        "itensAdicionaisInicio",
+        "itensAdicionaisFim",
+        "retiradaConsumidorInicio",
+        "retiradaConsumidorFim",
+        "observacao",
+      ];
+      const payloadSeguro = filterPayload(
+        Ciclo,
+        dadosNormalizados,
+        allowedFields,
+      );
       const novoCiclo = await Ciclo.create(payloadSeguro, { transaction });
 
       await this._criarEntregasCiclo(novoCiclo.id, dados, transaction);
@@ -61,7 +76,24 @@ class CicloService {
       }
 
       const dadosNormalizados = normalizePayload(Ciclo, dadosAtualizacao);
-      await cicloExistente.update(dadosNormalizados, { transaction });
+      const allowedFields = [
+        "nome",
+        "ofertaInicio",
+        "ofertaFim",
+        "pontoEntregaId",
+        "itensAdicionaisInicio",
+        "itensAdicionaisFim",
+        "retiradaConsumidorInicio",
+        "retiradaConsumidorFim",
+        "observacao",
+        "status",
+      ];
+      const payloadSeguro = filterPayload(
+        Ciclo,
+        dadosNormalizados,
+        allowedFields,
+      );
+      await cicloExistente.update(payloadSeguro, { transaction });
 
       if (this._temDadosEntrega(dadosNormalizados)) {
         await this._atualizarEntregasCiclo(
@@ -268,7 +300,17 @@ class ProdutoService {
       if (!dadosProduto || !dadosProduto.nome) {
         throw new Error("O nome do produto é obrigatório.");
       }
-      return await Produto.create(dadosProduto);
+      const allowedFields = [
+        "nome",
+        "medida",
+        "pesoGrama",
+        "valorReferencia",
+        "status",
+        "descritivo",
+        "categoriaId",
+      ];
+      const payloadSeguro = filterPayload(Produto, dadosProduto, allowedFields);
+      return await Produto.create(payloadSeguro);
     } catch (error) {
       throw new Error(`Erro ao criar produto: ${error.message}`);
     }
@@ -287,7 +329,21 @@ class ProdutoService {
   async atualizarProduto(id, dadosParaAtualizar) {
     try {
       const produto = await this.buscarProdutoPorId(id);
-      await produto.update(dadosParaAtualizar);
+      const allowedFields = [
+        "nome",
+        "medida",
+        "pesoGrama",
+        "valorReferencia",
+        "status",
+        "descritivo",
+        "categoriaId",
+      ];
+      const payloadSeguro = filterPayload(
+        Produto,
+        dadosParaAtualizar,
+        allowedFields,
+      );
+      await produto.update(payloadSeguro);
       return produto;
     } catch (error) {
       throw new Error(`Erro ao atualizar produto: ${error.message}`);
