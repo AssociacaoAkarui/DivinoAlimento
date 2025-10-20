@@ -74,3 +74,9 @@ Funcionalidade: Gestão de Ciclos
     Então eu devo receber 10 ciclos e um cursor para a próxima página
     Quando eu listo os ciclos novamente usando o cursor recebido
     Então eu devo receber os 2 ciclos restantes
+
+  @CIC-09
+  Cenário: Erro ao criar um novo ciclo com dados inválidos
+    Dado que eu quero criar um novo Ciclo
+    Quando eu tento criar um ciclo com o nome ''
+    Então eu devo receber um erro de validação com a mensagem "O nome do ciclo não pode ser vazio."

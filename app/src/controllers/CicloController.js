@@ -5,6 +5,7 @@ const Produto = require("../model/Produto");
 const Profile = require("../model/Profile");
 const { ValidationError } = require("sequelize");
 const { CicloService } = require("../services/services");
+const ServiceError = require("../utils/ServiceError");
 
 module.exports = {
   async create(req, res) {
@@ -25,10 +26,15 @@ module.exports = {
       await cicloService.criarCiclo(req.body);
       return res.redirect("/ciclo-index");
     } catch (error) {
-      if (error instanceof ValidationError) {
+      console.error("Erro ao salvar ciclo:", error);
+
+      if (
+        error instanceof ServiceError &&
+        error.cause instanceof ValidationError
+      ) {
         try {
           const dadosCriacao = await cicloService.prepararDadosCriacaoCiclo();
-          const erros = error.errors.map((err) => err.message);
+          const erros = error.cause.errors.map((err) => err.message);
 
           return res.render("ciclo", {
             ...dadosCriacao,
@@ -44,7 +50,6 @@ module.exports = {
         }
       }
 
-      console.error("Erro ao salvar ciclo:", error);
       return res.status(500).send(`Erro interno ao salvar ciclo.`);
     }
   },
@@ -76,12 +81,16 @@ module.exports = {
       await cicloService.atualizarCiclo(cicloId, req.body);
       return res.redirect(`/ciclo/${cicloId}`);
     } catch (error) {
-      if (error instanceof ValidationError) {
+      console.error("Erro ao atualizar ciclo:", error);
+
+      if (
+        error instanceof ServiceError &&
+        error.cause instanceof ValidationError
+      ) {
         try {
           const cicloCompleto = await cicloService.buscarCicloPorId(cicloId);
-          const erros = error.errors.map((err) => err.message);
+          const erros = error.cause.errors.map((err) => err.message);
 
-          // Mescla os dados originais com as tentativas de mudança do usuário para repopular o formulário
           const cicloComTentativas = { ...cicloCompleto, ...req.body };
 
           return res.render("ciclo-edit", {
@@ -101,7 +110,6 @@ module.exports = {
         }
       }
 
-      console.error("Erro ao atualizar ciclo:", error);
       return res.status(500).send(`Erro ao atualizar ciclo: ${error.message}`);
     }
   },

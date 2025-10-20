@@ -445,3 +445,38 @@ When(
 Then("eu devo receber os {int} ciclos restantes", function (numCiclos) {
   expect(paginacaoResult.ciclos).to.have.lengthOf(numCiclos);
 });
+
+const assert = require("assert");
+const ServiceError = require("../../src/utils/ServiceError");
+
+When("eu tento criar um ciclo com o nome {string}", async function (nome) {
+  cicloService = new CicloService();
+  const dadosInvalidos = Factories.CicloFactory.create({
+    nome: nome,
+    pontoEntregaId:
+      createdPontosEntrega.length > 0 ? createdPontosEntrega[0].id : 1,
+  });
+
+  try {
+    await cicloService.criarCiclo(dadosInvalidos);
+  } catch (error) {
+    errorOnCreateCiclo = error;
+  }
+});
+
+Then(
+  "eu devo receber um erro de validação com a mensagem {string}",
+  function (mensagemEsperada) {
+    // console.error("--- Log do Erro Capturado no Teste ---");
+    // console.error(errorOnCreateCiclo);
+    // console.error("------------------------------------");
+
+    expect(errorOnCreateCiclo).to.be.an.instanceOf(ServiceError);
+    expect(errorOnCreateCiclo.cause).to.exist;
+    expect(errorOnCreateCiclo.cause.name).to.equal("SequelizeValidationError");
+
+    const validationError = errorOnCreateCiclo.cause;
+    const messages = validationError.errors.map((e) => e.message);
+    expect(messages).to.include(mensagemEsperada);
+  },
+);

@@ -16,6 +16,8 @@ const CicloModel = require("../model/Ciclo");
 const PontoEntregaModel = require("../model/PontoEntrega");
 const CestaModel = require("../model/Cesta");
 
+const ServiceError = require("../utils/ServiceError");
+
 class CicloService {
   async prepararDadosCriacaoCiclo() {
     try {
@@ -63,7 +65,9 @@ class CicloService {
       if (!options.transaction) {
         await transaction.rollback();
       }
-      throw error;
+      throw new ServiceError("Falha ao criar o ciclo no serviço.", {
+        cause: error,
+      });
     }
   }
 
@@ -125,7 +129,9 @@ class CicloService {
       if (!options.transaction) {
         await transaction.rollback();
       }
-      throw error;
+      throw new ServiceError("Falha ao atualizar o ciclo no serviço.", {
+        cause: error,
+      });
     }
   }
 
