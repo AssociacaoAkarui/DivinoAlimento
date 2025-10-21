@@ -26,8 +26,9 @@ class CicloService {
       const tiposCesta = await CestaModel.getCestasAtivas();
       return { pontosEntrega, tiposCesta };
     } catch (error) {
-      error.message = `Erro ao preparar dados para criação de ciclo: ${error.message}`;
-      throw error;
+      throw new ServiceError("Falha ao preparar dados para criação de ciclo.", {
+        cause: error,
+      });
     }
   }
 
@@ -189,7 +190,7 @@ class CicloService {
       if (!options.transaction) {
         await transaction.rollback();
       }
-      throw new Error(`Erro ao deletar ciclo: ${error.message}`);
+      throw new ServiceError(`Falha ao deletar o ciclo.`, { cause: error });
     }
   }
 
@@ -304,7 +305,7 @@ class ProdutoService {
   async criarProduto(dadosProduto) {
     try {
       if (!dadosProduto || !dadosProduto.nome) {
-        throw new Error("O nome do produto é obrigatório.");
+        throw new ServiceError("O nome do produto é obrigatório.");
       }
       const allowedFields = [
         "nome",
@@ -318,18 +319,27 @@ class ProdutoService {
       const payloadSeguro = filterPayload(Produto, dadosProduto, allowedFields);
       return await Produto.create(payloadSeguro);
     } catch (error) {
-      throw new Error(`Erro ao criar produto: ${error.message}`);
+      throw new ServiceError("Falha ao criar produto.", { cause: error });
     }
   }
 
   async buscarProdutoPorId(id) {
-    const produto = await Produto.findByPk(id, {
-      include: [{ model: CategoriaProdutos, as: "categoria" }],
-    });
-    if (!produto) {
-      throw new Error(`Produto com ID ${id} não encontrado`);
+    try {
+      const produto = await Produto.findByPk(id, {
+        include: [{ model: CategoriaProdutos, as: "categoria" }],
+      });
+      if (!produto) {
+        throw new ServiceError(`Produto com ID ${id} não encontrado`);
+      }
+      return produto;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao buscar produto por ID.", {
+        cause: error,
+      });
     }
-    return produto;
   }
 
   async atualizarProduto(id, dadosParaAtualizar) {
@@ -352,7 +362,7 @@ class ProdutoService {
       await produto.update(payloadSeguro);
       return produto;
     } catch (error) {
-      throw new Error(`Erro ao atualizar produto: ${error.message}`);
+      throw new ServiceError("Falha ao atualizar produto.", { cause: error });
     }
   }
 
@@ -362,7 +372,7 @@ class ProdutoService {
       await produto.destroy();
       return true;
     } catch (error) {
-      throw new Error(`Erro ao deletar produto: ${error.message}`);
+      throw new ServiceError("Falha ao deletar produto.", { cause: error });
     }
   }
 }
