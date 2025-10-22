@@ -115,14 +115,21 @@ module.exports = {
   },
 
   async destroy(req, res) {
+    const cicloId = req.params.id;
+    const cicloService = new CicloService();
     try {
-      const cicloId = req.params.id;
-      const cicloService = new CicloService();
       await cicloService.deletarCiclo(cicloId);
       return res.redirect("/ciclo-index");
     } catch (error) {
-      console.error("Erro ao deletar ciclo:", error);
-      return res.status(500).send(`Erro ao deletar ciclo: ${error.message}`);
+      console.error(`Erro ao deletar ciclo ${cicloId}:`, error);
+
+      if (error instanceof ServiceError) {
+        return res.redirect(
+          `/ciclo-index?error=${encodeURIComponent(error.message)}`,
+        );
+      }
+
+      return res.status(500).send("Erro interno ao tentar deletar o ciclo.");
     }
   },
 
