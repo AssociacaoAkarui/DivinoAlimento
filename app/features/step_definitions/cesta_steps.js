@@ -2,14 +2,19 @@ const { Given, When, Then } = require("@cucumber/cucumber");
 const { expect } = require("chai");
 const Factories = require("./support/factories");
 const { sequelize, Cesta } = require("../../models");
+const { CestaService } = require("../../src/services/services");
+const ServiceError = require("../../src/utils/ServiceError");
 
+const cestaService = new CestaService();
 let novaCesta = {};
 let cestaCriada;
 let cestaEncontrada;
 let cestaParaEditar;
+let erroCapturado;
 
 Given("que eu quero criar uma nova Cesta", function () {
   novaCesta = {};
+  erroCapturado = null;
 });
 
 When("eu preencho o nome da cesta com {string}", async function (nomeCesta) {
@@ -17,7 +22,7 @@ When("eu preencho o nome da cesta com {string}", async function (nomeCesta) {
 });
 
 When("o valor máximo da cesta como {int}", async function (valorMaximo) {
-  novaCesta.valorMaximo = valorMaximo;
+  novaCesta.valormaximo = valorMaximo;
 });
 
 When("o status da cesta como {string}", async function (status) {
@@ -25,7 +30,7 @@ When("o status da cesta como {string}", async function (status) {
 });
 
 When("eu salvo a nova cesta", async function () {
-  cestaCriada = await Cesta.create(novaCesta);
+  cestaCriada = await cestaService.criarCesta(novaCesta);
 });
 
 Then("a cesta deve ser criada com sucesso", function () {
@@ -56,7 +61,12 @@ When("eu edito o nome da cesta para {string}", async function (novoNome) {
 });
 
 When("salvo as alterações da cesta", async function () {
-  await cestaParaEditar.save();
+  const dadosParaAtualizar = {
+    nome: cestaParaEditar.nome,
+    valormaximo: cestaParaEditar.valormaximo,
+    status: cestaParaEditar.status,
+  };
+  await cestaService.atualizarCesta(cestaParaEditar.id, dadosParaAtualizar);
 });
 
 Then("o nome da cesta deve ser {string}", async function (nomeEsperado) {
@@ -107,7 +117,7 @@ Given(
 );
 
 When("eu deleto a cesta {string}", async function (nomeCesta) {
-  await cestaCriada.destroy();
+  await cestaService.deletarCesta(cestaCriada.id);
 });
 
 Then(
@@ -152,3 +162,19 @@ Then(
     expect(nomesCestas).to.include.members([cesta1, cesta2, cesta3]);
   },
 );
+
+When("eu tento salvar a nova cesta", async function () {
+  try {
+    cestaCriada = await cestaService.criarCesta(novaCesta);
+  } catch (error) {
+    erroCapturado = error;
+  }
+});
+
+Then("eu devo receber um erro de validação", function () {
+  expect(erroCapturado).to.be.an.instanceOf(ServiceError);
+  expect(erroCapturado.cause).to.have.property(
+    "name",
+    "SequelizeValidationError",
+  );
+});

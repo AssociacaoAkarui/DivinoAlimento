@@ -377,4 +377,59 @@ class ProdutoService {
   }
 }
 
-module.exports = { CicloService, ProdutoService };
+class CestaService {
+  async criarCesta(dadosCesta) {
+    try {
+      const allowedFields = ["nome", "valormaximo", "status"];
+      const payloadSeguro = filterPayload(Cesta, dadosCesta, allowedFields);
+      return await Cesta.create(payloadSeguro);
+    } catch (error) {
+      throw new ServiceError("Falha ao criar cesta.", { cause: error });
+    }
+  }
+
+  async buscarCestaPorId(id) {
+    try {
+      const cesta = await Cesta.findByPk(id);
+      if (!cesta) {
+        throw new ServiceError(`Cesta com ID ${id} não encontrada`);
+      }
+      return cesta;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao buscar cesta por ID.", {
+        cause: error,
+      });
+    }
+  }
+
+  async atualizarCesta(id, dadosParaAtualizar) {
+    try {
+      const cesta = await this.buscarCestaPorId(id);
+      const allowedFields = ["nome", "valormaximo", "status"];
+      const payloadSeguro = filterPayload(
+        Cesta,
+        dadosParaAtualizar,
+        allowedFields,
+      );
+      await cesta.update(payloadSeguro);
+      return cesta;
+    } catch (error) {
+      throw new ServiceError("Falha ao atualizar cesta.", { cause: error });
+    }
+  }
+
+  async deletarCesta(id) {
+    try {
+      const cesta = await this.buscarCestaPorId(id);
+      await cesta.destroy();
+      return true;
+    } catch (error) {
+      throw new ServiceError("Falha ao deletar cesta.", { cause: error });
+    }
+  }
+}
+
+module.exports = { CicloService, ProdutoService, CestaService };

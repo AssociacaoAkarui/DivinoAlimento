@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Cesta extends Model {
     /**
@@ -13,20 +11,30 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
 
       Cesta.hasMany(models.CicloCestas, {
-        foreignKey: 'cestaId',
-        as: 'CicloCestas',
-        onDelete: 'CASCADE'
+        foreignKey: "cestaId",
+        as: "CicloCestas",
+        onDelete: "CASCADE",
       });
-
     }
-  };
-  Cesta.init({
-    nome: DataTypes.STRING,
-    valormaximo: DataTypes.REAL,
-    status: DataTypes.STRING
-  }, {
-    sequelize,
-    modelName: 'Cesta',
-  });
+  }
+  Cesta.init(
+    {
+      nome: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            msg: "O nome da cesta não pode ser vazio.",
+          },
+        },
+      },
+      valormaximo: DataTypes.REAL,
+      status: DataTypes.STRING,
+    },
+    {
+      sequelize,
+      modelName: "Cesta",
+    },
+  );
   return Cesta;
 };

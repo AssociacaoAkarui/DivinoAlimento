@@ -50,3 +50,9 @@ Funcionalidade: Gestão de Cestas
     E todas as cestas estão com status "ativo"
     Quando eu solicito a lista de cestas ativas
     Então eu devo ver as cestas "Cesta 01", "Divino Alimento" e "Vila Dona Mariana"
+
+  @CST-08
+  Cenário: Tentar criar uma cesta sem nome
+    Dado que eu quero criar uma nova Cesta
+    Quando eu tento salvar a nova cesta
+    Então eu devo receber um erro de validação
