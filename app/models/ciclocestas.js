@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
 
       CicloCestas.hasMany(models.Composicoes, {
         foreignKey: "cicloCestaId",
-        as: "cicloCesta",
+        as: "composicoes",
       });
     }
   }
@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "CicloCestas",
-    }
+    },
   );
   return CicloCestas;
 };
