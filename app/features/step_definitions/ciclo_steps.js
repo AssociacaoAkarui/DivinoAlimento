@@ -480,3 +480,79 @@ Then(
     expect(messages).to.include(mensagemEsperada);
   },
 );
+
+When("eu tento criar o ciclo sem as datas de oferta", async function () {
+  cicloService = new CicloService();
+  const dadosSemData = Factories.CicloFactory.create({
+    ...cicloData,
+    ofertaInicio: null,
+    ofertaFim: null,
+    pontoEntregaId:
+      createdPontosEntrega.length > 0 ? createdPontosEntrega[0].id : 1,
+  });
+
+  try {
+    await cicloService.criarCiclo(dadosSemData);
+    assert.fail(
+      "A criação do ciclo deveria ter falhado, mas foi bem-sucedida.",
+    );
+  } catch (error) {
+    errorOnCreateCiclo = error;
+  }
+});
+
+Then(
+  "eu devo receber um erro de validação sobre as datas de oferta",
+  function () {
+    expect(errorOnCreateCiclo).to.be.an.instanceOf(ServiceError);
+    expect(errorOnCreateCiclo.cause).to.exist;
+    expect(errorOnCreateCiclo.cause.name).to.equal("SequelizeValidationError");
+
+    const messages = errorOnCreateCiclo.cause.errors.map((e) => e.message);
+    expect(messages).to.include("A data de início da oferta é obrigatória.");
+    expect(messages).to.include("A data de fim da oferta é obrigatória.");
+  },
+);
+
+When(
+  "eu tento atualizar o status para {string}",
+  async function (statusInvalido) {
+    cicloService = new CicloService();
+    try {
+      await cicloService.atualizarCiclo(ciclo2.id, { status: statusInvalido });
+      assert.fail("A atualização deveria falhar com status inválido.");
+    } catch (error) {
+      errorOnUpdateCiclo = error;
+    }
+  },
+);
+
+Then(
+  "eu devo receber um erro de validação informando que o status é inválido",
+  function () {
+    expect(errorOnUpdateCiclo).to.be.an.instanceOf(ServiceError);
+    expect(errorOnUpdateCiclo.cause).to.exist;
+    expect(errorOnUpdateCiclo.cause.name).to.equal("SequelizeValidationError");
+
+    const messages = errorOnUpdateCiclo.cause.errors.map((e) => e.message);
+    expect(messages).to.include(
+      "O status do ciclo deve ser 'oferta', 'composicao', 'atribuicao' ou 'finalizado'.",
+    );
+  },
+);
+
+When("eu incluo o campo {string} com valor {string}", function (campo, valor) {
+  cicloData[campo] = valor;
+});
+
+Then(
+  "o ciclo deve ser criado ignorando os campos {string} e {string}",
+  function (campo1, campo2) {
+    expect(ciclo).to.be.an("object");
+    expect(ciclo.id).to.exist.and.not.equal(parseInt(cicloData[campo1]));
+
+    const injectedDate = new Date(cicloData[campo2]);
+    const actualDate = new Date(ciclo.createdAt);
+    expect(actualDate.getTime()).to.not.equal(injectedDate.getTime());
+  },
+);

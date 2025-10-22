@@ -80,3 +80,28 @@ Funcionalidade: Gestão de Ciclos
     Dado que eu quero criar um novo Ciclo
     Quando eu tento criar um ciclo com o nome ''
     Então eu devo receber um erro de validação com a mensagem "O nome do ciclo não pode ser vazio."
+
+  @CIC-10
+  Cenário: Erro ao criar um ciclo sem as datas de oferta
+    Dado que eu quero criar um novo Ciclo
+    Quando eu nome 'Ciclo Sem Datas'
+    Quando eu tento criar o ciclo sem as datas de oferta
+    Então eu devo receber um erro de validação sobre as datas de oferta
+
+  @CIC-11
+  Cenário: Erro ao tentar atualizar um ciclo com status inválido
+    Dado que eu quero criar e atualizar um ciclo
+    Quando eu tento atualizar o status para 'INVALIDO'
+    Então eu devo receber um erro de validação informando que o status é inválido
+
+  @CIC-12
+  Cenário: Ignorar campos não permitidos ao criar um ciclo
+    Dado que eu quero criar um novo Ciclo
+    Quando eu crio 1 Ponto de Entrega
+    Quando eu nome 'Ciclo com Campos Extras'
+    Quando eu oferta inicio '2023-01-01'
+    Quando eu oferta fim '2023-01-31'
+    Quando eu incluo o campo 'id' com valor '999'
+    Quando eu incluo o campo 'createdAt' com valor '2023-01-01'
+    Quando o usuário cria um novo ciclo
+    Então o ciclo deve ser criado ignorando os campos 'id' e 'createdAt'
