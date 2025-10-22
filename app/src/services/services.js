@@ -9,6 +9,8 @@ const {
   CicloProdutos,
   Produto,
   CategoriaProdutos,
+  Composicoes,
+  ComposicaoOfertaProdutos,
   sequelize,
 } = require("../../models");
 
@@ -432,4 +434,174 @@ class CestaService {
   }
 }
 
-module.exports = { CicloService, ProdutoService, CestaService };
+class ComposicaoService {
+  async criarComposicao(dados) {
+    try {
+      const cicloCesta = await CicloCestas.create({
+        cicloId: dados.cicloId,
+        cestaId: dados.cestaId,
+        quantidadeCestas: 1,
+      });
+
+      const novaComposicao = await Composicoes.create({
+        cicloCestaId: cicloCesta.id,
+      });
+
+      return novaComposicao;
+    } catch (error) {
+      throw new ServiceError("Falha ao criar composição.", { cause: error });
+    }
+  }
+
+  async buscarComposicaoPorId(id) {
+    try {
+      const composicao = await Composicoes.findByPk(id, {
+        include: [
+          {
+            model: CicloCestas,
+            as: "cicloCesta",
+            include: ["ciclo", "cesta"],
+          },
+        ],
+      });
+
+      if (!composicao) {
+        throw new ServiceError(`Composição com ID ${id} não encontrada`);
+      }
+      return composicao;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao buscar composição por ID.", {
+        cause: error,
+      });
+    }
+  }
+
+  async sincronizarProdutos(composicaoId, produtos) {
+    const transaction = await sequelize.transaction();
+    try {
+      await ComposicaoOfertaProdutos.destroy({
+        where: { composicaoId: composicaoId },
+        transaction,
+      });
+
+      if (produtos && produtos.length > 0) {
+        const produtosParaCriar = produtos
+          .filter((p) => p.quantidade > 0)
+          .map((p) => ({
+            composicaoId: composicaoId,
+            produtoId: p.produtoId,
+            quantidade: p.quantidade,
+          }));
+
+        if (produtosParaCriar.length > 0) {
+          await ComposicaoOfertaProdutos.bulkCreate(produtosParaCriar, {
+            transaction,
+          });
+        }
+      }
+
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw new ServiceError("Falha ao sincronizar produtos da composição.", {
+        cause: error,
+      });
+    }
+  }
+
+  async calcularQuantidadePorCesta(composicaoId, produtoId) {
+    try {
+      const composicao = await Composicoes.findByPk(composicaoId, {
+        include: [
+          {
+            model: CicloCestas,
+            as: "cicloCesta",
+          },
+          {
+            model: ComposicaoOfertaProdutos,
+            as: "composicaoOfertaProdutos",
+            where: { produtoId: produtoId },
+          },
+        ],
+      });
+
+      if (
+        !composicao ||
+        !composicao.cicloCesta ||
+        !composicao.composicaoOfertaProdutos.length
+      ) {
+        throw new ServiceError(
+          "Dados da composição ou produto não encontrados.",
+        );
+      }
+
+      const numeroCestas = composicao.cicloCesta.quantidadeCestas;
+      const quantidadeTotal = composicao.composicaoOfertaProdutos[0].quantidade;
+
+      if (numeroCestas === 0) {
+        return 0;
+      }
+
+      return quantidadeTotal / numeroCestas;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao calcular a quantidade por cesta.", {
+        cause: error,
+      });
+    }
+  }
+
+  async validarDisponibilidade(quantidadeDisponivel, quantidadeNecessaria) {
+    if (quantidadeDisponivel < quantidadeNecessaria) {
+      const falta = quantidadeNecessaria - quantidadeDisponivel;
+      return {
+        mensagem: `Quantidade insuficiente. Faltam ${falta} unidades.`,
+        necessaria: quantidadeNecessaria,
+        disponivel: quantidadeDisponivel,
+        falta: falta,
+      };
+    }
+    return null;
+  }
+
+  async listarComposicoesPorCiclo(cicloId) {
+    try {
+      return await CicloCestas.findAll({
+        where: { cicloId: cicloId },
+        include: [
+          { model: Ciclo, as: "ciclo" },
+          { model: Cesta, as: "cesta" },
+          {
+            model: Composicoes,
+            as: "composicoes",
+            include: [
+              {
+                model: ComposicaoOfertaProdutos,
+                as: "composicaoOfertaProdutos",
+                include: ["produto"],
+              },
+            ],
+          },
+        ],
+      });
+    } catch (error) {
+      throw new ServiceError("Falha ao listar composições por ciclo.", {
+        cause: error,
+      });
+    }
+  }
+
+  async obterDadosComposicao(cicloId, cestaId) {}
+}
+
+module.exports = {
+  CicloService,
+  ProdutoService,
+  CestaService,
+  ComposicaoService,
+};

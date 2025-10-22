@@ -2,6 +2,9 @@ const { Given, When, Then } = require("@cucumber/cucumber");
 const { expect } = require("chai");
 const Factories = require("./support/factories");
 const models = require("../../models");
+const { ComposicaoService } = require("../../src/services/services");
+
+const composicaoService = new ComposicaoService();
 
 let cicloAtivo;
 let cestaDaComposicao;
@@ -23,17 +26,14 @@ When("eu crio uma composição para a cesta no ciclo", async function () {
   cestaDaComposicao = await models.Cesta.findOne({
     where: { nome: "Cesta Básica" },
   });
-  novaComposicao = {};
+  novaComposicao = {
+    cicloId: cicloAtivo.id,
+    cestaId: cestaDaComposicao.id,
+  };
 });
 
 When("eu salvo a nova composição", async function () {
-  const cicloCesta = await models.CicloCestas.create({
-    cicloId: cicloAtivo.id,
-    cestaId: cestaDaComposicao.id,
-    quantidadeCestas: 1,
-  });
-  novaComposicao.cicloCestaId = cicloCesta.id;
-  composicaoCriada = await models.Composicoes.create(novaComposicao);
+  composicaoCriada = await composicaoService.criarComposicao(novaComposicao);
 });
 
 Then("a composição deve ser criada com sucesso", async function () {
@@ -73,17 +73,8 @@ Given("que existe uma composição cadastrada", async function () {
 });
 
 When("eu solicito os detalhes da composição", async function () {
-  composicaoEncontrada = await models.Composicoes.findByPk(
+  composicaoEncontrada = await composicaoService.buscarComposicaoPorId(
     composicaoCriada.id,
-    {
-      include: [
-        {
-          model: models.CicloCestas,
-          as: "cicloCesta",
-          include: ["ciclo", "cesta"],
-        },
-      ],
-    },
   );
 });
 
@@ -148,11 +139,13 @@ When("defino a quantidade do produto como {int}", function (quantidade) {
 });
 
 When("eu salvo o produto na composição", async function () {
-  await models.ComposicaoOfertaProdutos.create({
-    composicaoId: composicaoCriada.id,
-    produtoId: produtoDaComposicao.id,
-    quantidade: quantidadeProduto,
-  });
+  const produtos = [
+    {
+      produtoId: produtoDaComposicao.id,
+      quantidade: quantidadeProduto,
+    },
+  ];
+  await composicaoService.sincronizarProdutos(composicaoCriada.id, produtos);
 });
 
 Then(
@@ -228,24 +221,13 @@ When(
 );
 
 When("salvo as alterações da composição", async function () {
-  if (quantidadeProduto === 0) {
-    await models.ComposicaoOfertaProdutos.destroy({
-      where: {
-        composicaoId: composicaoCriada.id,
-        produtoId: produtoDaComposicao.id,
-      },
-    });
-  } else {
-    await models.ComposicaoOfertaProdutos.update(
-      { quantidade: quantidadeProduto },
-      {
-        where: {
-          composicaoId: composicaoCriada.id,
-          produtoId: produtoDaComposicao.id,
-        },
-      },
-    );
-  }
+  const produtos = [
+    {
+      produtoId: produtoDaComposicao.id,
+      quantidade: quantidadeProduto,
+    },
+  ];
+  await composicaoService.sincronizarProdutos(composicaoCriada.id, produtos);
 });
 
 Then(
@@ -377,26 +359,10 @@ Given(
 );
 
 When("eu calculo a quantidade total necessária", async function () {
-  const composicaoDoBD = await models.Composicoes.findByPk(
+  quantidadePorCesta = await composicaoService.calcularQuantidadePorCesta(
     composicaoCriada.id,
-    {
-      include: [
-        {
-          model: models.CicloCestas,
-          as: "cicloCesta",
-        },
-        {
-          model: models.ComposicaoOfertaProdutos,
-          as: "composicaoOfertaProdutos",
-        },
-      ],
-    },
+    produtoDaComposicao.id,
   );
-
-  const numeroCestas = composicaoDoBD.cicloCesta.quantidadeCestas;
-  const quantidadeTotal = quantidadeProduto;
-
-  quantidadePorCesta = quantidadeTotal / numeroCestas;
 });
 
 Then(
@@ -417,18 +383,11 @@ Given(
   },
 );
 
-When("eu valido a disponibilidade", function () {
-  alertaFalta = null;
-
-  if (quantidadeDisponivel < quantidadeTotalNecessaria) {
-    const falta = quantidadeTotalNecessaria - quantidadeDisponivel;
-    alertaFalta = {
-      mensagem: `Quantidade insuficiente. Faltam ${falta} unidades.`,
-      necessaria: quantidadeTotalNecessaria,
-      disponivel: quantidadeDisponivel,
-      falta: falta,
-    };
-  }
+When("eu valido a disponibilidade", async function () {
+  alertaFalta = await composicaoService.validarDisponibilidade(
+    quantidadeDisponivel,
+    quantidadeTotalNecessaria,
+  );
 });
 
 Then("o sistema deve alertar sobre a falta", function () {
@@ -527,26 +486,9 @@ Given("que existem múltiplas composições em um ciclo", async function () {
 });
 
 When("eu solicito todas as composições do ciclo", async function () {
-  const cicloCestas = await models.CicloCestas.findAll({
-    where: { cicloId: cicloAtivo.id },
-    include: [
-      { model: models.Ciclo, as: "ciclo" },
-      { model: models.Cesta, as: "cesta" },
-      {
-        model: models.Composicoes,
-        as: "composicoes",
-        include: [
-          {
-            model: models.ComposicaoOfertaProdutos,
-            as: "composicaoOfertaProdutos",
-            include: ["produto"],
-          },
-        ],
-      },
-    ],
-  });
-
-  listaComposicoes = cicloCestas;
+  listaComposicoes = await composicaoService.listarComposicoesPorCiclo(
+    cicloAtivo.id,
+  );
 });
 
 Then("eu devo ver todas as composições, produtos e quantidade", function () {
