@@ -23,6 +23,7 @@ When("eu preencho o nome com {string}", function (nome) {
   novoProdutoData.nome = nome;
 });
 
+/* Campos não existirão mais em produtos, e sim em produto comercializável
 When("a medida como {string}", function (medida) {
   novoProdutoData.medida = medida;
 });
@@ -33,7 +34,7 @@ When("o peso em gramas com {string}", function (peso) {
 
 When("o valor de referência com {string}", function (valor) {
   novoProdutoData.valorReferencia = parseFloat(valor);
-});
+});*/
 
 When("o status como {string}", function (status) {
   novoProdutoData.status = status;
@@ -123,9 +124,10 @@ Then(
   async function (nomeEsperado) {
     expect(produtoAtualizado).to.exist;
     expect(produtoAtualizado.nome).to.equal(nomeEsperado);
+    /* valor não existe mais em produto
     expect(produtoAtualizado.valorReferencia).to.equal(
       novoProdutoData.valorReferencia,
-    );
+    );*/
 
     const produtoNaDb = await Produto.findByPk(produtoExistente.id);
     expect(produtoNaDb.nome).to.equal(nomeEsperado);
