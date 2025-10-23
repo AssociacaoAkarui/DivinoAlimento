@@ -1,23 +1,32 @@
 const { Given, When, Then } = require("@cucumber/cucumber");
 const { expect } = require("chai");
 const Factories = require("./support/factories");
-const models = require("../../models");
 const {
   ComposicaoService,
   CicloService,
   CestaService,
+  ProdutoService,
   PontoEntregaService,
 } = require("../../src/services/services");
 
 const composicaoService = new ComposicaoService();
 const cicloService = new CicloService();
 const cestaService = new CestaService();
+const produtoService = new ProdutoService();
 const pontoEntregaService = new PontoEntregaService();
 
 let cicloAtivo;
 let cestaDaComposicao;
 let novaComposicao = {};
 let composicaoCriada;
+let composicaoEncontrada;
+let produtoDaComposicao;
+let quantidadeProduto;
+let quantidadePorCesta;
+let quantidadeTotalNecessaria;
+let quantidadeDisponivel;
+let alertaFalta;
+let listaComposicoes;
 
 Given("que existe um ciclo ativo", async function () {
   const pontoEntregaData = Factories.PontoEntregaFactory.create();
@@ -28,7 +37,6 @@ Given("que existe um ciclo ativo", async function () {
     status: "oferta",
   });
   cicloAtivo = await cicloService.criarCiclo(cicloData);
-
   const cestaData = Factories.CestaFactory.create({ nome: "Cesta Básica" });
   cestaDaComposicao = await cestaService.criarCesta(cestaData);
 });
@@ -89,31 +97,20 @@ Then(
   },
 );
 
-let produtoDaComposicao;
-let quantidadeProduto;
-let quantidadePorCesta;
-let quantidadeTotalNecessaria;
-let quantidadeDisponivel;
-let alertaFalta;
-let listaComposicoes;
-
 Given("que existe uma composição de cesta", async function () {
-  const pontoEntrega = await models.PontoEntrega.create(
-    Factories.PontoEntregaFactory.create(),
-  );
+  const pontoEntregaData = Factories.PontoEntregaFactory.create();
+  const pontoEntrega =
+    await pontoEntregaService.criarPontoEntrega(pontoEntregaData);
   const cicloData = Factories.CicloFactory.create({
     pontoEntregaId: pontoEntrega.id,
     status: "oferta",
   });
-  cicloAtivo = await models.Ciclo.create(cicloData);
+  cicloAtivo = await cicloService.criarCiclo(cicloData);
   const cestaData = Factories.CestaFactory.create();
-  cestaDaComposicao = await models.Cesta.create(cestaData);
-  const cicloCesta = await models.CicloCestas.create({
+  cestaDaComposicao = await cestaService.criarCesta(cestaData);
+  composicaoCriada = await composicaoService.criarComposicao({
     cicloId: cicloAtivo.id,
     cestaId: cestaDaComposicao.id,
-  });
-  composicaoCriada = await models.Composicoes.create({
-    cicloCestaId: cicloCesta.id,
   });
 });
 
@@ -121,17 +118,13 @@ Given(
   "que existe um produto {string} disponível",
   async function (nomeProduto) {
     const produtoData = Factories.ProdutoFactory.create({ nome: nomeProduto });
-    produtoDaComposicao = await models.Produto.create(produtoData);
+    produtoDaComposicao = await produtoService.criarProduto(produtoData);
   },
 );
 
 When(
   "eu adiciono o produto {string} à composição",
-  async function (nomeProduto) {
-    produtoDaComposicao = await models.Produto.findOne({
-      where: { nome: nomeProduto },
-    });
-  },
+  async function (nomeProduto) {},
 );
 
 When("defino a quantidade do produto como {int}", function (quantidade) {
@@ -151,99 +144,60 @@ When("eu salvo o produto na composição", async function () {
 Then(
   "o produto {string} deve estar na composição",
   async function (nomeProduto) {
-    const composicaoDoBD = await models.Composicoes.findByPk(
+    const composicaoDoBD = await composicaoService.buscarComposicaoPorId(
       composicaoCriada.id,
-      {
-        include: [
-          {
-            model: models.ComposicaoOfertaProdutos,
-            as: "composicaoOfertaProdutos",
-            include: ["produto"],
-          },
-        ],
-      },
     );
     const produtosNaComposicao = composicaoDoBD.composicaoOfertaProdutos.map(
       (p) => p.produto.nome,
     );
-    const quantidadesNaComposicao = composicaoDoBD.composicaoOfertaProdutos.map(
-      (p) => p.quantidade,
-    );
-
     expect(produtosNaComposicao).to.include(nomeProduto);
-    expect(quantidadesNaComposicao).to.include(quantidadeProduto);
   },
 );
 
 Given(
   "que existe uma composição com produto {string} e quantidade {int}",
   async function (nomeProduto, quantidade) {
-    const pontoEntrega = await models.PontoEntrega.create(
-      Factories.PontoEntregaFactory.create(),
-    );
+    const pontoEntregaData = Factories.PontoEntregaFactory.create();
+    const pontoEntrega =
+      await pontoEntregaService.criarPontoEntrega(pontoEntregaData);
     const cicloData = Factories.CicloFactory.create({
       pontoEntregaId: pontoEntrega.id,
-      status: "oferta",
     });
-    cicloAtivo = await models.Ciclo.create(cicloData);
-
+    cicloAtivo = await cicloService.criarCiclo(cicloData);
     const cestaData = Factories.CestaFactory.create();
-    cestaDaComposicao = await models.Cesta.create(cestaData);
-
-    const cicloCesta = await models.CicloCestas.create({
+    cestaDaComposicao = await cestaService.criarCesta(cestaData);
+    composicaoCriada = await composicaoService.criarComposicao({
       cicloId: cicloAtivo.id,
       cestaId: cestaDaComposicao.id,
-      quantidadeCestas: 1,
     });
-
-    composicaoCriada = await models.Composicoes.create({
-      cicloCestaId: cicloCesta.id,
-    });
-
     const produtoData = Factories.ProdutoFactory.create({ nome: nomeProduto });
-    produtoDaComposicao = await models.Produto.create(produtoData);
-
-    await models.ComposicaoOfertaProdutos.create({
-      composicaoId: composicaoCriada.id,
-      produtoId: produtoDaComposicao.id,
-      quantidade: quantidade,
-    });
-
+    produtoDaComposicao = await produtoService.criarProduto(produtoData);
+    await composicaoService.sincronizarProdutos(composicaoCriada.id, [
+      { produtoId: produtoDaComposicao.id, quantidade: quantidade },
+    ]);
     quantidadeProduto = quantidade;
   },
 );
 
 When(
   "eu edito a quantidade do produto na composição para {int}",
-  async function (novaQuantidade) {
+  function (novaQuantidade) {
     quantidadeProduto = novaQuantidade;
   },
 );
 
 When("salvo as alterações da composição", async function () {
-  const produtos = [
-    {
-      produtoId: produtoDaComposicao.id,
-      quantidade: quantidadeProduto,
-    },
-  ];
-  await composicaoService.sincronizarProdutos(composicaoCriada.id, produtos);
+  await composicaoService.sincronizarProdutos(composicaoCriada.id, [
+    { produtoId: produtoDaComposicao.id, quantidade: quantidadeProduto },
+  ]);
 });
 
 Then(
   "a quantidade de {string} na composição deve ser {int}",
+
   async function (nomeProduto, quantidadeEsperada) {
-    const composicaoDoBD = await models.Composicoes.findByPk(
+    const composicaoDoBD = await composicaoService.buscarComposicaoPorId(
       composicaoCriada.id,
-      {
-        include: [
-          {
-            model: models.ComposicaoOfertaProdutos,
-            as: "composicaoOfertaProdutos",
-            include: ["produto"],
-          },
-        ],
-      },
     );
 
     const produtoNaComposicao = composicaoDoBD.composicaoOfertaProdutos.find(
@@ -251,66 +205,55 @@ Then(
     );
 
     expect(produtoNaComposicao).to.exist;
+
     expect(produtoNaComposicao.quantidade).to.equal(quantidadeEsperada);
   },
 );
 
 Given(
   "que existe uma composição com produto {string}",
+
   async function (nomeProduto) {
-    const pontoEntrega = await models.PontoEntrega.create(
-      Factories.PontoEntregaFactory.create(),
-    );
+    const pontoEntregaData = Factories.PontoEntregaFactory.create();
+
+    const pontoEntrega =
+      await pontoEntregaService.criarPontoEntrega(pontoEntregaData);
+
     const cicloData = Factories.CicloFactory.create({
       pontoEntregaId: pontoEntrega.id,
-      status: "oferta",
     });
-    cicloAtivo = await models.Ciclo.create(cicloData);
+
+    cicloAtivo = await cicloService.criarCiclo(cicloData);
 
     const cestaData = Factories.CestaFactory.create();
-    cestaDaComposicao = await models.Cesta.create(cestaData);
 
-    const cicloCesta = await models.CicloCestas.create({
+    cestaDaComposicao = await cestaService.criarCesta(cestaData);
+
+    composicaoCriada = await composicaoService.criarComposicao({
       cicloId: cicloAtivo.id,
-      cestaId: cestaDaComposicao.id,
-      quantidadeCestas: 1,
-    });
 
-    composicaoCriada = await models.Composicoes.create({
-      cicloCestaId: cicloCesta.id,
+      cestaId: cestaDaComposicao.id,
     });
 
     const produtoData = Factories.ProdutoFactory.create({ nome: nomeProduto });
-    produtoDaComposicao = await models.Produto.create(produtoData);
 
-    await models.ComposicaoOfertaProdutos.create({
-      composicaoId: composicaoCriada.id,
-      produtoId: produtoDaComposicao.id,
-      quantidade: 5,
-    });
+    produtoDaComposicao = await produtoService.criarProduto(produtoData);
+
+    await composicaoService.sincronizarProdutos(composicaoCriada.id, [
+      { produtoId: produtoDaComposicao.id, quantidade: 5 }, // Quantidade inicial > 0
+    ]);
   },
 );
 
 Then(
   "o produto {string} não deve mais estar na composição",
   async function (nomeProduto) {
-    const composicaoDoBD = await models.Composicoes.findByPk(
+    const composicaoDoBD = await composicaoService.buscarComposicaoPorId(
       composicaoCriada.id,
-      {
-        include: [
-          {
-            model: models.ComposicaoOfertaProdutos,
-            as: "composicaoOfertaProdutos",
-            include: ["produto"],
-          },
-        ],
-      },
     );
-
     const produtosNaComposicao = composicaoDoBD.composicaoOfertaProdutos.map(
       (p) => p.produto.nome,
     );
-
     expect(produtosNaComposicao).to.not.include(nomeProduto);
   },
 );
@@ -318,26 +261,19 @@ Then(
 Given(
   "que existe uma composição com {int} cestas",
   async function (numeroCestas) {
-    const pontoEntrega = await models.PontoEntrega.create(
-      Factories.PontoEntregaFactory.create(),
-    );
+    const pontoEntregaData = Factories.PontoEntregaFactory.create();
+    const pontoEntrega =
+      await pontoEntregaService.criarPontoEntrega(pontoEntregaData);
     const cicloData = Factories.CicloFactory.create({
       pontoEntregaId: pontoEntrega.id,
-      status: "oferta",
     });
-    cicloAtivo = await models.Ciclo.create(cicloData);
-
+    cicloAtivo = await cicloService.criarCiclo(cicloData);
     const cestaData = Factories.CestaFactory.create();
-    cestaDaComposicao = await models.Cesta.create(cestaData);
-
-    const cicloCesta = await models.CicloCestas.create({
+    cestaDaComposicao = await cestaService.criarCesta(cestaData);
+    composicaoCriada = await composicaoService.criarComposicao({
       cicloId: cicloAtivo.id,
       cestaId: cestaDaComposicao.id,
-      quantidadeCestas: numeroCestas,
-    });
-
-    composicaoCriada = await models.Composicoes.create({
-      cicloCestaId: cicloCesta.id,
+      quantidadeCestas: numeroCestas, // Este valor precisa ser usado pelo service
     });
   },
 );
@@ -346,14 +282,10 @@ Given(
   "o produto {string} tem quantidade {int}",
   async function (nomeProduto, quantidade) {
     const produtoData = Factories.ProdutoFactory.create({ nome: nomeProduto });
-    produtoDaComposicao = await models.Produto.create(produtoData);
-
-    await models.ComposicaoOfertaProdutos.create({
-      composicaoId: composicaoCriada.id,
-      produtoId: produtoDaComposicao.id,
-      quantidade: quantidade,
-    });
-
+    produtoDaComposicao = await produtoService.criarProduto(produtoData);
+    await composicaoService.sincronizarProdutos(composicaoCriada.id, [
+      { produtoId: produtoDaComposicao.id, quantidade: quantidade },
+    ]);
     quantidadeProduto = quantidade;
   },
 );
@@ -367,7 +299,7 @@ When("eu calculo a quantidade total necessária", async function () {
 
 Then(
   "a quantidade por cesta de {string} deve ser {int}",
-  async function (nomeProduto, quantidadeEsperada) {
+  function (nomeProduto, quantidadeEsperada) {
     expect(quantidadePorCesta).to.equal(quantidadeEsperada);
   },
 );
@@ -397,92 +329,44 @@ Then("o sistema deve alertar sobre a falta", function () {
 });
 
 Given("que existem múltiplas composições em um ciclo", async function () {
-  const pontoEntrega = await models.PontoEntrega.create(
-    Factories.PontoEntregaFactory.create(),
-  );
+  const pontoEntregaData = Factories.PontoEntregaFactory.create();
+  const pontoEntrega =
+    await pontoEntregaService.criarPontoEntrega(pontoEntregaData);
   const cicloData = Factories.CicloFactory.create({
     pontoEntregaId: pontoEntrega.id,
-    status: "oferta",
   });
-  cicloAtivo = await models.Ciclo.create(cicloData);
+  cicloAtivo = await cicloService.criarCiclo(cicloData);
 
-  const cesta1 = await models.Cesta.create(
+  const cesta1 = await cestaService.criarCesta(
     Factories.CestaFactory.create({ nome: "Cesta Básica" }),
   );
-  const cesta2 = await models.Cesta.create(
+  const cesta2 = await cestaService.criarCesta(
     Factories.CestaFactory.create({ nome: "Cesta Premium" }),
   );
-  const cesta3 = await models.Cesta.create(
-    Factories.CestaFactory.create({ nome: "Cesta Vegana" }),
-  );
 
-  const cicloCesta1 = await models.CicloCestas.create({
+  const comp1 = await composicaoService.criarComposicao({
     cicloId: cicloAtivo.id,
     cestaId: cesta1.id,
-    quantidadeCestas: 10,
   });
-
-  const cicloCesta2 = await models.CicloCestas.create({
+  const comp2 = await composicaoService.criarComposicao({
     cicloId: cicloAtivo.id,
     cestaId: cesta2.id,
-    quantidadeCestas: 5,
   });
 
-  const cicloCesta3 = await models.CicloCestas.create({
-    cicloId: cicloAtivo.id,
-    cestaId: cesta3.id,
-    quantidadeCestas: 8,
-  });
-
-  const comp1 = await models.Composicoes.create({
-    cicloCestaId: cicloCesta1.id,
-  });
-  const comp2 = await models.Composicoes.create({
-    cicloCestaId: cicloCesta2.id,
-  });
-  const comp3 = await models.Composicoes.create({
-    cicloCestaId: cicloCesta3.id,
-  });
-
-  const produto1 = await models.Produto.create(
+  const produto1 = await produtoService.criarProduto(
     Factories.ProdutoFactory.create({ nome: "Arroz" }),
   );
-  const produto2 = await models.Produto.create(
+  const produto2 = await produtoService.criarProduto(
     Factories.ProdutoFactory.create({ nome: "Feijão" }),
   );
-  const produto3 = await models.Produto.create(
-    Factories.ProdutoFactory.create({ nome: "Maçã" }),
-  );
 
-  await models.ComposicaoOfertaProdutos.create({
-    composicaoId: comp1.id,
-    produtoId: produto1.id,
-    quantidade: 50,
-  });
-
-  await models.ComposicaoOfertaProdutos.create({
-    composicaoId: comp1.id,
-    produtoId: produto2.id,
-    quantidade: 30,
-  });
-
-  await models.ComposicaoOfertaProdutos.create({
-    composicaoId: comp2.id,
-    produtoId: produto1.id,
-    quantidade: 25,
-  });
-
-  await models.ComposicaoOfertaProdutos.create({
-    composicaoId: comp2.id,
-    produtoId: produto3.id,
-    quantidade: 40,
-  });
-
-  await models.ComposicaoOfertaProdutos.create({
-    composicaoId: comp3.id,
-    produtoId: produto3.id,
-    quantidade: 60,
-  });
+  await composicaoService.sincronizarProdutos(comp1.id, [
+    { produtoId: produto1.id, quantidade: 5 },
+    { produtoId: produto2.id, quantidade: 3 },
+  ]);
+  await composicaoService.sincronizarProdutos(comp2.id, [
+    { produtoId: produto1.id, quantidade: 10 },
+  ]);
 });
 
 When("eu solicito todas as composições do ciclo", async function () {

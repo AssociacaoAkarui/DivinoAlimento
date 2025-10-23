@@ -450,7 +450,7 @@ class ComposicaoService {
       const cicloCesta = await CicloCestas.create({
         cicloId: dados.cicloId,
         cestaId: dados.cestaId,
-        quantidadeCestas: 1,
+        quantidadeCestas: dados.quantidadeCestas || 1,
       });
 
       const novaComposicao = await Composicoes.create({
@@ -471,6 +471,11 @@ class ComposicaoService {
             model: CicloCestas,
             as: "cicloCesta",
             include: ["ciclo", "cesta"],
+          },
+          {
+            model: ComposicaoOfertaProdutos,
+            as: "composicaoOfertaProdutos",
+            include: ["produto"],
           },
         ],
       });
