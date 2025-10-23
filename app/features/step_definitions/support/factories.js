@@ -20,6 +20,7 @@ class PontoEntregaFactory {
       nome: faker.commerce.productName(),
       status: "ativo",
       endereco: faker.location.direction(),
+      ...override,
     };
   }
 

@@ -599,9 +599,77 @@ class ComposicaoService {
   async obterDadosComposicao(cicloId, cestaId) {}
 }
 
+class PontoEntregaService {
+  async criarPontoEntrega(dados) {
+    try {
+      const allowedFields = ["nome", "endereco", "status"];
+      const payloadSeguro = filterPayload(PontoEntrega, dados, allowedFields);
+      return await PontoEntrega.create(payloadSeguro);
+    } catch (error) {
+      throw new ServiceError("Falha ao criar ponto de entrega.", {
+        cause: error,
+      });
+    }
+  }
+
+  async buscarPontoEntregaPorId(id) {
+    try {
+      const pontoEntrega = await PontoEntrega.findByPk(id);
+      if (!pontoEntrega) {
+        throw new ServiceError(`Ponto de entrega com ID ${id} não encontrado`);
+      }
+      return pontoEntrega;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao buscar ponto de entrega por ID.", {
+        cause: error,
+      });
+    }
+  }
+
+  async atualizarPontoEntrega(id, dados) {
+    try {
+      const pontoEntrega = await this.buscarPontoEntregaPorId(id);
+      const allowedFields = ["nome", "endereco", "status"];
+      const payloadSeguro = filterPayload(PontoEntrega, dados, allowedFields);
+      await pontoEntrega.update(payloadSeguro);
+      return pontoEntrega;
+    } catch (error) {
+      throw new ServiceError("Falha ao atualizar ponto de entrega.", {
+        cause: error,
+      });
+    }
+  }
+
+  async deletarPontoEntrega(id) {
+    try {
+      const pontoEntrega = await this.buscarPontoEntregaPorId(id);
+      await pontoEntrega.destroy();
+      return true;
+    } catch (error) {
+      throw new ServiceError("Falha ao deletar ponto de entrega.", {
+        cause: error,
+      });
+    }
+  }
+
+  async listarPontosDeEntregaAtivos() {
+    try {
+      return await PontoEntrega.findAll({ where: { status: "ativo" } });
+    } catch (error) {
+      throw new ServiceError("Falha ao listar pontos de entrega ativos.", {
+        cause: error,
+      });
+    }
+  }
+}
+
 module.exports = {
   CicloService,
   ProdutoService,
   CestaService,
   ComposicaoService,
+  PontoEntregaService,
 };
