@@ -6,6 +6,7 @@ class CestaFactory {
       nome: faker.commerce.productName(),
       valormaximo: parseFloat(faker.commerce.price()),
       status: faker.helpers.arrayElement(["ativo"]),
+      ...override,
     };
   }
 

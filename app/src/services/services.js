@@ -432,6 +432,16 @@ class CestaService {
       throw new ServiceError("Falha ao deletar cesta.", { cause: error });
     }
   }
+
+  async listarCestasAtivas() {
+    try {
+      return await Cesta.findAll({ where: { status: "ativo" } });
+    } catch (error) {
+      throw new ServiceError("Falha ao listar cestas ativas.", {
+        cause: error,
+      });
+    }
+  }
 }
 
 class ComposicaoService {

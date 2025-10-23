@@ -2,9 +2,17 @@ const { Given, When, Then } = require("@cucumber/cucumber");
 const { expect } = require("chai");
 const Factories = require("./support/factories");
 const models = require("../../models");
-const { ComposicaoService } = require("../../src/services/services");
+const {
+  ComposicaoService,
+  CicloService,
+  CestaService,
+  PontoEntregaService,
+} = require("../../src/services/services");
 
 const composicaoService = new ComposicaoService();
+const cicloService = new CicloService();
+const cestaService = new CestaService();
+const pontoEntregaService = new PontoEntregaService();
 
 let cicloAtivo;
 let cestaDaComposicao;
@@ -12,20 +20,20 @@ let novaComposicao = {};
 let composicaoCriada;
 
 Given("que existe um ciclo ativo", async function () {
-  const pontoEntrega = await models.PontoEntrega.create(
-    Factories.PontoEntregaFactory.create(),
-  );
+  const pontoEntregaData = Factories.PontoEntregaFactory.create();
+  const pontoEntrega =
+    await pontoEntregaService.criarPontoEntrega(pontoEntregaData);
   const cicloData = Factories.CicloFactory.create({
     pontoEntregaId: pontoEntrega.id,
     status: "oferta",
   });
-  cicloAtivo = await models.Ciclo.create(cicloData);
+  cicloAtivo = await cicloService.criarCiclo(cicloData);
+
+  const cestaData = Factories.CestaFactory.create({ nome: "Cesta Básica" });
+  cestaDaComposicao = await cestaService.criarCesta(cestaData);
 });
 
 When("eu crio uma composição para a cesta no ciclo", async function () {
-  cestaDaComposicao = await models.Cesta.findOne({
-    where: { nome: "Cesta Básica" },
-  });
   novaComposicao = {
     cicloId: cicloAtivo.id,
     cestaId: cestaDaComposicao.id,
@@ -37,11 +45,8 @@ When("eu salvo a nova composição", async function () {
 });
 
 Then("a composição deve ser criada com sucesso", async function () {
-  const composicaoDoBD = await models.Composicoes.findByPk(
+  const composicaoDoBD = await composicaoService.buscarComposicaoPorId(
     composicaoCriada.id,
-    {
-      include: [{ model: models.CicloCestas, as: "cicloCesta" }],
-    },
   );
   expect(composicaoCriada).to.be.an("object");
   expect(composicaoDoBD.cicloCesta.cicloId).to.equal(cicloAtivo.id);
@@ -49,26 +54,21 @@ Then("a composição deve ser criada com sucesso", async function () {
 });
 
 Given("que existe uma composição cadastrada", async function () {
-  const pontoEntrega = await models.PontoEntrega.create(
-    Factories.PontoEntregaFactory.create(),
-  );
+  const pontoEntregaData = Factories.PontoEntregaFactory.create();
+  const pontoEntrega =
+    await pontoEntregaService.criarPontoEntrega(pontoEntregaData);
   const cicloData = Factories.CicloFactory.create({
     pontoEntregaId: pontoEntrega.id,
     status: "oferta",
   });
-  cicloAtivo = await models.Ciclo.create(cicloData);
+  cicloAtivo = await cicloService.criarCiclo(cicloData);
 
   const cestaData = Factories.CestaFactory.create();
-  cestaDaComposicao = await models.Cesta.create(cestaData);
+  cestaDaComposicao = await cestaService.criarCesta(cestaData);
 
-  const cicloCesta = await models.CicloCestas.create({
+  composicaoCriada = await composicaoService.criarComposicao({
     cicloId: cicloAtivo.id,
     cestaId: cestaDaComposicao.id,
-    quantidadeCestas: 1,
-  });
-
-  composicaoCriada = await models.Composicoes.create({
-    cicloCestaId: cicloCesta.id,
   });
 });
 
