@@ -10,21 +10,26 @@ let pontoEntregaExistente;
 let pontoEntregaEncontrado;
 let pontoEntregaParaEditar;
 
-Given("que eu quero criar um novo ponto de entrega", function () {
+/*Given("que eu quero criar um novo ponto de entrega", function () {
   novoPontoEntrega = {};
-});
+});*/
+
+Given('que eu quero criar um novo ponto de entrega para o mercado {string}', function (string) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
 
 When("eu preencho o nome do ponto de entrega com {string}", function (nome) {
   novoPontoEntrega.nome = nome;
 });
 
-When("o endereço do ponto de entrega com {string}", function (endereco) {
+/*When("o endereço do ponto de entrega com {string}", function (endereco) {
   novoPontoEntrega.endereco = endereco;
-});
+});*/
 
-When("o status do ponto de entrega como {string}", function (status) {
+/*When("o status do ponto de entrega como {string}", function (status) {
   novoPontoEntrega.status = status;
-});
+});*/
 
 When("eu salvo o novo ponto de entrega", async function () {
   try {
@@ -35,37 +40,62 @@ When("eu salvo o novo ponto de entrega", async function () {
   }
 });
 
-Then(
+/*Then(
   "o ponto de entrega {string} deve ser criado com sucesso",
   async function (nome) {
     expect(this.error).to.be.undefined;
     expect(pontoEntregaCriado).to.have.property("id");
     expect(pontoEntregaCriado.nome).to.equal(nome);
   },
-);
+);*/
 
-Given(
+Then('o ponto de entrega {string} é criado para o mercado {string}', function (string, string2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+/*Given(
   /que existe um ponto de entrega "([^"]*)"(?: cadastrado)?/,
   async function (nome) {
     const pontoEntregaData = Factories.PontoEntregaFactory.create({ nome });
     pontoEntregaExistente =
       await pontoEntregaService.criarPontoEntrega(pontoEntregaData);
   },
-);
+);*/
 
-When(
+Given('que existe os pontos de entrega {string} e {string} cadastrados para o mercado {string}', function (string, string2, string3) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+/*When(
   "eu solicito os detalhes do ponto de entrega {string}",
   async function (nome) {
     pontoEntregaEncontrado = await pontoEntregaService.buscarPontoEntregaPorId(
       pontoEntregaExistente.id,
     );
   },
-);
+);*/
 
-Then("eu devo ver os detalhes do ponto de entrega {string}", function (nome) {
+When('eu solicito os nomes dos pontos de entrega do mercado {string}', function (string) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+/*Then("eu devo ver os detalhes do ponto de entrega {string}", function (nome) {
   expect(pontoEntregaEncontrado).to.be.an("object");
   expect(pontoEntregaEncontrado.nome).to.equal(nome);
-});
+});*/
+
+Then('eu devo ver os nomes dos pontos de entrega {string} e {string}', function (string, string2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+Given('que existe um ponto de entrega {string}', function (string) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
 
 When(
   "eu edito o nome do ponto de entrega para {string}",
@@ -92,6 +122,7 @@ Then(
   },
 );
 
+/* Funcionalidade não exisitirá mais, campo endereço não existirá
 Given(
   "que existe um ponto de entrega com endereço {string}",
   async function (endereco) {
@@ -116,8 +147,9 @@ Then(
     );
     expect(pontoAtualizado.endereco).to.equal(enderecoEsperado);
   },
-);
+);*/
 
+/* Funcionalidade não existirá mais, campo status não existirá
 Given(
   "que existe um ponto de entrega com status {string}",
   async function (status) {
@@ -145,7 +177,7 @@ Then(
     );
     expect(pontoAtualizado.status).to.equal(statusEsperado);
   },
-);
+);*/
 
 let erroDeletar;
 
@@ -182,6 +214,7 @@ Then(
 
 let listaDePontos;
 
+/* Funcionalidade não existe mais, campo status não existe 
 Given(
   "que existem pontos de entrega {string}, {string} e {string} cadastrados",
   async function (ponto1, ponto2, ponto3) {
@@ -217,4 +250,4 @@ Then(
     expect(nomesDosPontos).to.have.members(pontosEsperados);
     expect(nomesDosPontos).to.not.include(ponto2);
   },
-);
+);*/
