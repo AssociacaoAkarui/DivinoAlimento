@@ -88,9 +88,12 @@ When("eu adiciono o produto {string} à oferta", async function (nomeProduto) {
   this.produtoAdicionado = this.produto;
 });
 
-When("defino a quantidade como {int}", async function (quantidade) {
-  this.quantidadeAdicionada = quantidade;
-});
+When(
+  "defino a quantidade do produto na oferta como {int}",
+  async function (quantidade) {
+    this.quantidadeAdicionada = quantidade;
+  },
+);
 
 When("eu salvo o produto na oferta", async function () {
   try {

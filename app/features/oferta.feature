@@ -6,7 +6,7 @@ Funcionalidade: Gestão de Ofertas de Produtos
     Dado que existe uma oferta ativa
     E que existe um produto "Cenoura" cadastrado
     Quando eu adiciono o produto "Cenoura" à oferta
-    E defino a quantidade como 50
+    E defino a quantidade do produto na oferta como 50
     Quando eu salvo o produto na oferta
     Então o produto "Cenoura" deve estar associado à oferta
 

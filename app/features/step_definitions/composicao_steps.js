@@ -28,7 +28,7 @@ let quantidadeDisponivel;
 let alertaFalta;
 let listaComposicoes;
 
-Given("que existe um ciclo ativo", async function () {
+Given("que existe um ciclo ativo para composições", async function () {
   const pontoEntregaData = Factories.PontoEntregaFactory.create();
   const pontoEntrega =
     await pontoEntregaService.criarPontoEntrega(pontoEntregaData);
@@ -37,11 +37,11 @@ Given("que existe um ciclo ativo", async function () {
     status: "oferta",
   });
   cicloAtivo = await cicloService.criarCiclo(cicloData);
-  const cestaData = Factories.CestaFactory.create({ nome: "Cesta Básica" });
-  cestaDaComposicao = await cestaService.criarCesta(cestaData);
 });
 
 When("eu crio uma composição para a cesta no ciclo", async function () {
+  const cestaData = Factories.CestaFactory.create({ nome: "Cesta Básica" });
+  cestaDaComposicao = await cestaService.criarCesta(cestaData);
   novaComposicao = {
     cicloId: cicloAtivo.id,
     cestaId: cestaDaComposicao.id,
@@ -70,7 +70,6 @@ Given("que existe uma composição cadastrada", async function () {
     status: "oferta",
   });
   cicloAtivo = await cicloService.criarCiclo(cicloData);
-
   const cestaData = Factories.CestaFactory.create();
   cestaDaComposicao = await cestaService.criarCesta(cestaData);
 
@@ -106,8 +105,9 @@ Given("que existe uma composição de cesta", async function () {
     status: "oferta",
   });
   cicloAtivo = await cicloService.criarCiclo(cicloData);
-  const cestaData = Factories.CestaFactory.create();
-  cestaDaComposicao = await cestaService.criarCesta(cestaData);
+  cestaDaComposicao = await cestaService.criarCesta(
+    Factories.CestaFactory.create(),
+  );
   composicaoCriada = await composicaoService.criarComposicao({
     cicloId: cicloAtivo.id,
     cestaId: cestaDaComposicao.id,
@@ -164,8 +164,9 @@ Given(
       pontoEntregaId: pontoEntrega.id,
     });
     cicloAtivo = await cicloService.criarCiclo(cicloData);
-    const cestaData = Factories.CestaFactory.create();
-    cestaDaComposicao = await cestaService.criarCesta(cestaData);
+    cestaDaComposicao = await cestaService.criarCesta(
+      Factories.CestaFactory.create(),
+    );
     composicaoCriada = await composicaoService.criarComposicao({
       cicloId: cicloAtivo.id,
       cestaId: cestaDaComposicao.id,
@@ -215,19 +216,15 @@ Given(
 
   async function (nomeProduto) {
     const pontoEntregaData = Factories.PontoEntregaFactory.create();
-
     const pontoEntrega =
       await pontoEntregaService.criarPontoEntrega(pontoEntregaData);
-
     const cicloData = Factories.CicloFactory.create({
       pontoEntregaId: pontoEntrega.id,
     });
-
     cicloAtivo = await cicloService.criarCiclo(cicloData);
-
-    const cestaData = Factories.CestaFactory.create();
-
-    cestaDaComposicao = await cestaService.criarCesta(cestaData);
+    cestaDaComposicao = await cestaService.criarCesta(
+      Factories.CestaFactory.create(),
+    );
 
     composicaoCriada = await composicaoService.criarComposicao({
       cicloId: cicloAtivo.id,
@@ -240,7 +237,7 @@ Given(
     produtoDaComposicao = await produtoService.criarProduto(produtoData);
 
     await composicaoService.sincronizarProdutos(composicaoCriada.id, [
-      { produtoId: produtoDaComposicao.id, quantidade: 5 }, // Quantidade inicial > 0
+      { produtoId: produtoDaComposicao.id, quantidade: 5 },
     ]);
   },
 );
@@ -268,8 +265,9 @@ Given(
       pontoEntregaId: pontoEntrega.id,
     });
     cicloAtivo = await cicloService.criarCiclo(cicloData);
-    const cestaData = Factories.CestaFactory.create();
-    cestaDaComposicao = await cestaService.criarCesta(cestaData);
+    cestaDaComposicao = await cestaService.criarCesta(
+      Factories.CestaFactory.create(),
+    );
     composicaoCriada = await composicaoService.criarComposicao({
       cicloId: cicloAtivo.id,
       cestaId: cestaDaComposicao.id,
@@ -336,7 +334,6 @@ Given("que existem múltiplas composições em um ciclo", async function () {
     pontoEntregaId: pontoEntrega.id,
   });
   cicloAtivo = await cicloService.criarCiclo(cicloData);
-
   const cesta1Data = Factories.CestaFactory.create({ nome: "Cesta Básica" });
   const cesta2Data = Factories.CestaFactory.create({ nome: "Cesta Premium" });
   const cesta1 = await cestaService.criarCesta(cesta1Data);

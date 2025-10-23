@@ -3,7 +3,7 @@ Funcionalidade: Gestão de Composições de Cestas
 
   @composicao @CMP-01
   Cenário: Criar uma composição de cesta para um ciclo
-    Dado que existe um ciclo ativo
+    Dado que existe um ciclo ativo para composições
     E que existe uma cesta "Cesta Básica" cadastrada
     Quando eu crio uma composição para a cesta no ciclo
     Quando eu salvo a nova composição
