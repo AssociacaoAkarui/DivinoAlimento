@@ -177,7 +177,7 @@ Then(
     );
     expect(pontoAtualizado.status).to.equal(statusEsperado);
   },
-);*/
+); */
 
 let erroDeletar;
 
