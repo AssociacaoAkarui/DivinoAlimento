@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class OfertaProdutos extends Model {
     /**
@@ -12,37 +10,45 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
 
-      OfertaProdutos.belongsTo(models.Produto, { 
-        foreignKey: 'produtoId', 
-        as: 'produto' 
-      });
-
-      OfertaProdutos.hasOne(models.PedidosFornecedores, {
-        foreignKey: 'ofertaProdutoId',
-        as: 'ofertaProdutos',
-        onDelete: 'CASCADE'
+      OfertaProdutos.belongsTo(models.Produto, {
+        foreignKey: "produtoId",
+        as: "produto",
       });
 
       OfertaProdutos.hasMany(models.ComposicaoOfertaProdutos, {
-        foreignKey: 'ofertaProdutoId',
-        as: 'ofertaProduto',
-        onDelete: 'CASCADE'
+        foreignKey: "ofertaProdutoId",
+        as: "composicaoOfertaProdutos",
+        onDelete: "CASCADE",
+      });
+
+      OfertaProdutos.hasOne(models.PedidosFornecedores, {
+        foreignKey: "ofertaProdutoId",
+        as: "ofertaProdutos",
+        onDelete: "CASCADE",
+      });
+
+      OfertaProdutos.hasMany(models.ComposicaoOfertaProdutos, {
+        foreignKey: "ofertaProdutoId",
+        as: "ofertaProduto",
+        onDelete: "CASCADE",
       });
 
       /*OfertaProdutos.hasMany(models.Oferta, {
         foreignKey: 'id',
         as: 'ofertaProdutosOferta'
       });*/
-
     }
-  };
-  OfertaProdutos.init({
-    quantidade: DataTypes.INTEGER,
-    valorReferencia: DataTypes.REAL,
-    valorOferta: DataTypes.REAL
-  }, {
-    sequelize,
-    modelName: 'OfertaProdutos',
-  });
+  }
+  OfertaProdutos.init(
+    {
+      quantidade: DataTypes.INTEGER,
+      valorReferencia: DataTypes.REAL,
+      valorOferta: DataTypes.REAL,
+    },
+    {
+      sequelize,
+      modelName: "OfertaProdutos",
+    },
+  );
   return OfertaProdutos;
 };

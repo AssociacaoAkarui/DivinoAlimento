@@ -11,11 +11,14 @@ const {
   CategoriaProdutos,
   Composicoes,
   ComposicaoOfertaProdutos,
+  Oferta,
+  OfertaProdutos,
   sequelize,
 } = require("../../models");
 
 const CicloModel = require("../model/Ciclo");
 const PontoEntregaModel = require("../model/PontoEntrega");
+
 const CestaModel = require("../model/Cesta");
 
 const ServiceError = require("../utils/ServiceError");
@@ -509,6 +512,7 @@ class ComposicaoService {
             composicaoId: composicaoId,
             produtoId: p.produtoId,
             quantidade: p.quantidade,
+            ofertaProdutoId: p.ofertaProdutoId,
           }));
 
         if (produtosParaCriar.length > 0) {
@@ -681,10 +685,136 @@ class PontoEntregaService {
   }
 }
 
+class OfertaService {
+  async criarOferta(dados) {
+    try {
+      const allowedFields = ["cicloId", "usuarioId"];
+      const payloadSeguro = filterPayload(Oferta, dados, allowedFields);
+      return await Oferta.create(payloadSeguro);
+    } catch (error) {
+      throw new ServiceError("Falha ao criar oferta.", { cause: error });
+    }
+  }
+
+  async adicionarProduto(ofertaId, produtoId, quantidade) {
+    try {
+      if (quantidade <= 0) {
+        throw new ServiceError("A quantidade deve ser maior que zero.");
+      }
+      const [ofertaProduto, created] = await OfertaProdutos.findOrCreate({
+        where: { ofertaId, produtoId },
+        defaults: { quantidade },
+      });
+
+      if (!created) {
+        await ofertaProduto.update({ quantidade });
+      }
+
+      return ofertaProduto;
+    } catch (error) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError("Falha ao adicionar produto à oferta.", {
+        cause: error,
+      });
+    }
+  }
+
+  async buscarOfertaPorIdComProdutos(id) {
+    try {
+      const oferta = await Oferta.findByPk(id, {
+        include: [
+          {
+            model: OfertaProdutos,
+            as: "ofertaProdutos",
+            include: ["produto"],
+          },
+        ],
+      });
+      if (!oferta) {
+        throw new ServiceError(`Oferta com ID ${id} não encontrada`);
+      }
+      return oferta;
+    } catch (error) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError("Falha ao buscar oferta por ID.", {
+        cause: error,
+      });
+    }
+  }
+
+  async atualizarQuantidadeProduto(ofertaProdutoId, novaQuantidade) {
+    try {
+      const ofertaProduto = await OfertaProdutos.findByPk(ofertaProdutoId);
+      if (!ofertaProduto) {
+        throw new ServiceError(
+          `Produto da oferta com ID ${ofertaProdutoId} não encontrado`,
+        );
+      }
+      if (novaQuantidade <= 0) {
+        throw new ServiceError("A quantidade deve ser maior que zero.");
+      }
+      await ofertaProduto.update({ quantidade: novaQuantidade });
+      return ofertaProduto;
+    } catch (error) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError("Falha ao atualizar a quantidade do produto.", {
+        cause: error,
+      });
+    }
+  }
+
+  async removerProduto(ofertaProdutoId) {
+    try {
+      const ofertaProduto = await OfertaProdutos.findByPk(ofertaProdutoId);
+      if (!ofertaProduto) {
+        throw new ServiceError(
+          `Produto da oferta com ID ${ofertaProdutoId} não encontrado`,
+        );
+      }
+      await ofertaProduto.destroy();
+      return true;
+    } catch (error) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError("Falha ao remover o produto da oferta.", {
+        cause: error,
+      });
+    }
+  }
+
+  async calcularDisponibilidadeProduto(ofertaProdutoId) {
+    try {
+      const ofertaProduto = await OfertaProdutos.findByPk(ofertaProdutoId);
+      if (!ofertaProduto) {
+        throw new ServiceError(
+          `Produto da oferta com ID ${ofertaProdutoId} não encontrado`,
+        );
+      }
+
+      const composicoes = await ofertaProduto.getComposicaoOfertaProdutos();
+
+      const quantidadeEmComposicoes = composicoes.reduce(
+        (total, comp) => total + comp.quantidade,
+        0,
+      );
+
+      return ofertaProduto.quantidade - quantidadeEmComposicoes;
+    } catch (error) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError(
+        "Falha ao calcular a disponibilidade do produto.",
+        {
+          cause: error,
+        },
+      );
+    }
+  }
+}
+
 module.exports = {
   CicloService,
   ProdutoService,
   CestaService,
   ComposicaoService,
   PontoEntregaService,
+  OfertaService,
 };

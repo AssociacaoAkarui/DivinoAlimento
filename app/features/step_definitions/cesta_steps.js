@@ -1,6 +1,6 @@
 const { Given, When, Then } = require("@cucumber/cucumber");
 const { expect } = require("chai");
-const Factories = require("./support/factories");
+const { CestaFactory } = require("./support/factories");
 const { CestaService } = require("../../src/services/services");
 const ServiceError = require("../../src/utils/ServiceError");
 
@@ -41,7 +41,7 @@ Then("a cesta deve ser criada com sucesso", function () {
 });
 
 Given("que existe uma cesta {string} cadastrada", async function (nomeCesta) {
-  const cestaData = Factories.CestaFactory.create({ nome: nomeCesta });
+  const cestaData = CestaFactory.create({ nome: nomeCesta });
   cestaCriada = await cestaService.criarCesta(cestaData);
 });
 
@@ -73,7 +73,7 @@ Then("o nome da cesta deve ser {string}", async function (nomeEsperado) {
 Given(
   "que existe uma cesta com valor máximo {int}",
   async function (valorMaximo) {
-    const cestaData = Factories.CestaFactory.create({
+    const cestaData = CestaFactory.create({
       valormaximo: valorMaximo,
     });
     cestaCriada = await cestaService.criarCesta(cestaData);
@@ -93,7 +93,7 @@ Then("o valor máximo da cesta deve ser {int}", async function (valorEsperado) {
 });
 
 Given("que existe uma cesta com status {string}", async function (status) {
-  const cestaData = Factories.CestaFactory.create({ status: status });
+  const cestaData = CestaFactory.create({ status: status });
   cestaCriada = await cestaService.criarCesta(cestaData);
 });
 
@@ -136,13 +136,13 @@ Given(
   "que existem cestas {string}, {string} e {string} cadastradas",
   async function (cesta1, cesta2, cesta3) {
     await cestaService.criarCesta(
-      Factories.CestaFactory.create({ nome: cesta1, status: "ativo" }),
+      CestaFactory.create({ nome: cesta1, status: "ativo" }),
     );
     await cestaService.criarCesta(
-      Factories.CestaFactory.create({ nome: cesta2, status: "ativo" }),
+      CestaFactory.create({ nome: cesta2, status: "ativo" }),
     );
     await cestaService.criarCesta(
-      Factories.CestaFactory.create({ nome: cesta3, status: "inativo" }),
+      CestaFactory.create({ nome: cesta3, status: "inativo" }),
     );
   },
 );

@@ -273,7 +273,7 @@ Given(
     composicaoCriada = await composicaoService.criarComposicao({
       cicloId: cicloAtivo.id,
       cestaId: cestaDaComposicao.id,
-      quantidadeCestas: numeroCestas, // Este valor precisa ser usado pelo service
+      quantidadeCestas: numeroCestas,
     });
   },
 );
@@ -337,12 +337,10 @@ Given("que existem múltiplas composições em um ciclo", async function () {
   });
   cicloAtivo = await cicloService.criarCiclo(cicloData);
 
-  const cesta1 = await cestaService.criarCesta(
-    Factories.CestaFactory.create({ nome: "Cesta Básica" }),
-  );
-  const cesta2 = await cestaService.criarCesta(
-    Factories.CestaFactory.create({ nome: "Cesta Premium" }),
-  );
+  const cesta1Data = Factories.CestaFactory.create({ nome: "Cesta Básica" });
+  const cesta2Data = Factories.CestaFactory.create({ nome: "Cesta Premium" });
+  const cesta1 = await cestaService.criarCesta(cesta1Data);
+  const cesta2 = await cestaService.criarCesta(cesta2Data);
 
   const comp1 = await composicaoService.criarComposicao({
     cicloId: cicloAtivo.id,

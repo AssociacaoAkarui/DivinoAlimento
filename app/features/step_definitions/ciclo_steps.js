@@ -18,15 +18,11 @@ Given("que eu quero criar uma nova Cesta para o ciclo", function () {});
 
 When("eu crio {int} Cesta", async function (numeroDeCestas) {
   novasCestas = [];
-
   for (let i = 0; i < numeroDeCestas; i++) {
     novasCestas.push(Factories.CestaFactory.create());
   }
-
   createdCestas = await Promise.all(
-    novasCestas.map(async (novaCesta) => {
-      return await Cesta.create(novaCesta);
-    }),
+    novasCestas.map((cesta) => Cesta.create(cesta)),
   );
 });
 
@@ -41,15 +37,11 @@ Given("que eu quero criar um novo Ponto de Entrega", function () {});
 
 When("eu crio {int} Ponto de Entrega", async function (numeroDePontoEntrega) {
   novosPontosEntrega = [];
-
   for (let i = 0; i < numeroDePontoEntrega; i++) {
     novosPontosEntrega.push(Factories.PontoEntregaFactory.create());
   }
-
   createdPontosEntrega = await Promise.all(
-    novosPontosEntrega.map(async (novoPontoEntrega) => {
-      return await PontoEntrega.create(novoPontoEntrega);
-    }),
+    novosPontosEntrega.map((ponto) => PontoEntrega.create(ponto)),
   );
 });
 

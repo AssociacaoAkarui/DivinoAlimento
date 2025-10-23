@@ -42,7 +42,6 @@ class CicloFactory {
       retiradaConsumidorInicio: faker.date.recent(),
       retiradaConsumidorFim: faker.date.soon(),
       observacao: "Observação",
-      status: "ativo",
       ...override,
     };
   }
@@ -67,9 +66,22 @@ class ProdutoFactory {
   }
 }
 
+class UsuarioFactory {
+  static create(perfil = "consumidor", overrides = {}) {
+    return {
+      nome: faker.person.fullName(),
+      email: faker.internet.email(),
+      status: "ativo",
+      perfil: [perfil],
+      ...overrides,
+    };
+  }
+}
+
 module.exports = {
   CestaFactory,
   PontoEntregaFactory,
   CicloFactory,
   ProdutoFactory,
+  UsuarioFactory,
 };
