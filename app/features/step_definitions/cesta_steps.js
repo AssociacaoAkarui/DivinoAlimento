@@ -12,6 +12,8 @@ let cestaParaEditar;
 let erroCapturado;
 let cestasAtivas;
 
+/* Mudança de Cesta para Mercado cesta_steps para mercado_steps
+
 Given("que eu quero criar uma nova Cesta", function () {
   novaCesta = {};
   erroCapturado = null;
@@ -176,4 +178,4 @@ Then("eu devo receber um erro de validação", function () {
     "name",
     "SequelizeValidationError",
   );
-});
+});*/
