@@ -72,15 +72,18 @@ routes.use((req, res, next) => {
 
 // API GRAPHQL
 const { default: APIGraphql } = require("./api-graphql");
-routes.use(
-  "/graphql",
-  createHandler({
+routes.use("/graphql", (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : null;
+  req.bearerToken = bearerToken;
+  return createHandler({
     schema: APIGraphql.schema,
     rootValue: APIGraphql.rootValue,
-    context: APIGraphql.context,
-  }),
-);
-
+    context: APIGraphql.buildContext(bearerToken),
+  })(req, res, next);
+});
 //routes.get('/', (req, res) => {IndexController.showIndex(JSON.stringify(req.oidc.user))})
 
 routes.get("/", IndexController.showIndex);

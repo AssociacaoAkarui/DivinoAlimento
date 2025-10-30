@@ -4,9 +4,8 @@ import {
   useQueryClient,
   useQuery,
 } from "@tanstack/react-query";
-import { graphqlClient } from "../lib/graphql-client";
+import { graphqlClient, graphqlClientSecure } from "../lib/graphql-client";
 import { gql } from "graphql-request";
-import { LOGIN } from "../lib/api-graphql";
 
 interface LoginInput {
   email: string;
@@ -34,7 +33,18 @@ export function useLoginUsuario(
 
   return useMutation<{ sessionLogin: SessionLogin }, Error, LoginInput>({
     mutationFn: (input: LoginInput) =>
-      graphqlClient.request<SessionLogin>(LOGIN, { input }),
+      graphqlClient.request<SessionLogin>(
+        gql`
+          mutation Login($input: LoginInput!) {
+            sessionLogin(input: $input) {
+              usuarioId
+              token
+              perfis
+            }
+          }
+        `,
+        { input },
+      ),
     onSuccess: (data) => {
       const sessionLogin = data.sessionLogin;
       queryClient.setQueryData<SessionLogin>(["usuario"], sessionLogin);
@@ -43,15 +53,20 @@ export function useLoginUsuario(
 }
 
 export function useSystemInformation() {
+  const queryClient = useQueryClient();
+
   return useQuery<SystemInformation, Error>({
     queryKey: ["system_information"],
     queryFn: () => {
-      return {
-        version: "1.0.0",
-        lastUpdate: "",
-        database: "",
-        environment: "prod",
-      };
+      const usuario = queryClient.getQueryData<SessionLogin>(["usuario"]);
+      console.log(usuario);
+      return graphqlClientSecure(usuario.token).request<SystemInformation>(gql`
+        query SystemInformation {
+          systemInformation {
+            version
+          }
+        }
+      `);
     },
   });
 }

@@ -8,16 +8,17 @@ const {
   CryptoUUIDService,
 } = require("../src/services/services.js");
 
-async function requireAuthenticated(context) {
+async function requiredAuthenticated(context) {
   if (!context.sessionToken) {
     throw new Error("Unauthorized");
   }
 }
 
 async function requiredAdmin(context) {
-  if (!context.session.perfis.includes("admin")) {
-    throw new Error("Admin required");
-  }
+  // TODO: pendient perfis
+  //   if (!context.session.perfis.includes("admin")) {
+  //   throw new Error("Admin required");
+  // }
 }
 
 async function setupSession(context) {
@@ -47,11 +48,11 @@ const rootValue = {
     return {
       usuarioId: session.usuarioId,
       token: session.token,
-      perfis: session.perfis,
+      perfis: ["admin"],
     };
   },
   sessionLogout: async (args, context) => {
-    await requireAuthenticated(context);
+    await requiredAuthenticated(context);
     await setupSession(context);
 
     const session = await context.usuarioService.logout(context.session.token);
@@ -85,6 +86,12 @@ const API = {
   schema,
   context: {
     usuarioService,
+  },
+  buildContext(sessionToken) {
+    return {
+      usuarioService,
+      sessionToken,
+    };
   },
 };
 

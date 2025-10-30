@@ -17,10 +17,6 @@ type LogoutResponse {
     success: Boolean!
 }
 
-type Query {
-    healthcheck: HealthCheck!
-}
-
 type SystemInformation {
     version: String!
 }
@@ -28,5 +24,9 @@ type SystemInformation {
 type Mutation {
     sessionLogin(input: LoginInput!): ActiveSession!
     sessionLogout: LogoutResponse!
+}
+
+type Query {
+    healthcheck: HealthCheck!
     systemInformation: SystemInformation!
 }
