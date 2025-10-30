@@ -48,6 +48,9 @@ export function useSystemInformation() {
     queryFn: () => {
       return {
         version: "1.0.0",
+        lastUpdate: "",
+        database: "",
+        environment: "prod",
       };
     },
   });

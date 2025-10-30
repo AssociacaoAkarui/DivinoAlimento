@@ -38,7 +38,7 @@ const AdminConfig = () => {
     navigate("/");
   };
 
-  const { data: systemInfo, isLoading, error } = useSystemInformation();
+  const systemInfo = useSystemInformation();
 
   return (
     <ResponsiveLayout
@@ -56,7 +56,9 @@ const AdminConfig = () => {
       <div className="flex-1 p-4 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gradient-primary">Configurações do Sistema</h1>
+          <h1 className="text-2xl font-bold text-gradient-primary">
+            Configurações do Sistema
+          </h1>
           <p className="text-sm text-muted-foreground">
             Configure permissões e preferências do sistema
           </p>
@@ -74,19 +76,21 @@ const AdminConfig = () => {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Versão:</span>
-                <p className="font-medium">{systemInfo.version}</p>
+                <p className="font-medium">{systemInfo.data?.version}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Última Atualização:</span>
-                <p className="font-medium">{systemInfo.lastUpdate}</p>
+                <span className="text-muted-foreground">
+                  Última Atualização:
+                </span>
+                <p className="font-medium">{systemInfo.data?.lastUpdate}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Banco de Dados:</span>
-                <p className="font-medium">{systemInfo.database}</p>
+                <p className="font-medium">{systemInfo.data?.database}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Ambiente:</span>
-                <p className="font-medium">{systemInfo.environment}</p>
+                <p className="font-medium">{systemInfo.data?.environment}</p>
               </div>
             </div>
           </CardContent>
