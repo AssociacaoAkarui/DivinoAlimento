@@ -2,6 +2,7 @@ import {
   useMutation,
   UseMutationOptions,
   useQueryClient,
+  useQuery,
 } from "@tanstack/react-query";
 import { graphqlClient } from "../lib/graphql-client";
 import { gql } from "graphql-request";
@@ -41,23 +42,13 @@ export function useLoginUsuario(
   });
 }
 
-export function useSystemInformation(
-  options?: UseMutationOptions<{ sessionLogin: SessionLogin }, Error>,
-) {
-  const queryClient = useQueryClient();
-
-  return useMutation<{ sessionLogin: SessionLogin }, Error>({
-    mutationFn: () => {
-      systemInformation: {
-        version: "1.0.0";
-      }
-    },
-    onSuccess: (data) => {
-      const systemInformation = data.systemInformation;
-      queryClient.setQueryData<SystemInformation>(
-        ["system"],
-        systemInformation,
-      );
+export function useSystemInformation() {
+  return useQuery<SystemInformation, Error>({
+    queryKey: ["system_information"],
+    queryFn: () => {
+      return {
+        version: "1.0.0",
+      };
     },
   });
 }

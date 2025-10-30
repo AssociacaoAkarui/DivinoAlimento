@@ -38,13 +38,7 @@ const AdminConfig = () => {
     navigate("/");
   };
 
-  // TODO: ni idea, como llamar useSystemInformation
-  const systemInfo = {
-    version: "1.2.3",
-    lastUpdate: "15/02/2024",
-    database: "PostgreSQL 14",
-    environment: "Produção",
-  };
+  const { data: systemInfo, isLoading, error } = useSystemInformation();
 
   return (
     <ResponsiveLayout
@@ -62,9 +56,7 @@ const AdminConfig = () => {
       <div className="flex-1 p-4 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gradient-primary">
-            Configurações do Sistema
-          </h1>
+          <h1 className="text-2xl font-bold text-gradient-primary">Configurações do Sistema</h1>
           <p className="text-sm text-muted-foreground">
             Configure permissões e preferências do sistema
           </p>
@@ -85,9 +77,7 @@ const AdminConfig = () => {
                 <p className="font-medium">{systemInfo.version}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">
-                  Última Atualização:
-                </span>
+                <span className="text-muted-foreground">Última Atualização:</span>
                 <p className="font-medium">{systemInfo.lastUpdate}</p>
               </div>
               <div>
