@@ -22,6 +22,21 @@ interface SystemInformation {
   version: string;
 }
 
+export function loginUsuario(input: LoginInput): Promise<SessionLogin> {
+  return graphqlClient.request<SessionLogin>(
+    gql`
+      mutation Login($input: LoginInput!) {
+        sessionLogin(input: $input) {
+          usuarioId
+          token
+          perfis
+        }
+      }
+    `,
+    { input },
+  );
+}
+
 export function useLoginUsuario(
   options?: UseMutationOptions<
     { sessionLogin: SessionLogin },
