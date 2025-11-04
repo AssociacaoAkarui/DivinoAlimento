@@ -1,7 +1,6 @@
-version: "3.8"
-
 services:
   app_tests.dev:
+    user: "${UID}:${GID}"
     image: node:22
     working_dir: /app
     command: sleep 4h

@@ -1,5 +1,6 @@
 const express = require("express");
 const routes = express.Router();
+const { createHandler } = require("graphql-http/lib/use/express");
 
 const IndexController = require("./controllers/IndexController");
 const LimiteSolarController = require("./controllers/LimiteSolarController");
@@ -55,6 +56,34 @@ const profile = {
 
 const { requiresAuth } = require("express-openid-connect");
 
+// Middleware para CORS (se necessário)
+routes.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+  );
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// API GRAPHQL
+const { default: APIGraphql } = require("./api-graphql");
+routes.use("/graphql", (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : null;
+  req.bearerToken = bearerToken;
+  return createHandler({
+    schema: APIGraphql.schema,
+    rootValue: APIGraphql.rootValue,
+    context: APIGraphql.buildContext(bearerToken),
+  })(req, res, next);
+});
 //routes.get('/', (req, res) => {IndexController.showIndex(JSON.stringify(req.oidc.user))})
 
 routes.get("/", IndexController.showIndex);
@@ -74,7 +103,7 @@ routes.get("/ciclo", CicloController.create);
 routes.post("/ciclo", CicloController.save);
 routes.get("/ciclo/:id", CicloController.show);
 routes.post("/ciclo/:id", CicloController.update);
-routes.post("/ciclo/delete/:id", CicloController.destroy);
+routes.post("/ciclo/delete/:id", CicloController.delete);
 
 routes.get("/cesta-index", CestaIndexController.index);
 routes.get("/cesta", CestaController.create);

@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Usuario extends Model {
     /**
@@ -13,31 +11,36 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
 
       Usuario.hasMany(models.Oferta, {
-        foreignKey: 'usuarioId',
-        as: 'Oferta',
-        onDelete: 'CASCADE'
+        foreignKey: "usuarioId",
+        as: "Oferta",
+        onDelete: "CASCADE",
       });
 
       Usuario.hasMany(models.PedidoConsumidores, {
-        foreignKey: 'usuarioId',
-        as: 'PedidoConsumidores',
-        onDelete: 'CASCADE'
+        foreignKey: "usuarioId",
+        as: "PedidoConsumidores",
+        onDelete: "CASCADE",
       });
-      
     }
-  };
-  Usuario.init({
-    nome: DataTypes.STRING,
-    nomeoficial: DataTypes.STRING,
-    celular: DataTypes.STRING,
-    descritivo: DataTypes.STRING,
-    email: DataTypes.STRING,
-    cientepolitica: DataTypes.STRING,
-    perfil: DataTypes.ARRAY(DataTypes.ENUM('info', 'master', 'admin', 'fornecedor', 'consumidor')),
-    status: DataTypes.STRING
-  }, {
-    sequelize,
-    modelName: 'Usuario',
-  });
+  }
+  Usuario.init(
+    {
+      nome: DataTypes.STRING,
+      nomeoficial: DataTypes.STRING,
+      celular: DataTypes.STRING,
+      descritivo: DataTypes.STRING,
+      email: DataTypes.STRING,
+      cientepolitica: DataTypes.STRING,
+      perfis: DataTypes.ARRAY(
+        DataTypes.ENUM("info", "master", "admin", "fornecedor", "consumidor"),
+      ),
+      status: DataTypes.ENUM("ativo", "inativo", "pendente"),
+      senha: DataTypes.STRING,
+    },
+    {
+      sequelize,
+      modelName: "Usuario",
+    },
+  );
   return Usuario;
 };

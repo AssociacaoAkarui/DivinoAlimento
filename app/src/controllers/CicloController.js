@@ -3,151 +3,161 @@ const PontoEntrega = require("../model/PontoEntrega");
 const Cesta = require("../model/Cesta");
 const Produto = require("../model/Produto");
 const Profile = require("../model/Profile");
-const { ValidationError } = require("sequelize");
 const { CicloService } = require("../services/services");
-const ServiceError = require("../utils/ServiceError");
 
 module.exports = {
   async create(req, res) {
-    try {
-      const cicloService = new CicloService();
-      const dadosCriacao = await cicloService.prepararDadosCriacaoCiclo();
+    const data = req.body;
+    const pontosEntrega = await PontoEntrega.get();
+    const tiposCesta = await Cesta.getCestasAtivas();
+    const ciclo = { pontosEntrega, tiposCesta };
 
-      return res.render("ciclo", dadosCriacao);
-    } catch (error) {
-      console.error("Erro ao carregar página de criação:", error);
-      return res.status(500).send("Erro ao carregar página de criação");
-    }
+    await Cesta.verificaCriaCestasInternas();
+
+    return res.render("ciclo", ciclo);
   },
 
   async save(req, res) {
     const cicloService = new CicloService();
-    try {
-      await cicloService.criarCiclo(req.body);
-      return res.redirect("/ciclo-index");
-    } catch (error) {
-      console.error("Erro ao salvar ciclo:", error);
+    cicloService.createCiclo(req.body);
 
-      if (
-        error instanceof ServiceError &&
-        error.cause instanceof ValidationError
-      ) {
-        try {
-          const dadosCriacao = await cicloService.prepararDadosCriacaoCiclo();
-          const erros = error.cause.errors.map((err) => err.message);
+    console.log("ATENÇÃO ATENÇÃO ATENÇÃO ATENÇÃO ATENÇÃO ATENÇÃO TESTE_4");
 
-          return res.render("ciclo", {
-            ...dadosCriacao,
-            ciclo: req.body,
-            erros: erros,
-          });
-        } catch (setupError) {
-          console.error(
-            "Erro ao preparar página de erro de validação:",
-            setupError,
-          );
-          return res.status(500).send("Erro ao processar a validação.");
-        }
-      }
-
-      return res.status(500).send(`Erro interno ao salvar ciclo.`);
-    }
+    return res.redirect("/ciclo-index");
   },
 
   async show(req, res) {
-    try {
-      const cicloId = req.params.id;
-      const cicloService = new CicloService();
-      const cicloCompleto = await cicloService.buscarCicloPorId(cicloId);
-      const cicloEntregas = cicloCompleto.cicloEntregas || [];
-      const cicloCestas = cicloCompleto.CicloCestas || [];
-      return res.render("ciclo-edit", {
-        ciclo: cicloCompleto,
-        pontosEntrega: cicloCompleto.pontosEntrega,
-        cicloEntregas: cicloEntregas,
-        cicloCestas: cicloCestas,
-        tiposCesta: cicloCompleto.tiposCesta,
-      });
-    } catch (error) {
-      console.error("Erro ao buscar ciclo:", error);
-      return res.status(404).send(error.message);
+    const cicloId = req.params.id;
+
+    const dadosCiclo = await Ciclo.getCicloIdMin(cicloId);
+    const ciclo = dadosCiclo.ciclo[0];
+
+    console.log(
+      "---------------------------------------------------------------------------------------------------------------entrou no Controller show",
+    );
+
+    const cicloEntregas = dadosCiclo.cicloEntregas;
+
+    const cicloCestas = dadosCiclo.cicloCestas;
+
+    console.log(
+      "---------------------------------------------------------------------------------------------------------------Controller showCestas ",
+      dadosCiclo.cicloCestas,
+    );
+
+    if (!ciclo) {
+      return res.send("Ciclo não existe!");
     }
+
+    const pontosEntrega = await PontoEntrega.get();
+    const tiposCesta = await Cesta.getCestasAtivas();
+    //const produtos = await Produto.get();
+
+    return res.render("ciclo-edit", {
+      ciclo: ciclo,
+      pontosEntrega: pontosEntrega,
+      cicloEntregas: cicloEntregas,
+      cicloCestas: cicloCestas,
+      tiposCesta: tiposCesta,
+    });
   },
 
   async update(req, res) {
     const cicloId = req.params.id;
-    const cicloService = new CicloService();
-    try {
-      await cicloService.atualizarCiclo(cicloId, req.body);
-      return res.redirect(`/ciclo/${cicloId}`);
-    } catch (error) {
-      console.error("Erro ao atualizar ciclo:", error);
 
-      if (
-        error instanceof ServiceError &&
-        error.cause instanceof ValidationError
-      ) {
-        try {
-          const cicloCompleto = await cicloService.buscarCicloPorId(cicloId);
-          const erros = error.cause.errors.map((err) => err.message);
+    const dadosCiclo = await Ciclo.getCicloIdMin(cicloId);
+    const ciclo = dadosCiclo.ciclo[0];
 
-          const cicloComTentativas = { ...cicloCompleto, ...req.body };
+    console.log(
+      "---------------------------------------------------------------------------------------------------------------entrou no Controller update",
+    );
 
-          return res.render("ciclo-edit", {
-            ciclo: cicloComTentativas,
-            pontosEntrega: cicloCompleto.pontosEntrega,
-            cicloEntregas: cicloCompleto.cicloEntregas || [],
-            cicloCestas: cicloCompleto.CicloCestas || [],
-            tiposCesta: cicloCompleto.tiposCesta,
-            erros: erros,
-          });
-        } catch (setupError) {
-          console.error(
-            "Erro ao preparar página de erro de validação:",
-            setupError,
-          );
-          return res.status(500).send("Erro ao processar a validação.");
-        }
-      }
+    //const data = await Ciclo.get()
+    //const ciclos = data.ciclos
+    //const ciclo = ciclos.find(ciclo => Number(ciclo.id) === Number(cicloId))
 
-      return res.status(500).send(`Erro ao atualizar ciclo: ${error.message}`);
+    if (!ciclo) {
+      return res.send("Ciclo não existe!");
     }
-  },
 
-  async destroy(req, res) {
-    const cicloId = req.params.id;
-    const cicloService = new CicloService();
-    try {
-      await cicloService.deletarCiclo(cicloId);
-      return res.redirect("/ciclo-index");
-    } catch (error) {
-      console.error(`Erro ao deletar ciclo ${cicloId}:`, error);
+    //inicio - cria vetor de atualização das datas de entrega
+    var countEntregas = 1;
 
-      if (error instanceof ServiceError) {
-        return res.redirect(
-          `/ciclo-index?error=${encodeURIComponent(error.message)}`,
-        );
-      }
+    entregaFornecedorInicio = req.body.entregaFornecedorInicio1;
+    entregaFornecedorFim = req.body.entregaFornecedorFim1;
 
-      return res.status(500).send("Erro interno ao tentar deletar o ciclo.");
-    }
-  },
+    var cicloEntregas = [];
 
-  async index(req, res) {
-    try {
-      const cicloService = new CicloService();
-      const limit = parseInt(req.query.limit) || 10;
-      const cursor = req.query.cursor || null;
-      const resultado = await cicloService.listarCiclos(limit, cursor);
-      return res.render("ciclo-index", {
-        ciclos: resultado.ciclos,
-        total: resultado.total,
-        nextCursor: resultado.nextCursor,
-        limit,
+    while (entregaFornecedorInicio) {
+      cicloEntregas.push({
+        entregaFornecedorInicio: entregaFornecedorInicio,
+        entregaFornecedorFim: entregaFornecedorFim,
       });
-    } catch (error) {
-      console.error("Erro ao listar ciclos:", error);
-      return res.status(500).send("Erro ao listar ciclos");
+
+      countEntregas += 1;
+
+      newEntregaFornecedorInicio =
+        "entregaFornecedorInicio" + countEntregas.toString();
+      newEntregaFornecedorFim =
+        "entregaFornecedorFim" + countEntregas.toString();
+
+      entregaFornecedorInicio = req.body[newEntregaFornecedorInicio];
+      entregaFornecedorFim = req.body[newEntregaFornecedorFim];
     }
+    //fim - cria vetor de atualização das datas de entrega
+
+    //inicio - cria vetor de atualização das cestas e quantidades
+    var countCestas = 1;
+
+    cestaId = req.body.cestaId1;
+    quantidadeCestas = req.body.quantidadeCestas1;
+
+    var cicloCestas = [];
+
+    while (quantidadeCestas) {
+      if (quantidadeCestas >= 0) {
+        cicloCestas.push({
+          cestaId: cestaId,
+          quantidadeCestas: quantidadeCestas,
+        });
+      }
+
+      countCestas += 1;
+
+      newCestaId = "cestaId" + countCestas.toString();
+      newQuantidadeCestas = "quantidadeCestas" + countCestas.toString();
+
+      cestaId = req.body[newCestaId];
+      quantidadeCestas = req.body[newQuantidadeCestas];
+    }
+    //fim - cria vetor de atualização das cestas e quantidade
+
+    const updatedCiclo = {
+      id: cicloId,
+      nome: req.body.nome,
+      pontoEntregaId: req.body.pontoEntregaId,
+      ofertaInicio: req.body.ofertaInicio,
+      ofertaFim: req.body.ofertaFim,
+      itensAdicionaisInicio: req.body.itensAdicionaisInicio,
+      itensAdicionaisFim: req.body.itensAdicionaisFim,
+      retiradaConsumidorInicio: req.body.retiradaConsumidorInicio,
+      retiradaConsumidorFim: req.body.retiradaConsumidorFim,
+      observacao: req.body.observacao,
+      cicloEntregas: cicloEntregas,
+      cicloCestas: cicloCestas,
+      //cicloProdutos: cicloProdutos
+    };
+
+    await Ciclo.update(updatedCiclo);
+
+    res.redirect("/ciclo/" + cicloId);
+  },
+
+  delete(req, res) {
+    const cicloId = req.params.id;
+
+    Ciclo.delete(cicloId);
+
+    return res.redirect("/ciclo-index");
   },
 };

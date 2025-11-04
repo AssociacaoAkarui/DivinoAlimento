@@ -6,31 +6,37 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon .",
-    "test": "npx cucumber"
+    "test": "npx cucumber",
+    "e2e": "mocha"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "bootstrap": "^5.0.2",
-    "cucumber": "^6.0.7",
+    "chai": "^4.3.6",
     "dotenv": "^9.0.1",
     "ejs": "^3.1.6",
     "express": "^4.21.2",
-    "express-openid-connect": "^2.19.2",
+    "express-openid-connect": "^2.4.0",
+    "graphql": "^16.11.0",
+    "graphql-http": "^1.22.4",
     "jquery": "^3.6.0",
     "json2csv": "^5.0.7",
+    "npm": "^7.12.0",
     "pdfkit": "^0.12.1",
     "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",
+    "ruru": "^2.0.0-beta.30",
     "sequelize": "^6.37.1",
-    "sequelize-cli": "^6.6.3"
+    "sequelize-cli": "^6.6.2"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^12.2.0",
     "@faker-js/faker": "^10.0.0",
-    "chai": "^4.3.6",
-    "nodemon": "^3.1.10",
+    "cucumber": "^6.0.7",
+    "mocha": "^11.7.4",
+    "nodemon": "^2.0.7",
     "sqlite3": "^5.0.2"
   }
 }

@@ -1,8 +1,8 @@
-const { Before, After } = require('@cucumber/cucumber');
+const { Before, After } = require("@cucumber/cucumber");
 
-const { sequelize } = require('../../models');
+const { sequelize } = require("../../models");
 
-Before(async function() {
+Before(async function () {
   await sequelize.sync({ force: true });
 });
 

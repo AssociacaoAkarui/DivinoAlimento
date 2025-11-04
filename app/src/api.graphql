@@ -1,0 +1,32 @@
+type ActiveSession {
+    usuarioId: ID!
+    token: String!
+    perfis: [String!]!
+}
+
+type HealthCheck {
+    status: String!
+}
+
+input LoginInput {
+    email: String!
+    senha: String!
+}
+
+type LogoutResponse {
+    success: Boolean!
+}
+
+type SystemInformation {
+    version: String!
+}
+
+type Mutation {
+    sessionLogin(input: LoginInput!): ActiveSession!
+    sessionLogout: LogoutResponse!
+}
+
+type Query {
+    healthcheck: HealthCheck!
+    systemInformation: SystemInformation!
+}

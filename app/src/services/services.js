@@ -15,6 +15,8 @@ const {
   OfertaProdutos,
   PedidoConsumidores,
   PedidoConsumidoresProdutos,
+  Usuario,
+  Session,
   sequelize,
 } = require("../../models");
 
@@ -973,6 +975,94 @@ class PedidoConsumidoresService {
   }
 }
 
+class CryptoUUIDService {
+  constructor() {
+    this.crypto = require("crypto");
+  }
+
+  uuid4() {
+    return this.crypto.randomUUID();
+  }
+}
+
+class UsuarioService {
+  constructor(uuid_service) {
+    this.uuid_service = uuid_service;
+  }
+
+  async create(requiredParams, optionalParams = {}) {
+    const { email, senha, phoneNumber } = requiredParams;
+
+    const {
+      nome = email.split("@")[0],
+      perfis = ["admin"],
+      status = "ativo",
+    } = optionalParams;
+
+    const user = await Usuario.create({
+      nome: nome,
+      celular: phoneNumber,
+      email: email,
+      perfis: perfis,
+      status: status,
+      senha: senha,
+    });
+    return user.toJSON();
+  }
+
+  async login(email, senha) {
+    const user = await Usuario.findOne({
+      where: {
+        email: email,
+        senha: senha,
+        status: "ativo",
+      },
+      attributes: ["id", "email", "perfis"],
+    });
+
+    if (!user) {
+      throw new Error("User not found or inactive");
+    }
+
+    const session = await Session.create({
+      usuarioId: user.id,
+      token: this.uuid_service.uuid4(),
+    });
+
+    await this.cleanupExpiredSessions();
+
+    return {
+      sessionId: session.id,
+      usuarioId: user.id,
+      email: user.email,
+      perfis: ["admin"],
+      loggedIn: true,
+      token: session.token,
+    };
+  }
+
+  async logout(token) {
+    const session = await Session.findOne({ where: { token } });
+    if (session) {
+      await session.destroy();
+      return { success: true, message: "Logged out successfully" };
+    } else if (!session) {
+      return { success: false, message: "Session not found" };
+    }
+  }
+
+  async cleanupExpiredSessions() {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    await Session.destroy({
+      where: {
+        createdAt: {
+          [require("sequelize").Op.lt]: twentyFourHoursAgo,
+        },
+      },
+    });
+  }
+}
+
 module.exports = {
   CicloService,
   ProdutoService,
@@ -981,4 +1071,6 @@ module.exports = {
   PontoEntregaService,
   OfertaService,
   PedidoConsumidoresService,
+  UsuarioService,
+  CryptoUUIDService,
 };
