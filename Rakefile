@@ -1,5 +1,3 @@
-require 'digest'
-
 COMPOSE_LIVE = 'compose.live.yml'
 COMPOSE_TESTS = 'compose.tests.yml'
 
@@ -127,12 +125,50 @@ namespace :testes do
 
   desc 'Entrar no bash do app DivinoAlimento'
   task :sh do
-    compose('exec', '-T', 'app_tests.dev', 'bash')
+    compose('exec', '-it', 'app_tests.dev', 'bash')
   end
 
   desc 'Npm Intall'
   task :npm_install do
     sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm install"
+  end
+
+  desc 'Executar testes unitários (Mocha)'
+  task :unit do
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm run test:unit"
+  end
+
+  desc 'Executar todos os testes (unitários + cucumber)'
+  task :all_tests do
+    unit_passed = true
+    cucumber_passed = true
+
+    puts "\n#{'='*60}"
+    puts "Executando testes unitarios (Mocha)"
+    puts "#{'='*60}\n"
+    begin
+      sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm run test:unit"
+    rescue
+      unit_passed = false
+    end
+
+    puts "\n#{'='*60}"
+    puts "Executando testes BDD (Cucumber) - excluindo @pending"
+    puts "#{'='*60}\n"
+    begin
+      sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test -- --tags \"not @pending\""
+    rescue
+      cucumber_passed = false
+    end
+
+    puts "\n#{'='*60}"
+    puts "RESUMO"
+    puts "#{'='*60}"
+    puts "Mocha:    #{unit_passed ? 'PASSOU' : 'FALHOU'}"
+    puts "Cucumber: #{cucumber_passed ? 'PASSOU' : 'FALHOU'}"
+    puts "#{'='*60}\n"
+
+    exit 1 unless unit_passed && cucumber_passed
   end
 
   desc 'Executar todos os testes não pendentes'
@@ -146,9 +182,9 @@ namespace :testes do
       flags << '--format-options \'{\"colorsEnabled\": true}\''
       flags << '--backtrace'
       puts "\n#{'='*60}"
-      puts "🐛 DEBUG"
+      puts "DEBUG"
       puts "#{'='*60}"
-      puts "📊 Mostra cada step + backtrace de erros (excluindo @pending)"
+      puts "Mostra cada step + backtrace de erros (excluindo @pending)"
       puts "#{'='*60}\n\n"
     end
     cmd = "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
@@ -164,9 +200,9 @@ namespace :testes do
       flags << '--format-options \'{\"colorsEnabled\": true}\''
       flags << '--backtrace'
       puts "\n#{'='*60}"
-      puts "🐛 DEBUG"
+      puts "DEBUG"
       puts "#{'='*60}"
-      puts "📊 Mostra cada step + backtrace de erros"
+      puts "Mostra cada step + backtrace de erros"
       puts "#{'='*60}\n\n"
     end
     cmd = "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
@@ -179,7 +215,7 @@ namespace :testes do
   desc '      rake testes:funcionalidade[produto,detalhe] # detalhe é opcional e mostra cada step + backtrace'
   task :funcionalidade, [:nome_arquivo, :detalhe] do |_, args|
     if args.nome_arquivo.nil?
-      puts "\n❌ Erro: Nome do arquivo não especificado"
+      puts "\nErro: Nome do arquivo não especificado"
       puts "\nUso: rake testes:funcionalidade[nome_arquivo,detalhe]"
       puts "\nExemplos:"
       puts "  rake testes:funcionalidade[ciclo]"
@@ -193,10 +229,10 @@ namespace :testes do
       flags << '--format-options \'{\"colorsEnabled\": true}\''
       flags << '--backtrace'
       puts "\n#{'='*60}"
-      puts "🐛 DEBUG"
+      puts "DEBUG"
       puts "#{'='*60}"
-      puts "🎯 Funcionalidade: #{args.nome_arquivo}"
-      puts "📊 Mostra cada step + backtrace de erros"
+      puts "Funcionalidade: #{args.nome_arquivo}"
+      puts "Mostra cada step + backtrace de erros"
       puts "#{'='*60}\n\n"
     else
       flags << "--format progress"
@@ -212,7 +248,7 @@ namespace :testes do
   desc '      rake "testes:tags[expression,detalhe]" # detalhe é opcional e mostra cada step + backtrace'
   task :tags, [:expression, :detalhe] do |_, args|
     if args.expression.nil?
-      puts "\n❌ Erro: Expressão de tags não especificada"
+      puts "\nErro: Expressão de tags não especificada"
       puts "\nUso: rake \"testes:tags[expression,detalhe]\""
       puts "\nExemplos:"
       puts "  rake \"testes:tags[@CIC-01]\""
@@ -228,10 +264,10 @@ namespace :testes do
       flags << '--backtrace'
       flags << '--format-options \'{\"colorsEnabled\": true}\''
       puts "\n#{'='*60}"
-      puts "🐛 DEBUG"
+      puts "DEBUG"
       puts "#{'='*60}"
-      puts "🎯 Expressão: #{args.expression}"
-      puts "📊 Mostra cada step + backtrace de erros"
+      puts "Expressao: #{args.expression}"
+      puts "Mostra cada step + backtrace de erros"
       puts "#{'='*60}\n\n"
     else
       flags << "--format progress"
@@ -242,7 +278,7 @@ namespace :testes do
 
   desc 'Listar todos os cenários disponíveis'
   task :listar do
-    puts "\n📋 Cenários disponíveis:\n\n"
+    puts "\nCenarios disponiveis:\n\n"
     sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npx cucumber-js --dry-run --format json | grep -o '\"name\":\"[^\"]*\"' | sed 's/\"name\":\"/  /' | sed 's/\"//' || true"
   end
 end
