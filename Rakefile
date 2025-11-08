@@ -171,15 +171,17 @@ namespace :testes do
     exit 1 unless unit_passed && cucumber_passed
   end
 
-  desc 'Executar todos os testes não pendentes'
-  desc 'Uso: rake testes:test # rápido (só pontos)'
-  desc '      rake testes:test[detalhe] # detalhe é opcional e mostra cada step + backtrace'
-  task :test, [:detalhe] do |_, args|
+  desc 'Executar testes BDD Cucumber (excluindo @pending por padrao)'
+  desc 'Uso: rake testes:bdd # rapido (so pontos)'
+  desc '      rake testes:bdd[detalhe] # detalhe e opcional e mostra cada step + backtrace'
+  task :bdd, [:detalhe] do |_, args|
     args.with_defaults(detalhe: 'false')
     flags = []
-    flags << "--tags \"not @pending\""
+    flags << '--tags'
+    flags << '"not @pending"'
     if args.detalhe == 'detalhe'
-      flags << '--format-options \'{\"colorsEnabled\": true}\''
+      flags << '--format-options'
+      flags << '\'{\"colorsEnabled\": true}\''
       flags << '--backtrace'
       puts "\n#{'='*60}"
       puts "DEBUG"
@@ -192,8 +194,41 @@ namespace :testes do
     sh cmd
   end
 
-  desc 'Executar TODOS os testes (incluindo pendentes)'
-  task :all, [:detalhe] do |_, args|
+  desc 'Executar todos os testes (unit + bdd)'
+  task :all do
+    unit_passed = true
+    bdd_passed = true
+
+    puts "\n#{'='*60}"
+    puts "Executando testes unitarios (Mocha)"
+    puts "#{'='*60}\n"
+    begin
+      sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm run test:unit"
+    rescue
+      unit_passed = false
+    end
+
+    puts "\n#{'='*60}"
+    puts "Executando testes BDD (Cucumber) - excluindo @pending"
+    puts "#{'='*60}\n"
+    begin
+      sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test -- --tags \"not @pending\""
+    rescue
+      bdd_passed = false
+    end
+
+    puts "\n#{'='*60}"
+    puts "RESUMO"
+    puts "#{'='*60}"
+    puts "Unit: #{unit_passed ? 'PASSOU' : 'FALHOU'}"
+    puts "BDD:  #{bdd_passed ? 'PASSOU' : 'FALHOU'}"
+    puts "#{'='*60}\n"
+
+    exit 1 unless unit_passed && bdd_passed
+  end
+
+  desc 'Executar testes BDD incluindo pendentes'
+  task :bdd_with_pending, [:detalhe] do |_, args|
     args.with_defaults(detalhe: 'false')
     flags = []
     if args.detalhe == 'detalhe'
@@ -202,7 +237,30 @@ namespace :testes do
       puts "\n#{'='*60}"
       puts "DEBUG"
       puts "#{'='*60}"
-      puts "Mostra cada step + backtrace de erros"
+      puts "Mostra cada step + backtrace de erros (incluindo @pending)"
+      puts "#{'='*60}\n\n"
+    end
+    cmd = "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
+    cmd += " -- #{flags.join(' ')}" unless flags.empty?
+    sh cmd
+  end
+
+  desc 'Executar APENAS testes pendentes (@pending)'
+  desc 'Uso: rake testes:pending # rapido (so pontos)'
+  desc '      rake testes:pending[detalhe] # detalhe e opcional'
+  task :pending, [:detalhe] do |_, args|
+    args.with_defaults(detalhe: 'false')
+    flags = []
+    flags << '--tags'
+    flags << '"@pending"'
+    if args.detalhe == 'detalhe'
+      flags << '--format-options'
+      flags << '\'{\"colorsEnabled\": true}\''
+      flags << '--backtrace'
+      puts "\n#{'='*60}"
+      puts "DEBUG"
+      puts "#{'='*60}"
+      puts "Mostra cada step + backtrace de erros (APENAS @pending)"
       puts "#{'='*60}\n\n"
     end
     cmd = "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
@@ -259,10 +317,12 @@ namespace :testes do
 
     args.with_defaults(detalhe: 'false')
     flags = []
-    flags << "--tags \"#{args.expression}\""
+    flags << '--tags'
+    flags << "\"#{args.expression}\""
     if args.detalhe == 'detalhe'
       flags << '--backtrace'
-      flags << '--format-options \'{\"colorsEnabled\": true}\''
+      flags << '--format-options'
+      flags << '\'{\"colorsEnabled\": true}\''
       puts "\n#{'='*60}"
       puts "DEBUG"
       puts "#{'='*60}"
