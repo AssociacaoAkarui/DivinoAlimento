@@ -2,6 +2,8 @@ const dns = require("dns");
 const express = require("express");
 const server = express();
 const routes = require("./routes");
+const { createHandler } = require("graphql-http/lib/use/express");
+const cors = require("cors");
 
 var baseUrl = process.env.BASE_URL_APP;
 let baseUrlAuth = process.env.BASE_URL_APP;
@@ -42,6 +44,16 @@ server.use(express.static("public"));
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 
+// Habilitar CORS para permitir requisições do frontend
+server.use(
+  cors({
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
 //uso bootstrap e jquery
 //server.use('/css', express.static(path.join(__dirname, '../node_modules/bootstrap/dist/css')))
 //server.use('/js', express.static(path.join(__dirname, '../node_modules/bootstrap/dist/js')))
@@ -50,6 +62,17 @@ server.use(express.urlencoded({ extended: true }));
 server.use("/css", express.static("node_modules/bootstrap/dist/css"));
 server.use("/js", express.static("node_modules/bootstrap/dist/js"));
 server.use("/js", express.static("node_modules/jquery/dist"));
+
+// API GRAPHQL
+const { default: APIGraphql } = require("./api-graphql");
+server.all(
+  "/graphql",
+  createHandler({
+    schema: APIGraphql.schema,
+    rootValue: APIGraphql.rootValue,
+    context: APIGraphql.context,
+  }),
+);
 
 // Auth
 const { auth } = require("express-openid-connect");
