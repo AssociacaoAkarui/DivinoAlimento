@@ -159,6 +159,10 @@ pyvenv.cfg
 .venv
 pip-selfcheck.json
 
+# Exceção: permitir pasta lib do frontend
+!frontend/src/lib/
+!frontend/src/lib/**
+
 # End of https://www.toptal.com/developers/gitignore/api/node,virtualenv
 
 # Temporary files with ~ suffix
