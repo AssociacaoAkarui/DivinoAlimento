@@ -29,6 +29,7 @@ services:
       - network_name
 
   frontend.dev:
+    user: "${UID}:${GID}"
     image: node:22
     working_dir: /app
     ports:

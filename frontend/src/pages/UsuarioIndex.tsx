@@ -113,6 +113,11 @@ const UsuarioIndex = () => {
     return result;
   }, [usuarios, filters, debouncedSearch]);
 
+  const viewModel = {
+    perfis_active_role_titulo:
+      activeRole === "admin_mercado" ? "Administrador de Mercado" : "",
+    filteredUsers,
+  };
   const handleEdit = (id: string) => {
     navigate(`/usuario/${id}`);
   };
@@ -171,9 +176,7 @@ const UsuarioIndex = () => {
         <div className="md:flex md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
-              {activeRole === "admin_mercado"
-                ? "Administrador de mercado - "
-                : ""}
+              {viewModel.perfis_active_role_titulo}
               Usuários
             </h1>
             <p className="text-sm md:text-base text-muted-foreground">
@@ -190,7 +193,7 @@ const UsuarioIndex = () => {
               onFiltersClick={() => setIsOpen(true)}
               activeChips={getActiveChips()}
               onRemoveChip={clearFilterGroup}
-              resultCount={filteredUsers.length}
+              resultCount={viewModel.filteredUsers.length}
               hasActiveFilters={hasActiveFilters()}
               filtersOpen={isOpen}
             />
@@ -216,7 +219,7 @@ const UsuarioIndex = () => {
               <div className="p-6 text-center text-destructive">
                 Erro ao carregar usuários: {error.message}
               </div>
-            ) : filteredUsers.length === 0 ? (
+            ) : viewModel.filteredUsers.length === 0 ? (
               <div className="p-6 text-center space-y-4">
                 <p className="text-muted-foreground">
                   {hasActiveFilters()
@@ -242,7 +245,7 @@ const UsuarioIndex = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((usuario) => (
+                    {viewModel.filteredUsers.map((usuario) => (
                       <TableRow key={usuario.id}>
                         <TableCell className="font-medium">
                           {usuario.nomeCompleto}

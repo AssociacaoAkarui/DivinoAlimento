@@ -17,6 +17,15 @@ interface Usuario {
   perfis: string[];
 }
 
+interface ViewUsuario {
+  id: string;
+  nome: string;
+  email: string;
+  status: "ativo" | "inativo";
+  perfis: string[];
+  perfis_titulo: string;
+}
+
 const Usuarios = () => {
   const navigate = useNavigate();
   const { activeRole } = useAuth();
@@ -29,11 +38,25 @@ const Usuarios = () => {
     navigate("/");
   };
 
-  const filteredUsers = usuarios.filter(
-    (usuario) =>
-      usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      usuario.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const viewUsers = usuarios
+    .filter(
+      (usuario) =>
+        usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        usuario.email.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
+    .map((usuario) => ({
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      status: usuario.status,
+      perfis: usuario.perfis,
+    }));
+
+  const viewModel = {
+    perfis_active_titulo:
+      activeRole === "admin_mercado" ? "Administrador de Mercado" : "EEE",
+    filteredUsers: viewUsers,
+  };
 
   const handleEdit = (id: string) => {
     console.log("Editar usuário:", id);
@@ -69,9 +92,7 @@ const Usuarios = () => {
         <div className="md:flex md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
-              {activeRole === "admin_mercado"
-                ? "Administrador de mercado - "
-                : ""}
+              {viewModel.perfis_active_titulo}
               Usuários
             </h1>
             <p className="text-sm md:text-base text-muted-foreground">
@@ -105,7 +126,7 @@ const Usuarios = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg md:text-xl">
-              Lista de Usuários ({filteredUsers.length})
+              Lista de Usuários ({viewModel.filteredUsers.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -118,14 +139,14 @@ const Usuarios = () => {
                 <div className="p-6 text-center text-destructive">
                   Erro ao carregar usuários: {error.message}
                 </div>
-              ) : filteredUsers.length === 0 ? (
+              ) : viewModel.filteredUsers.length === 0 ? (
                 <div className="p-6 text-center text-muted-foreground">
                   {searchTerm
                     ? "Nenhum usuário encontrado."
                     : "Nenhum usuário cadastrado."}
                 </div>
               ) : (
-                filteredUsers.map((usuario) => (
+                viewModel.filteredUsers.map((usuario) => (
                   <div key={usuario.id} className="p-4 md:p-6">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                       <div className="flex-1">
