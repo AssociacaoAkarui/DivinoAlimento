@@ -1,49 +1,68 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
-import CoBrandAkarui from "@/components/layout/CoBrandAkarui";
-import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { useLoginUsuario } from "@/hooks/graphql";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
+import CoBrandAkarui from '@/components/layout/CoBrandAkarui';
+import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+
+const getDefaultRoute = (role: string): string => {
+  switch (role) {
+    case 'consumidor':
+      return '/dashboard';
+    case 'fornecedor':
+      return '/fornecedor/loja';
+    case 'admin':
+      return '/admin/dashboard';
+    case 'admin_mercado':
+      return '/admin-mercado/dashboard';
+    default:
+      return '/dashboard';
+  }
+};
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const loginUsuarioMutation = useLoginUsuario();
+  const { login, activeRole, isAuthenticated } = useAuth();
+
+  // Redirecionar após login bem-sucedido
+  useEffect(() => {
+    if (isAuthenticated && activeRole) {
+      const defaultRoute = getDefaultRoute(activeRole);
+      navigate(defaultRoute);
+    }
+  }, [isAuthenticated, activeRole, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+    
     try {
-      const sessionlogin = await loginUsuarioMutation.mutateAsync({
-        email,
-        senha: password,
-      });
-      if (sessionlogin.perfis && sessionlogin.perfis.includes("admain")) {
-        throw new Error("only implemented admin dashboard");
-      }
-
-      setIsLoading(false);
+      await login(email, password);
+      
       toast({
         title: "Login realizado com sucesso!",
-        description: "Redirecionando para o dashboard...",
+        description: "Redirecionando...",
       });
-      navigate("/admin/dashboard");
+      
+      // O redirecionamento será feito pelo useEffect no ProtectedRoute
     } catch (error) {
-      console.error(error);
       toast({
-        title: "Invalid login",
+        title: "Erro no login",
+        description: "Verifique suas credenciais e tente novamente.",
+        variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -56,13 +75,13 @@ const Login = () => {
   };
 
   return (
-    <ResponsiveLayout
+    <ResponsiveLayout 
       showHeader={false}
       headerContent={
-        <Button
-          variant="ghost"
+        <Button 
+          variant="ghost" 
           size="icon-sm"
-          onClick={() => navigate("/")}
+          onClick={() => navigate('/')}
           className="focus-ring"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -74,7 +93,7 @@ const Login = () => {
         <div className="w-full max-w-md lg:max-w-lg px-4">
           {/* Co-brand AKARUI */}
           <CoBrandAkarui />
-
+          
           <Card className="w-full shadow-lg">
             <CardHeader className="text-center pb-4">
               <CardTitle className="font-poppins text-2xl lg:text-3xl text-gradient-primary">
@@ -84,14 +103,11 @@ const Login = () => {
                 Acesse sua conta do Divino Alimento
               </p>
             </CardHeader>
-
+            
             <CardContent className="space-y-4 p-6 lg:p-8">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className="text-sm lg:text-base font-medium"
-                  >
+                  <Label htmlFor="email" className="text-sm lg:text-base font-medium">
                     E-mail
                   </Label>
                   <div className="relative">
@@ -109,17 +125,14 @@ const Login = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="password"
-                    className="text-sm lg:text-base font-medium"
-                  >
+                  <Label htmlFor="password" className="text-sm lg:text-base font-medium">
                     Senha
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
                     <Input
                       id="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Digite sua senha"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -143,17 +156,17 @@ const Login = () => {
                 </div>
 
                 <div className="flex justify-end">
-                  <Link
-                    to="/esqueci-senha"
+                  <Link 
+                    to="/esqueci-senha" 
                     className="text-sm lg:text-base text-primary hover:underline focus-ring rounded px-1"
                   >
                     Esqueci a senha
                   </Link>
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full lg:h-12 lg:text-base"
+                <Button 
+                  type="submit" 
+                  className="w-full lg:h-12 lg:text-base" 
                   disabled={isLoading}
                   size="lg"
                 >
@@ -168,38 +181,26 @@ const Login = () => {
                 </span>
               </div>
 
-              <Button
-                variant="outline"
-                className="w-full lg:h-12 lg:text-base"
+              <Button 
+                variant="outline" 
+                className="w-full lg:h-12 lg:text-base" 
                 onClick={handleGoogleLogin}
                 size="lg"
               >
                 <svg className="w-4 h-4 lg:w-5 lg:h-5 mr-2" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
+                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
                 Continuar com Google
               </Button>
 
               <div className="text-center">
                 <p className="text-sm lg:text-base text-muted-foreground">
-                  Não tem conta?{" "}
-                  <Link
-                    to="/registro"
+                  Não tem conta?{' '}
+                  <Link 
+                    to="/registro" 
                     className="text-primary hover:underline font-medium focus-ring rounded px-1"
                   >
                     Criar conta

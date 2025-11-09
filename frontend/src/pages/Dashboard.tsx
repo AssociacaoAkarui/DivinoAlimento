@@ -1,142 +1,169 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { ShoppingBasket, FileText, CreditCard, Settings, ChevronRight } from 'lucide-react';
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
+import { ShoppingCart, FileText, Wallet, UserCircle, ChevronRight, ArrowLeft, ShoppingBasket } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useConsumer } from '@/contexts/ConsumerContext';
 import { useCycle } from '@/hooks/useCycle';
+import { Button } from '@/components/ui/button';
+import { formatBRL } from '@/utils/currency';
+import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
 
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { consumerType } = useConsumer();
   const { currentCycle } = useCycle();
 
-  const getMenuDescription = () => {
-    const cycleTypeName = currentCycle.type === 'semanal' ? 'semana' : 'quinzena';
-    return consumerType === 'cesta' 
-      ? `Ver produtos da ${cycleTypeName} e extras`
-      : 'Ver produtos disponíveis para compra';
-  };
-
-  const menuItems = [
+  const acoes = [
     {
-      icon: ShoppingBasket,
-      title: 'Meu Pedido',
-      description: getMenuDescription(),
-      path: '/cesta',
-      badge: 'Nova'
+      titulo: 'Minha Cesta',
+      descricao: 'Ver itens da sua cesta no ciclo atual',
+      icone: ShoppingBasket,
+      rota: '/minhaCesta/1',
+      habilitado: true
     },
     {
-      icon: FileText,
-      title: 'Resumo',
-      description: 'Total consolidado e pagamentos',
-      path: '/resumo'
+      titulo: 'Pedido em Varejo',
+      descricao: 'Comprar produtos da feira direta',
+      icone: ShoppingCart,
+      rota: '/pedidoConsumidores/1',
+      habilitado: true
     },
     {
-      icon: FileText,
-      title: 'Relatórios',
-      description: 'Histórico e status dos pedidos',
-      path: '/relatorio'
-    },
-    {
-      icon: CreditCard,
-      title: 'Pagamentos',
-      description: 'Gestão de assinaturas e extras',
-      path: '/pagamentos',
+      titulo: 'Meus Pagamentos',
+      descricao: 'Acompanhe seus pagamentos (em aberto e quitados)',
+      icone: Wallet,
+      rota: '/consumidor/pagamentos',
+      habilitado: true,
       badge: 'Pendente'
     },
     {
-      icon: Settings,
-      title: 'Configurações',
-      description: 'Perfil, notificações e preferências',
-      path: '/configuracoes'
+      titulo: 'Dados Pessoais',
+      descricao: 'Atualize seu perfil e contato',
+      icone: UserCircle,
+      rota: '/usuario/1',
+      habilitado: true
     }
   ];
 
   return (
-    <ResponsiveLayout>
-      {/* Desktop Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 lg:p-0">
-        
-        {/* Welcome Section - Desktop 12 col */}
-        <div className="lg:col-span-12 text-center py-6">
-          <h1 className="font-poppins text-2xl lg:text-3xl font-bold text-gradient-primary mb-2">
-            Bem-vindo de volta!
+    <ResponsiveLayout
+      headerContent={
+        <UserMenuLarge />
+      }
+    >
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-2xl md:text-3xl font-bold text-primary">
+            Bem-vindo e bem-vinda à plataforma do Divino Alimento
           </h1>
-          <p className="text-muted-foreground lg:text-lg">
+          <p className="text-sm md:text-base text-muted-foreground mt-1">
             Gerencie suas cestas e pedidos
           </p>
         </div>
 
-        {/* Quick Stats - Desktop 2 col responsive */}
-        <div className="lg:col-span-12">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            <Card className="text-center">
-              <CardContent className="p-4 lg:p-6">
-                <div className="text-2xl lg:text-3xl font-bold text-primary">4</div>
-                <div className="text-xs lg:text-sm text-muted-foreground">Cestas do ciclo</div>
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardContent className="p-4 lg:p-6">
-                <div className="text-2xl lg:text-3xl font-bold text-accent">R$ 156</div>
-                <div className="text-xs lg:text-sm text-muted-foreground">Total extras</div>
-              </CardContent>
-            </Card>
-            {/* Desktop additional stats */}
-            <Card className="text-center hidden lg:block">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold text-secondary">12</div>
-                <div className="text-sm text-muted-foreground">Produtos favoritos</div>
-              </CardContent>
-            </Card>
-            <Card className="text-center hidden lg:block">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold text-warning">85%</div>
-                <div className="text-sm text-muted-foreground">Satisfação</div>
-              </CardContent>
-            </Card>
+        {/* Resumo do Ciclo Atual */}
+        <div className="mb-8 bg-white rounded-[14px] shadow-[0px_2px_10px_rgba(0,0,0,0.05)] overflow-hidden">
+          {/* Cabeçalho */}
+          <div className="px-6 pt-6 pb-4">
+            <h3 className="text-center text-[#2C3E50] text-xl font-bold mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              Resumo do Ciclo Atual
+            </h3>
+            
+            {/* Badge do Ciclo */}
+            <div className="flex justify-center mb-4">
+              <div className="bg-[#FFA726] rounded-full px-6 py-2">
+                <span className="text-white text-sm font-medium" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  1º Ciclo de Novembro 2025 — Ativo
+                </span>
+              </div>
+            </div>
+
+            {/* Local e Data de Entrega - mesma linha */}
+            <div className="bg-[#F5F5F5] rounded-lg px-4 py-3 mb-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div>
+                  <span className="text-[#666] text-sm font-semibold">Local de Entrega: </span>
+                  <span className="text-[#666] text-sm">Mercado Central</span>
+                </div>
+                <div>
+                  <span className="text-[#666] text-sm font-semibold">Data e Hora da Entrega: </span>
+                  <span className="text-[#666] text-sm">15/11/2025 às 14:00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Conteúdo - Duas Colunas */}
+          <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Coluna Esquerda - Produtos da Cesta */}
+            <div className="bg-[#E8F5E9] rounded-[10px] p-4">
+              <h4 className="text-[#2C3E50] text-base font-bold mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
+                Produtos da Cesta:
+              </h4>
+              <ul className="space-y-2 text-[#333] text-sm mb-4">
+                <li>- Tomate (3 kg) — Fornecedor: Sítio Bela Vista</li>
+                <li>- Alface (5 unidades) — Fornecedor: Orgânicos da Serra</li>
+                <li>- Cenoura (2 kg) — Fornecedor: Fazenda São José</li>
+              </ul>
+              <div className="pt-3 border-t border-[#126B3F]/20">
+                <p className="text-[#2C3E50] text-base font-bold">Valor Total Cesta: {formatBRL(48.50)}</p>
+              </div>
+            </div>
+
+            {/* Coluna Direita - Compras em Varejo */}
+            <div className="bg-white border border-[#E0E0E0] rounded-[10px] p-4">
+              <h4 className="text-[#2C3E50] text-base font-bold mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
+                Compras em Varejo:
+              </h4>
+              <ul className="space-y-2 text-[#333] text-sm mb-4">
+                <li>- Banana Nanica (1,5 kg) — Fornecedor: Sítio Boa Esperança</li>
+                <li>- Mel Orgânico (300 g) — Fornecedor: Apiário Flor do Campo</li>
+              </ul>
+              <div className="pt-3 border-t border-[#E0E0E0]">
+                <p className="text-[#2C3E50] text-base font-bold">Valor Total: {formatBRL(32.50)}</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Menu Items - Desktop 3 col grid */}
-        <div className="lg:col-span-12">
-          <h2 className="font-poppins text-lg lg:text-xl font-semibold text-foreground mb-4 lg:mb-6">
-            Menu Principal
+        {/* Gestão desse Ciclo */}
+        <div>
+          <h2 className="text-lg md:text-xl font-semibold text-foreground mb-4">
+            Gestão desse Ciclo
           </h2>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-            {menuItems.map((item, index) => (
-              <Card 
-                key={index} 
-                className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-                onClick={() => navigate(item.path)}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {acoes.slice(0, 2).map((acao, idx) => (
+              <Card
+                key={idx}
+                className={`hover:shadow-lg transition-all cursor-pointer ${
+                  !acao.habilitado ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                onClick={() => acao.habilitado && navigate(acao.rota)}
               >
-                <CardContent className="p-4 lg:p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-                      <item.icon className="w-6 h-6 lg:w-7 lg:h-7 text-primary" />
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <acao.icone className="w-6 h-6 text-primary" />
                     </div>
-                    
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="font-medium text-foreground lg:text-lg">{item.title}</h3>
-                        {item.badge && (
-                          <Badge 
-                            variant={item.badge === 'Pendente' ? 'destructive' : 'secondary'}
-                            className="text-xs px-2 py-0"
-                          >
-                            {item.badge}
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-foreground">
+                          {acao.titulo}
+                        </h3>
+                        {acao.badge && (
+                          <Badge variant="destructive" className="text-xs">
+                            {acao.badge}
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm lg:text-base text-muted-foreground">{item.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {acao.descricao}
+                      </p>
                     </div>
-                    
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                   </div>
                 </CardContent>
               </Card>
@@ -144,36 +171,46 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Current Cycle Info - Desktop 8 col centered */}
-        <div className="lg:col-start-3 lg:col-span-8">
-          <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base lg:text-lg font-poppins text-gradient-primary">
-                {currentCycle.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex items-center justify-between text-sm lg:text-base">
-                <span className="text-muted-foreground">Período:</span>
-                <span className="font-medium">
-                  {currentCycle.startDate.toLocaleDateString('pt-BR')} - {currentCycle.endDate.toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm lg:text-base mt-2">
-                <span className="text-muted-foreground">Tipo:</span>
-                <span className="font-medium">
-                  {currentCycle.type === 'semanal' ? 'Semanal (7 dias)' : 'Quinzenal (15 dias)'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm lg:text-base mt-2">
-                <span className="text-muted-foreground">Status:</span>
-                <Badge variant="default" className="bg-primary">
-                  {currentCycle.status === 'active' ? 'Ativo' : 
-                   currentCycle.status === 'upcoming' ? 'Em breve' : 'Encerrado'}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Ações Administrativas */}
+        <div>
+          <h2 className="text-lg md:text-xl font-semibold text-foreground mb-4">
+            Ações Administrativas
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {acoes.slice(2).map((acao, idx) => (
+              <Card
+                key={idx}
+                className={`hover:shadow-lg transition-all cursor-pointer ${
+                  !acao.habilitado ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                onClick={() => acao.habilitado && navigate(acao.rota)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <acao.icone className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-foreground">
+                          {acao.titulo}
+                        </h3>
+                        {acao.badge && (
+                          <Badge variant="destructive" className="text-xs">
+                            {acao.badge}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {acao.descricao}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </ResponsiveLayout>

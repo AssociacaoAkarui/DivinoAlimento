@@ -1,155 +1,107 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import CycleCard from '@/components/ui/CycleCard';
-import BannerCarousel from '@/components/ui/BannerCarousel';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import AppBarDivino from '@/components/layout/AppBarDivino';
-import LeafIcon from '@/components/ui/LeafIcon';
-import { Calendar, Timer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useCycle } from '@/hooks/useCycle';
-import { formatTimeRemaining } from '@/types/cycle';
-import { cn } from '@/lib/utils';
-import heroBasket from '@/assets/hero-basket.jpg';
+import logoDivino from '@/assets/LOGO_DIVINO_ALIMENTOS.png';
+import logoAkarui from '@/assets/logo-akarui.png';
+import logoTekopora from '@/assets/logo-tekopora.png';
+import heroAlimentos from '@/assets/hero-alimentos.png';
+import leafIcon from '@/assets/leaf-icon.png';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { currentCycle, timeRemaining } = useCycle();
+  const cycleTitle = "Ciclo outubro 2025";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50">
-      {/* Header */}
-      <AppBarDivino showLoginButton={true} />
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Faixa branca superior */}
+      <div className="h-12 lg:h-16 bg-white" />
       
-      <ResponsiveLayout className="pt-0" showHeader={false}>
-        {/* Dynamic Banner Carousel */}
-        <BannerCarousel className="mb-8" />
-        
-        {/* Hero Section - Desktop centered 8-10 columns */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 py-6 lg:py-12">
-        <div className="lg:col-start-2 lg:col-span-10 xl:col-start-3 xl:col-span-8 text-center">
-          <div className="mb-8">
+      {/* Header laranja com logo sobreposto */}
+      <header className="relative h-20 lg:h-28 bg-[#F29B2C] flex items-center justify-center">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-10 lg:mt-14">
+          <button 
+            onClick={() => navigate('/')}
+            className="hover:opacity-90 transition-opacity"
+            style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))' }}
+          >
             <img 
-              src={heroBasket} 
-              alt="Cesta de alimentos orgânicos frescos" 
-              className="w-full max-w-md lg:max-w-lg mx-auto rounded-xl shadow-lg"
+              src={logoDivino}
+              alt="Divino Alimento"
+              className="w-[120px] h-[120px] sm:w-[160px] sm:h-[160px] lg:w-[200px] lg:h-[200px] object-contain"
             />
-          </div>
-          
-          <div className="mb-8">
-            <h1 className="font-poppins text-3xl lg:text-4xl font-bold text-gradient-primary mb-4">
-              {currentCycle.name}
-            </h1>
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <LeafIcon className="text-accent" />
-              <p className="text-muted-foreground lg:text-lg">
-                Alimento sustentável para todo mundo
-              </p>
-              <LeafIcon className="text-primary" />
-            </div>
-            
-            {/* Cycle Info and Badges */}
-            <div className="space-y-4">
-              <Badge className="bg-gradient-to-r from-primary to-accent text-white px-6 py-3 text-base lg:text-lg">
-                {currentCycle.startDate.toLocaleDateString('pt-BR')} - {currentCycle.endDate.toLocaleDateString('pt-BR')}
-              </Badge>
-              
-              {/* Active Windows and Countdown */}
-              {currentCycle.status === 'active' && (
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  {currentCycle.offerWindow.isActive && (
-                    <Badge variant="secondary" className="bg-accent/20 text-accent-foreground px-4 py-2">
-                      Ofertas Ativas (3 dias)
-                    </Badge>
-                  )}
-                  {currentCycle.extrasWindow.isActive && (
-                    <Badge variant="secondary" className="bg-secondary/20 text-secondary-foreground px-4 py-2">
-                      Extras Disponíveis
-                    </Badge>
-                  )}
-                  {timeRemaining > 0 && (
-                    <div className="flex items-center space-x-2 bg-gradient-to-r from-primary/10 to-accent/10 px-4 py-2 rounded-full">
-                      <Timer className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-primary">
-                        Termina em: {formatTimeRemaining(timeRemaining)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+          </button>
         </div>
-      </section>
+      </header>
 
-      {/* Current Cycle Card - Desktop 8 columns centered */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-        <div className="px-4 lg:px-0 lg:col-start-3 lg:col-span-8">
-          <CycleCard
-            title={currentCycle.name}
-            startDate={currentCycle.startDate.toLocaleDateString('pt-BR')}
-            endDate={currentCycle.endDate.toLocaleDateString('pt-BR')}
-            cycleType={currentCycle.type}
-            status={currentCycle.status}
-            description={`Ciclo ${currentCycle.type} com produtos frescos da estação.`}
-            offerWindowActive={currentCycle.offerWindow.isActive}
-            extrasWindowActive={currentCycle.extrasWindow.isActive}
-            timeRemaining={timeRemaining > 0 ? formatTimeRemaining(timeRemaining) : undefined}
+      {/* Container principal centralizado */}
+      <main className="flex-1 flex flex-col items-center px-4 lg:px-8 max-w-[1200px] mx-auto w-full">
+        {/* Bloco institucional com ícone folha + texto */}
+        <section className="flex items-center justify-center gap-3 mt-16 lg:mt-20 mb-8 lg:mb-10 max-w-[720px] px-4 mx-auto">
+          <img 
+            src={leafIcon} 
+            alt="Folha verde" 
+            className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 -mt-12"
           />
-        </div>
-      </section>
+          <p className="text-[#374151] text-base lg:text-lg text-center leading-relaxed font-medium">
+            Divino Alimento é uma plataforma que facilita o fluxo de informação de vendas de alimentos produzido por diversos agricultores e agricultoras para diversos consumidores
+          </p>
+        </section>
 
-      {/* Date Windows - Desktop 3-4 columns per row */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-        <div className="px-4 lg:px-0 lg:col-start-2 lg:col-span-10">
-          <h2 className="font-poppins text-lg lg:text-xl font-semibold mb-6 flex items-center">
-            <Calendar className="w-5 h-5 mr-2 text-primary" />
-            Janelas do Ciclo
-          </h2>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-foreground text-base lg:text-lg">Janela de Ofertas</h3>
-                    <p className="text-sm lg:text-base text-muted-foreground">
-                      {currentCycle.offerWindow.start.toLocaleDateString('pt-BR')} - {currentCycle.offerWindow.end.toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className={cn(
-                    currentCycle.offerWindow.isActive ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground"
-                  )}>
-                    {currentCycle.offerWindow.isActive ? 'Ativo' : 'Encerrado'}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Imagem hero com alimentos frescos */}
+        <section className="w-full max-w-[900px] mb-8 lg:mb-10">
+          <img 
+            src={heroAlimentos}
+            alt="Cesta de alimentos frescos orgânicos"
+            className="w-full h-[200px] sm:h-[240px] lg:h-[300px] object-cover object-center rounded-xl shadow-md"
+          />
+        </section>
 
-            <Card className="border-secondary/20 bg-secondary/5">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-foreground text-base lg:text-lg">Pedidos Extras</h3>
-                    <p className="text-sm lg:text-base text-muted-foreground">
-                      {currentCycle.extrasWindow.start.toLocaleDateString('pt-BR')} - {currentCycle.extrasWindow.end.toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className={cn(
-                    currentCycle.extrasWindow.isActive ? "bg-secondary/20 text-secondary" : "bg-muted text-muted-foreground"
-                  )}>
-                    {currentCycle.extrasWindow.isActive ? 'Disponível' : 'Encerrado'}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Título do ciclo */}
+        <h1 className="text-[#2E7D32] text-[26px] sm:text-[30px] lg:text-[38px] font-bold text-center mb-6 lg:mb-8 mt-8">
+          {cycleTitle}
+        </h1>
+
+        {/* Botão CTA */}
+        <button
+          onClick={() => navigate('/login')}
+          className="bg-[#2E7D32] hover:bg-[#1E6529] text-white font-semibold px-8 py-3.5 rounded-full transition-colors mb-16 lg:mb-20 text-lg w-full max-w-[320px] shadow-md"
+        >
+          entrar/cadastrar
+        </button>
+
+        {/* Rodapé com logos */}
+        <footer className="flex flex-col items-center gap-8 mb-16 lg:mb-20 mt-auto">
+          <div className="w-[200px] h-[4px] bg-[#2E7D32] opacity-40" />
+          <p className="text-[#4B5563] text-lg sm:text-xl lg:text-2xl font-semibold">desenvolvido por:</p>
+          <div className="flex items-center gap-12 sm:gap-16 lg:gap-20">
+            <a 
+              href="https://www.akarui.org.br/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:opacity-80 transition-opacity"
+            >
+              <img 
+                src={logoAkarui}
+                alt="Akarui"
+                className="h-20 sm:h-28 lg:h-[120px] object-contain"
+                style={{ filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.15))' }}
+              />
+            </a>
+            <a 
+              href="https://www.tekopora.top/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:opacity-80 transition-opacity"
+            >
+              <img 
+                src={logoTekopora}
+                alt="Tekoporã"
+                className="h-20 sm:h-28 lg:h-[120px] object-contain"
+                style={{ filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.15))' }}
+              />
+            </a>
           </div>
-        </div>
-      </section>
-
-      </ResponsiveLayout>
+        </footer>
+      </main>
     </div>
   );
 };

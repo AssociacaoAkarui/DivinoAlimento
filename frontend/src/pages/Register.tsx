@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,20 @@ import { ArrowLeft, User, Mail, Phone, Lock, AlertCircle, CheckCircle2, Store, S
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useConsumer } from '@/contexts/ConsumerContext';
+import { useAuth, UserRole } from '@/contexts/AuthContext';
+
+const getDefaultRoute = (role: UserRole): string => {
+  switch (role) {
+    case 'consumidor':
+      return '/dashboard';
+    case 'fornecedor':
+      return '/fornecedor/loja';
+    case 'admin':
+      return '/admin/dashboard';
+    case 'admin_mercado':
+      return '/admin-mercado/dashboard';
+  }
+};
 
 // Mock data for markets with types
 const mockMarkets = [
@@ -53,6 +67,15 @@ const Register = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { setConsumerType } = useConsumer();
+  const { register: registerUser, activeRole, isAuthenticated } = useAuth();
+
+  // Redirecionar após registro bem-sucedido
+  useEffect(() => {
+    if (isAuthenticated && activeRole) {
+      const defaultRoute = getDefaultRoute(activeRole);
+      navigate(defaultRoute);
+    }
+  }, [isAuthenticated, activeRole, navigate]);
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -85,8 +108,8 @@ const Register = () => {
     const errors: string[] = [];
     
     if (!data.name.trim()) errors.push('Nome é obrigatório');
-    if (!data.phone.trim()) errors.push('Telefone é obrigatório');
-    else if (!/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(data.phone)) errors.push('Telefone inválido');
+    if (!data.phone.trim()) errors.push('Celular é obrigatório');
+    else if (!/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(data.phone)) errors.push('Celular inválido');
     if (!data.email.trim()) errors.push('E-mail é obrigatório');
     else if (!/\S+@\S+\.\S+/.test(data.email)) errors.push('E-mail inválido');
     if (!data.confirmEmail.trim()) errors.push('Confirmação de e-mail é obrigatória');
@@ -96,7 +119,6 @@ const Register = () => {
     if (!data.confirmPassword.trim()) errors.push('Confirmação de senha é obrigatória');
     else if (data.password !== data.confirmPassword) errors.push('Senhas não coincidem');
     if (!hasAnyProfile) errors.push('Selecione pelo menos um perfil');
-    if (data.profiles.consumidor && !data.selectedMarket) errors.push('Selecione um mercado');
 
     return errors;
   };
@@ -114,32 +136,32 @@ const Register = () => {
 
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      const selectedProfiles = Object.entries(data.profiles)
-        .filter(([_, selected]) => selected)
-        .map(([profile, _]) => profile);
+    try {
+      // Mapear perfis selecionados para UserRole[]
+      const selectedRoles: UserRole[] = [];
+      if (data.profiles.consumidor) selectedRoles.push('consumidor');
+      if (data.profiles.fornecedor) selectedRoles.push('fornecedor');
+      if (data.profiles.adminGeral) selectedRoles.push('admin');
+      if (data.profiles.adminMercado) selectedRoles.push('admin_mercado');
       
-      localStorage.setItem('da.profiles', JSON.stringify(selectedProfiles));
+      // Registrar usuário com roles
+      await registerUser(data.email, data.password, data.name, selectedRoles);
       
-      // Save consumer market and type if selected
-      if (data.profiles.consumidor && data.selectedMarket) {
-        const selectedMarket = mockMarkets.find(m => m.id === data.selectedMarket);
-        console.log('Selected market:', selectedMarket);
-        const type = selectedMarket?.type || 'cesta';
-        console.log('Consumer type being saved:', type);
-        localStorage.setItem('da.marketId', data.selectedMarket);
-        localStorage.setItem('da.consumerType', type);
-        setConsumerType(type);
-      }
-      
-      setIsLoading(false);
       toast({
         title: "Conta criada com sucesso!",
-        description: "Verifique seu e-mail para ativar sua conta.",
+        description: "Redirecionando para seu painel...",
       });
-      navigate('/verificar-email', { state: { email: data.email, profiles: selectedProfiles } });
-    }, 1500);
+      
+      // O redirecionamento será feito pelo useEffect
+    } catch (error) {
+      toast({
+        title: "Erro ao criar conta",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatPhone = (value: string) => {
@@ -165,8 +187,8 @@ const Register = () => {
       }
     >
       {/* Desktop centered registration with co-brand */}
-      <div className="flex items-center justify-center min-h-screen py-12">
-        <div className="w-full max-w-2xl lg:max-w-4xl px-4">
+      <div className="flex items-center justify-center min-h-screen py-12 max-[767px]:pb-24">
+        <div className="w-full max-w-[1140px] mx-auto px-6">
           {/* Co-brand AKARUI */}
           <CoBrandAkarui />
           
@@ -188,7 +210,7 @@ const Register = () => {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Desktop Two-Column Layout */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-[7fr_5fr] md:gap-8 min-[1200px]:grid-cols-2 min-[1200px]:gap-6">
                     
                     {/* Left Column - Main Information */}
                     <div className="space-y-4">
@@ -222,7 +244,7 @@ const Register = () => {
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Telefone</FormLabel>
+                            <FormLabel>Celular</FormLabel>
                             <FormControl>
                               <div className="relative">
                                 <Phone className="absolute left-3 top-3 w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
@@ -339,246 +361,173 @@ const Register = () => {
 
                     {/* Right Column - Profile Selection & Markets */}
                     <div className="space-y-4">
-                      <h3 className="font-poppins text-lg font-semibold text-foreground">
-                        Seleção de Perfis
-                      </h3>
+                      <div>
+                        <h3 className="font-poppins text-lg font-semibold text-foreground mb-2 max-[767px]:mb-2.5 min-[1200px]:mb-4">
+                          Seleção de Perfis
+                        </h3>
+                        <Label className="text-sm lg:text-base font-medium text-muted-foreground">Escolha seus perfis (múltipla seleção)</Label>
+                      </div>
                       
                       <div className="space-y-3">
-                        <Label className="text-sm lg:text-base font-medium">Escolha seus perfis (múltipla seleção)</Label>
-                        
-                        {/* Consumidor/Consumidora */}
-                        <div className="space-y-2">
-                          <div className="flex items-start space-x-3 p-4 border-2 rounded-lg hover:bg-muted/30 transition-colors">
+                        {/* Grid responsivo para cards de perfil */}
+                        <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-3 min-[1200px]:gap-3">
+                          {/* Consumidor/Consumidora */}
+                          <label 
+                            className="flex flex-col gap-2.5 p-4 max-[767px]:p-3.5 min-[1200px]:p-[18px] border rounded-[14px] transition-all duration-150 cursor-pointer min-h-[112px] min-[1200px]:min-h-[120px] bg-white shadow-sm data-[selected=true]:border-[#239B56] data-[selected=true]:bg-[#EDF8F1] hover:border-[#BFE8CF] hover:shadow-md focus-within:outline focus-within:outline-2 focus-within:outline-[#239B56] focus-within:outline-offset-2"
+                            data-selected={form.watch('profiles.consumidor')}
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                form.setValue('profiles.consumidor', !form.getValues('profiles.consumidor'));
+                              }
+                            }}
+                          >
                             <FormField
                               control={form.control}
                               name="profiles.consumidor"
                               render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                  <div className="space-y-1 leading-none">
-                                    <FormLabel className="flex items-center space-x-3 cursor-pointer font-medium lg:text-base">
-                                      <ShoppingBasket className="w-5 h-5 text-primary" />
-                                      <span>Consumidor/Consumidora</span>
+                                <FormItem className="flex flex-col gap-1 w-full">
+                                  <div className="flex items-center gap-2.5">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="pointer-events-none"
+                                      />
+                                    </FormControl>
+                                    <ShoppingBasket className="w-5 h-5 max-[767px]:w-[20px] max-[767px]:h-[20px] min-[1200px]:w-[22px] min-[1200px]:h-[22px] text-primary flex-shrink-0" />
+                                    <FormLabel className="cursor-pointer font-semibold text-base max-[767px]:text-[15px] min-[1200px]:text-[17px] leading-[1.25] whitespace-normal break-words hyphens-auto m-0">
+                                      Consumidor(@)
                                     </FormLabel>
-                                    <p className="text-sm text-muted-foreground">
-                                      Acesso a cestas ou venda direta. Ideal para quem deseja receber produtos orgânicos.
-                                    </p>
                                   </div>
+                                  <p className="text-[14px] max-[767px]:text-[13px] min-[1200px]:text-[15px] text-[#606C76] leading-[1.45] whitespace-normal break-words hyphens-auto line-clamp-2 min-[1200px]:line-clamp-3 ml-[34px] max-[767px]:ml-[30px]">
+                                    Acesso a cestas ou venda direta. Ideal para quem deseja receber produtos orgânicos.
+                                  </p>
                                 </FormItem>
                               )}
                             />
-                          </div>
-                          
-                          {profiles.consumidor && (
-                              <div className="ml-6">
-                                <FormField
-                                  control={form.control}
-                                  name="selectedMarket"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel className="text-sm">Selecione um mercado *</FormLabel>
-                                      <Select onValueChange={field.onChange} value={field.value ?? ''}>
-                                        <FormControl>
-                                          <SelectTrigger className="lg:h-10">
-                                            <SelectValue placeholder="Escolha um mercado">
-                                              {field.value && (() => {
-                                                const selectedMarket = mockMarkets.find(m => m.id === field.value);
-                                                if (selectedMarket) {
-                                                  return (
-                                                    <div className="flex items-center justify-between w-full">
-                                                      <span>{selectedMarket.name}</span>
-                                                      <Badge 
-                                                        variant={selectedMarket.type === 'cesta' ? 'success' : 'warning'} 
-                                                        className="ml-2 text-xs"
-                                                      >
-                                                        {selectedMarket.type === 'cesta' ? 'Cestas' : 'Venda Direta'}
-                                                      </Badge>
-                                                    </div>
-                                                  );
-                                                }
-                                              })()}
-                                            </SelectValue>
-                                          </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                          {mockMarkets.map((market) => (
-                                            <SelectItem key={market.id} value={market.id} className="cursor-pointer">
-                                              <div className="flex items-center justify-between w-full">
-                                                <span className="flex-1">{market.name}</span>
-                                                <Badge 
-                                                  variant={market.type === 'cesta' ? 'success' : 'warning'} 
-                                                  className="ml-2 text-xs"
-                                                >
-                                                  {market.type === 'cesta' ? 'Cestas' : 'Venda Direta'}
-                                                </Badge>
-                                              </div>
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        Há mercados de Cestas e de Venda Direta.
-                                      </p>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                          )}
-                        </div>
+                          </label>
 
-                         {/* Fornecedor/Fornecedora */}
-                         <div className="space-y-2">
-                           <div className="flex items-start space-x-3 p-4 border-2 rounded-lg hover:bg-muted/30 transition-colors">
-                             <FormField
-                               control={form.control}
-                               name="profiles.fornecedor"
-                               render={({ field }) => (
-                                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                   <FormControl>
-                                     <Checkbox
-                                       checked={field.value}
-                                       onCheckedChange={field.onChange}
-                                     />
-                                   </FormControl>
-                                   <div className="space-y-1 leading-none">
-                                     <FormLabel className="flex items-center space-x-3 cursor-pointer font-medium lg:text-base">
-                                       <Store className="w-5 h-5 text-accent" />
-                                       <span>Fornecedor/Fornecedora</span>
-                                     </FormLabel>
-                                     <p className="text-sm text-muted-foreground">
-                                       Gestão de produtos e vendas para estabelecimentos.
-                                     </p>
-                                   </div>
-                                 </FormItem>
-                               )}
-                             />
-                           </div>
-                           
-                           {profiles.fornecedor && (
-                             <div className="ml-6">
-                               <FormField
-                                 control={form.control}
-                                 name="priorityMarket"
-                                 render={({ field }) => (
-                                   <FormItem>
-                                     <FormLabel className="text-sm">Mercados prioritários</FormLabel>
-                                     <Select onValueChange={field.onChange} value={field.value}>
-                                       <FormControl>
-                                         <SelectTrigger className="lg:h-10">
-                                           <SelectValue placeholder="Escolha um mercado prioritário" />
-                                         </SelectTrigger>
-                                       </FormControl>
-                                       <SelectContent>
-                                         {mockPriorityMarkets.map((market) => (
-                                           <SelectItem key={market.id} value={market.id}>
-                                             {market.name} - {market.priority}
-                                           </SelectItem>
-                                         ))}
-                                       </SelectContent>
-                                     </Select>
-                                     <FormMessage />
-                                   </FormItem>
-                                 )}
-                               />
-                             </div>
-                           )}
-                         </div>
+                          {/* Fornecedor/Fornecedora */}
+                          <label 
+                            className="flex flex-col gap-2.5 p-4 max-[767px]:p-3.5 min-[1200px]:p-[18px] border rounded-[14px] transition-all duration-150 cursor-pointer min-h-[112px] min-[1200px]:min-h-[120px] bg-white shadow-sm data-[selected=true]:border-[#239B56] data-[selected=true]:bg-[#EDF8F1] hover:border-[#BFE8CF] hover:shadow-md focus-within:outline focus-within:outline-2 focus-within:outline-[#239B56] focus-within:outline-offset-2"
+                            data-selected={form.watch('profiles.fornecedor')}
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                form.setValue('profiles.fornecedor', !form.getValues('profiles.fornecedor'));
+                              }
+                            }}
+                          >
+                            <FormField
+                              control={form.control}
+                              name="profiles.fornecedor"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-col gap-1 w-full">
+                                  <div className="flex items-center gap-2.5">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="pointer-events-none"
+                                      />
+                                    </FormControl>
+                                    <Store className="w-5 h-5 max-[767px]:w-[20px] max-[767px]:h-[20px] min-[1200px]:w-[22px] min-[1200px]:h-[22px] text-accent flex-shrink-0" />
+                                    <FormLabel className="cursor-pointer font-semibold text-base max-[767px]:text-[15px] min-[1200px]:text-[17px] leading-[1.25] whitespace-normal break-words hyphens-auto m-0">
+                                      Fornecedor(@)
+                                    </FormLabel>
+                                  </div>
+                                  <p className="text-[14px] max-[767px]:text-[13px] min-[1200px]:text-[15px] text-[#606C76] leading-[1.45] whitespace-normal break-words hyphens-auto line-clamp-2 min-[1200px]:line-clamp-3 ml-[34px] max-[767px]:ml-[30px]">
+                                    Gestão de produtos e vendas para estabelecimentos.
+                                  </p>
+                                </FormItem>
+                              )}
+                            />
+                          </label>
 
-                         {/* Administrador Geral */}
-                         <div className="flex items-start space-x-3 p-4 border-2 rounded-lg hover:bg-muted/30 transition-colors">
-                           <FormField
-                             control={form.control}
-                             name="profiles.adminGeral"
-                             render={({ field }) => (
-                               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                 <FormControl>
-                                   <Checkbox
-                                     checked={field.value}
-                                     onCheckedChange={field.onChange}
-                                   />
-                                 </FormControl>
-                                 <div className="space-y-1 leading-none">
-                                   <FormLabel className="flex items-center space-x-3 cursor-pointer font-medium lg:text-base">
-                                     <Shield className="w-5 h-5 text-destructive" />
-                                     <span>Administrador/Administradora Geral</span>
-                                   </FormLabel>
-                                   <p className="text-sm text-muted-foreground">
-                                     Gestão completa da plataforma e todos os mercados.
-                                   </p>
-                                 </div>
-                               </FormItem>
-                             )}
-                           />
-                         </div>
+                          {/* Administrador Geral */}
+                          <label 
+                            className="flex flex-col gap-2.5 p-4 max-[767px]:p-3.5 min-[1200px]:p-[18px] border rounded-[14px] transition-all duration-150 cursor-pointer min-h-[112px] min-[1200px]:min-h-[120px] bg-white shadow-sm data-[selected=true]:border-[#239B56] data-[selected=true]:bg-[#EDF8F1] hover:border-[#BFE8CF] hover:shadow-md focus-within:outline focus-within:outline-2 focus-within:outline-[#239B56] focus-within:outline-offset-2"
+                            data-selected={form.watch('profiles.adminGeral')}
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                form.setValue('profiles.adminGeral', !form.getValues('profiles.adminGeral'));
+                              }
+                            }}
+                          >
+                            <FormField
+                              control={form.control}
+                              name="profiles.adminGeral"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-col gap-1 w-full">
+                                  <div className="flex items-center gap-2.5">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="pointer-events-none"
+                                      />
+                                    </FormControl>
+                                    <Shield className="w-5 h-5 max-[767px]:w-[20px] max-[767px]:h-[20px] min-[1200px]:w-[22px] min-[1200px]:h-[22px] text-destructive flex-shrink-0" />
+                                    <FormLabel className="cursor-pointer font-semibold text-base max-[767px]:text-[15px] min-[1200px]:text-[17px] leading-[1.25] whitespace-normal break-words hyphens-auto m-0">
+                                      Administrador(@)
+                                    </FormLabel>
+                                  </div>
+                                  <p className="text-[14px] max-[767px]:text-[13px] min-[1200px]:text-[15px] text-[#606C76] leading-[1.45] whitespace-normal break-words hyphens-auto line-clamp-2 min-[1200px]:line-clamp-3 ml-[34px] max-[767px]:ml-[30px]">
+                                    Gestão completa da plataforma e todos os mercados.
+                                  </p>
+                                </FormItem>
+                              )}
+                            />
+                          </label>
 
-                         {/* Administrador de Mercado */}
-                        <div className="space-y-2">
-                          <div className="flex items-start space-x-3 p-4 border-2 rounded-lg hover:bg-muted/30 transition-colors">
+                          {/* Administrador de Mercado */}
+                          <label 
+                            className="flex flex-col gap-2.5 p-4 max-[767px]:p-3.5 min-[1200px]:p-[18px] border rounded-[14px] transition-all duration-150 cursor-pointer min-h-[112px] min-[1200px]:min-h-[120px] bg-white shadow-sm data-[selected=true]:border-[#239B56] data-[selected=true]:bg-[#EDF8F1] hover:border-[#BFE8CF] hover:shadow-md focus-within:outline focus-within:outline-2 focus-within:outline-[#239B56] focus-within:outline-offset-2"
+                            data-selected={form.watch('profiles.adminMercado')}
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                form.setValue('profiles.adminMercado', !form.getValues('profiles.adminMercado'));
+                              }
+                            }}
+                          >
                             <FormField
                               control={form.control}
                               name="profiles.adminMercado"
                               render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                  <div className="space-y-1 leading-none">
-                                    <FormLabel className="flex items-center space-x-3 cursor-pointer font-medium lg:text-base">
-                                      <UserCheck className="w-5 h-5 text-warning" />
-                                      <span>Administrador/Administradora de Mercado</span>
+                                <FormItem className="flex flex-col gap-1 w-full">
+                                  <div className="flex items-center gap-2.5">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="pointer-events-none"
+                                      />
+                                    </FormControl>
+                                    <UserCheck className="w-5 h-5 max-[767px]:w-[20px] max-[767px]:h-[20px] min-[1200px]:w-[22px] min-[1200px]:h-[22px] text-warning flex-shrink-0" />
+                                    <FormLabel className="cursor-pointer font-semibold text-base max-[767px]:text-[15px] min-[1200px]:text-[17px] leading-[1.25] whitespace-normal break-words hyphens-auto m-0">
+                                      Administrador(@) de mercado
                                     </FormLabel>
-                                    <p className="text-sm text-muted-foreground">
-                                      Gestão específica de um mercado e seus fornecedores.
-                                    </p>
                                   </div>
+                                  <p className="text-[14px] max-[767px]:text-[13px] min-[1200px]:text-[15px] text-[#606C76] leading-[1.45] whitespace-normal break-words hyphens-auto line-clamp-2 min-[1200px]:line-clamp-3 ml-[34px] max-[767px]:ml-[30px]">
+                                    Gestão específica de um mercado e seus fornecedores.
+                                  </p>
                                 </FormItem>
                               )}
                             />
-                          </div>
-                          
-                          {profiles.adminMercado && (
-                            <div className="ml-6">
-                              <FormField
-                                control={form.control}
-                                name="managedMarket"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel className="text-sm">Mercado para administrar</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                      <FormControl>
-                                        <SelectTrigger className="lg:h-10">
-                                          <SelectValue placeholder="Escolha um mercado para administrar" />
-                                        </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                        {mockMarkets.map((market) => (
-                                          <SelectItem key={market.id} value={market.id}>
-                                            {market.name}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          )}
+                          </label>
                         </div>
                       </div>
 
                       {/* Validation Status */}
-                      <div className="bg-muted/50 p-4 rounded-lg">
-                        <h4 className="text-sm font-medium text-foreground mb-3">Status da Validação:</h4>
+                      <div className="p-4 border rounded-[14px] bg-white shadow-sm mt-4">
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Status da Validação:</h4>
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
                             {watchedValues.name?.trim() ? (
@@ -594,7 +543,7 @@ const Register = () => {
                             ) : (
                               <div className="w-4 h-4 rounded-full border-2 border-muted-foreground" />
                             )}
-                            <span className="text-sm">Telefone válido</span>
+                            <span className="text-sm">Celular válido</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             {watchedValues.email && /\S+@\S+\.\S+/.test(watchedValues.email) ? (
@@ -642,11 +591,11 @@ const Register = () => {
                   </div>
 
                   {/* Submit Button - Full Width */}
-                  <div className="pt-4">
+                  <div className="pt-4 max-[767px]:fixed max-[767px]:bottom-3 max-[767px]:left-1/2 max-[767px]:-translate-x-1/2 max-[767px]:w-[94%] max-[767px]:z-50">
                     <Button 
                       type="submit" 
                       variant="success"
-                      className="w-full lg:h-12 lg:text-base font-semibold" 
+                      className="w-full lg:h-12 lg:text-base font-semibold max-[767px]:rounded-[10px] max-[767px]:shadow-lg" 
                       disabled={isLoading}
                       size="lg"
                     >
