@@ -1,11 +1,13 @@
 services:
   app_tests.dev:
-    user: "${UID}:${GID}"
     image: node:22
     working_dir: /app
-    command: sleep 4h
+    command: sh -c "npm install && sleep 4h"
     volumes:
       - ./app:/app
-      - /app/node_modules
+      - test_node_modules:/app/node_modules
     environment:
       - NODE_ENV=test
+
+volumes:
+  test_node_modules:

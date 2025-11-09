@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon .",
-    "test": "npx cucumber",
+    "test": "NODE_ENV=test node_modules/.bin/cucumber-js",
     "test:unit": "NODE_ENV=test mocha test/*.test.js",
     "test:all": "npm run test:unit && npm test"
   },
