@@ -103,45 +103,19 @@ function init_server(config) {
 }
 
 if (process.env.NODE_ENV === "development") {
-  const obtenerIpDominio = () => {
-    return new Promise((resolve, reject) => {
-      dns.lookup("mock-oauth2-server", (err, address) => {
-        if (err) {
-          reject(err);
-        } else {
-          ipMockAuth = address;
-          resolve(ipMockAuth);
-        }
-      });
-    });
-  };
-
+  // Mock OAuth removido - usar autenticação GraphQL diretamente
   const config = {
     authRequired: false,
     auth0Logout: true,
     secret: "a long, randomly-generated string stored in env",
     baseURL: `${protocol}://${baseUrl}`,
     clientID: "debugger",
-    issuerBaseURL: "",
+    issuerBaseURL: `${protocol}://localhost:${port_auth}/default`,
     clientSecret: "debugger",
     authorizationParams: { response_type: "code" },
   };
 
-  if (protocol == "http") {
-    obtenerIpDominio()
-      .then(() => {
-        console.log(`A IP do Docker mock-oauth2-server è: ${ipMockAuth}`);
-        console.log(`A Base Url è: ${baseUrl}`);
-        config.issuerBaseURL = `${protocol}://${ipMockAuth}:${port_auth}/default`;
-        init_server(config);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  } else {
-    config.issuerBaseURL = `${protocol}://${process.env.BASE_URL_AUTH}`;
-    init_server(config);
-  }
+  init_server(config);
 }
 
 if (process.env.NODE_ENV === "production") {
