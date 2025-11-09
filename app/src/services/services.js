@@ -1069,6 +1069,37 @@ class UsuarioService {
     });
     return usuarios.map((u) => u.toJSON());
   }
+
+  async atualizarUsuario(id, dadosParaAtualizar) {
+    try {
+      const usuario = await Usuario.findByPk(id);
+      if (!usuario) {
+        throw new Error("Usuario not found");
+      }
+
+      const allowedFields = [
+        "nome",
+        "nomeoficial",
+        "celular",
+        "email",
+        "descritivo",
+        "cientepolitica",
+        "perfis",
+        "status",
+      ];
+
+      const payloadSeguro = filterPayload(
+        Usuario,
+        dadosParaAtualizar,
+        allowedFields,
+      );
+
+      await usuario.update(payloadSeguro);
+      return usuario;
+    } catch (error) {
+      throw new ServiceError("Falha ao atualizar usuario.", { cause: error });
+    }
+  }
 }
 
 module.exports = {

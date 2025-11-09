@@ -29,9 +29,21 @@ type Usuario {
     perfis: [String!]!
 }
 
+input AtualizarUsuarioInput {
+    nome: String
+    nomeoficial: String
+    celular: String
+    email: String
+    descritivo: String
+    cientepolitica: String
+    perfis: [String!]
+    status: String
+}
+
 type Mutation {
     sessionLogin(input: LoginInput!): ActiveSession!
     sessionLogout: LogoutResponse!
+    atualizarUsuario(id: ID!, input: AtualizarUsuarioInput!): Usuario!
 }
 
 type Query {

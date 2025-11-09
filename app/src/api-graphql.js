@@ -66,6 +66,14 @@ const rootValue = {
       success: session.success,
     };
   },
+  atualizarUsuario: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { id, input } = args;
+    const usuario = await context.usuarioService.atualizarUsuario(id, input);
+    return usuario;
+  },
   systemInformation: async (args, context) => {
     await requiredAuthenticated(context);
     await setupSession(context);
