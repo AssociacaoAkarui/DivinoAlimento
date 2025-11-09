@@ -50,9 +50,8 @@ module.exports = (sequelize, DataTypes) => {
             }
           : DataTypes.ARRAY(
               DataTypes.ENUM(
-                "info",
-                "master",
                 "admin",
+                "adminmercado",
                 "fornecedor",
                 "consumidor",
               ),

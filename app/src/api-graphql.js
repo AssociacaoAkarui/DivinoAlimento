@@ -53,7 +53,7 @@ const rootValue = {
     return {
       usuarioId: session.usuarioId,
       token: session.token,
-      perfis: ["admin"],
+      perfis: session.perfis,
     };
   },
   sessionLogout: async (args, context) => {
