@@ -538,8 +538,12 @@ describe("Graphql", async function () {
     });
 
     expect(resultListarUsuarios.data.listarUsuarios).to.have.lengthOf(3);
-    expect(resultListarUsuarios.data.listarUsuarios[0]).to.have.property("email");
-    expect(resultListarUsuarios.data.listarUsuarios[0]).to.have.property("perfis");
+    expect(resultListarUsuarios.data.listarUsuarios[0]).to.have.property(
+      "email",
+    );
+    expect(resultListarUsuarios.data.listarUsuarios[0]).to.have.property(
+      "perfis",
+    );
   });
 
   it("non-admin user cannot list usuarios", async function () {
@@ -629,5 +633,105 @@ describe("Graphql", async function () {
 
     expect(resultListarUsuarios.errors).to.exist;
     expect(resultListarUsuarios.errors[0].message).to.equal("Unauthorized");
+  });
+
+  it("admin user can update usuario", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    // Create admin user
+    const adminUser = await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password",
+      },
+      {
+        nome: "Admin",
+        perfis: ["admin"],
+      },
+    );
+
+    // Create user to update
+    const userToUpdate = await usuarioService.create(
+      {
+        email: "user@example.com",
+        senha: "password",
+      },
+      {
+        nome: "User Original",
+        perfis: ["consumidor"],
+        status: "ativo",
+      },
+    );
+
+    // Update user
+    const updatedUser = await usuarioService.atualizarUsuario(userToUpdate.id, {
+      nome: "User Updated",
+      status: "inativo",
+    });
+
+    expect(updatedUser.nome).to.equal("User Updated");
+    expect(updatedUser.status).to.equal("inativo");
+  });
+
+  it("update usuario with multiple fields", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const user = await usuarioService.create(
+      {
+        email: "user@example.com",
+        senha: "password",
+      },
+      {
+        nome: "Original Name",
+        perfis: ["consumidor"],
+      },
+    );
+
+    const updatedUser = await usuarioService.atualizarUsuario(user.id, {
+      nome: "New Name",
+      nomeoficial: "Official Name",
+      celular: "11999999999",
+      email: "newemail@example.com",
+      perfis: ["fornecedor", "consumidor"],
+      status: "inativo",
+    });
+
+    expect(updatedUser.nome).to.equal("New Name");
+    expect(updatedUser.nomeoficial).to.equal("Official Name");
+    expect(updatedUser.celular).to.equal("11999999999");
+    expect(updatedUser.email).to.equal("newemail@example.com");
+    expect(updatedUser.perfis).to.deep.equal(["fornecedor", "consumidor"]);
+    expect(updatedUser.status).to.equal("inativo");
+  });
+
+  it("error updating non-existent usuario", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    try {
+      await usuarioService.atualizarUsuario(999, {
+        nome: "Test",
+      });
+      expect.fail("Should have thrown error");
+    } catch (error) {
+      expect(error.message).to.include("Falha ao atualizar usuario");
+    }
   });
 });

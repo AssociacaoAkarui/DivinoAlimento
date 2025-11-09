@@ -21,7 +21,7 @@ Funcionalidade: Gestão de Usuários
     Quando eu solicito os detalhes do usuário "Maria Santos"
     Então eu devo ver os detalhes do usuário "Maria Santos"
 
-  @usuario @USR-03 @pending
+  @usuario @USR-03
   Cenário: Atualizar um usuário existente
     Dado que existe um usuário "Pedro Costa"
     Quando eu edito o nome do usuário para "Pedro Costa Junior"
@@ -87,10 +87,10 @@ Funcionalidade: Gestão de Usuários
   Cenário: Listar todos os usuários (admin)
     Dado que existe um usuário admin "admin@example.com" com senha "password"
     E que existem os seguintes usuários cadastrados:
-      | nome           | email              | perfis       | status  |
-      | João Silva     | joao@example.com   | consumidor   | ativo   |
-      | Maria Santos   | maria@example.com  | fornecedor   | ativo   |
-      | Pedro Costa    | pedro@example.com  | consumidor   | inativo |
+      | nome         | email             | perfis     | status  |
+      | João Silva   | joao@example.com  | consumidor | ativo   |
+      | Maria Santos | maria@example.com | fornecedor | ativo   |
+      | Pedro Costa  | pedro@example.com | consumidor | inativo |
     Quando eu faço login como "admin@example.com" com senha "password"
     E eu solicito a listagem de todos os usuários
     Então eu devo receber uma lista com 4 usuários

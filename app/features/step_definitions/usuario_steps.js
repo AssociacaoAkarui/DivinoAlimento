@@ -10,6 +10,8 @@ let usuarioService;
 
 Before(function () {
   usuarioService = new UsuarioService(new CryptoUUIDService());
+  this.usuarioData = {};
+  this.currentUsuario = null;
 });
 
 Given("que eu quero criar um novo usuário", function () {
@@ -85,100 +87,107 @@ Then("eu devo ver os detalhes do usuário {string}", function (string) {
   return "pending";
 });
 
-Given("que existe um usuário {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+Given("que existe um usuário {string}", async function (nome) {
+  this.currentUsuario = await usuarioService.create(
+    {
+      email: `${nome.toLowerCase().replace(/\s+/g, ".")}@example.com`,
+      senha: "password",
+    },
+    {
+      nome: nome,
+      perfis: ["consumidor"],
+      status: "ativo",
+    },
+  );
 });
 
-When("eu edito o nome do usuário para {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When("eu edito o nome do usuário para {string}", function (nome) {
+  this.usuarioData.nome = nome;
 });
 
-When("eu edito o nome fantasia do usuário para {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When(
+  "eu edito o nome fantasia do usuário para {string}",
+  function (nomeFantasia) {
+    this.usuarioData.nomeoficial = nomeFantasia;
+  },
+);
+
+When("eu edito o celular para {string}", function (celular) {
+  this.usuarioData.celular = celular;
 });
 
-When("eu edito o celular para {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When(
+  "eu edito as informações para pagamento para {string}",
+  function (descritivo) {
+    this.usuarioData.descritivo = descritivo;
+  },
+);
+
+When("eu edito o email para {string}", function (email) {
+  this.usuarioData.email = email;
 });
 
-When("eu edito as informações para pagamento para {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When(
+  "eu edito o a política de privacidade para {string}",
+  function (cientepolitica) {
+    this.usuarioData.cientepolitica = cientepolitica;
+  },
+);
+
+When("eu edito o perfil do usuário para {string}", function (perfisString) {
+  // Converte "{fornecedor,consumidor}" para ["fornecedor", "consumidor"]
+  const perfis = perfisString.replace(/[{}]/g, "").split(",");
+  this.usuarioData.perfis = perfis;
 });
 
-When("eu edito o email para {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When("eu edito o status do usuário para {string}", function (status) {
+  this.usuarioData.status = status;
 });
 
-When("eu edito o a política de privacidade para {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When("salvo as alterações do usuário", async function () {
+  this.currentUsuario = await usuarioService.atualizarUsuario(
+    this.currentUsuario.id,
+    this.usuarioData,
+  );
 });
 
-When("eu edito o perfil do usuário para {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+Then("o nome do usuário deve ser {string}", function (nome) {
+  expect(this.currentUsuario.nome).to.equal(nome);
 });
 
-When("eu edito o status do usuário para {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+Then("o nome fantasia do usuário deve ser {string}", function (nomeFantasia) {
+  expect(this.currentUsuario.nomeoficial).to.equal(nomeFantasia);
 });
 
-When("salvo as alterações do usuário", function () {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
-});
-
-Then("o nome do usuário deve ser {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
-});
-
-Then("o nome fantasia do usuário deve ser {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
-});
-
-Then("o celular do usuário deve ser {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+Then("o celular do usuário deve ser {string}", function (celular) {
+  expect(this.currentUsuario.celular).to.equal(celular);
 });
 
 Then(
   "as informações para pagamento do usuário deve ser {string}",
-  function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return "pending";
+  function (descritivo) {
+    expect(this.currentUsuario.descritivo).to.equal(descritivo);
   },
 );
 
-Then("o email do usuário deve ser {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+Then("o email do usuário deve ser {string}", function (email) {
+  expect(this.currentUsuario.email).to.equal(email);
 });
 
 Then(
   "a políica de privacidade do usuário deve ser {string}",
-  function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return "pending";
+  function (cientepolitica) {
+    expect(this.currentUsuario.cientepolitica).to.equal(cientepolitica);
   },
 );
 
-Then("o perfil do usuário deve ser {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+Then("o perfil do usuário deve ser {string}", function (perfisString) {
+  const perfisEsperados = perfisString.replace(/[{}]/g, "").split(",");
+  expect(this.currentUsuario.perfis).to.deep.equal(perfisEsperados);
 });
 
-Then("o status do usuário deve ser {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+Then("o status do usuário deve ser {string}", function (status) {
+  expect(this.currentUsuario.status).to.equal(status);
 });
 
 Given(
