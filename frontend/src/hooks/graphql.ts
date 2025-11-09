@@ -110,3 +110,36 @@ export function useListarUsuarios() {
     },
   });
 }
+
+export function useAtualizarUsuario() {
+  const queryClient = useQueryClient();
+
+  return useMutation<Usuario, Error, { id: string; input: Partial<Usuario> }>({
+    mutationFn: async ({ id, input }) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request<{
+        atualizarUsuario: Usuario;
+      }>(
+        gql`
+          mutation AtualizarUsuario($id: ID!, $input: AtualizarUsuarioInput!) {
+            atualizarUsuario(id: $id, input: $input) {
+              id
+              nome
+              email
+              status
+              perfis
+            }
+          }
+        `,
+        { id, input },
+      );
+      return response.atualizarUsuario;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_usuarios"] });
+    },
+  });
+}

@@ -34,7 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import { StatusToggle } from "@/components/ui/status-toggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
-import { useListarUsuarios } from "@/hooks/graphql";
+import { useListarUsuarios, useAtualizarUsuario } from "@/hooks/graphql";
 
 interface Usuario {
   id: string;
@@ -50,6 +50,7 @@ const UsuarioIndex = () => {
   const { toast } = useToast();
   const { activeRole } = useAuth();
   const { data: usuariosBackend = [], isLoading, error } = useListarUsuarios();
+  const atualizarUsuario = useAtualizarUsuario();
   const {
     filters,
     debouncedSearch,
@@ -131,14 +132,25 @@ const UsuarioIndex = () => {
     id: string,
     newStatus: "Ativo" | "Inativo",
   ) => {
-    // Aqui você faria a chamada PATCH /{recurso}/{id} body { status: "ativo"|"inativo" }
-    // Simulando uma chamada API
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    toast({
-      title: "Status atualizado",
-      description: `Status do usuário alterado para ${newStatus}.`,
-    });
+    try {
+      await atualizarUsuario.mutateAsync({
+        id,
+        input: {
+          status: newStatus.toLowerCase() as "ativo" | "inativo",
+        },
+      });
+      toast({
+        title: "Status atualizado",
+        description: `Status do usuário alterado para ${newStatus}.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar status",
+        description:
+          error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
