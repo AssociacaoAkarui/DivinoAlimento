@@ -168,3 +168,9 @@ pip-selfcheck.json
 
 # Temporary files with ~ suffix
 *~
+
+# Rake tasks cache
+.rake_tasks~
+
+# Agent progress file
+_AGENTS.md
