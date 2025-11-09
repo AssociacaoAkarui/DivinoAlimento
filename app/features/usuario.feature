@@ -87,15 +87,15 @@ Funcionalidade: Gestão de Usuários
   Cenário: Listar todos os usuários (admin)
     Dado que existe um usuário admin "admin@example.com" com senha "password"
     E que existem os seguintes usuários cadastrados:
-      | nome         | email             | perfis     | status  |
-      | João Silva   | joao@example.com  | consumidor | ativo   |
-      | Maria Santos | maria@example.com | fornecedor | ativo   |
-      | Pedro Costa  | pedro@example.com | consumidor | inativo |
+      | nome         | email             | perfis           | status  |
+      | João Silva   | joao@example.com  | consumidor       | ativo   |
+      | Maria Santos | maria@example.com | admin,fornecedor | ativo   |
+      | Pedro Costa  | pedro@example.com | consumidor       | inativo |
     Quando eu faço login como "admin@example.com" com senha "password"
     E eu solicito a listagem de todos os usuários
     Então eu devo receber uma lista com 4 usuários
     E a lista deve conter o usuário "João Silva"
-    E a lista deve conter o usuário "Maria Santos"
+    E a lista deve conter o usuário "Maria Santos" com 2 perfis
     E a lista deve conter o usuário "Pedro Costa"
 
   @usuario @USR-09

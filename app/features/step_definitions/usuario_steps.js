@@ -302,7 +302,7 @@ Given(
         },
         {
           nome: usuario.nome,
-          perfis: [usuario.perfis],
+          perfis: usuario.perfis.split(",").map((p) => p.trim()),
           status: usuario.status,
         },
       );
@@ -368,6 +368,15 @@ Then("a lista deve conter o usuário {string}", function (nome) {
   const usuario = this.result.data.find((u) => u.nome === nome);
   expect(usuario).to.exist;
 });
+
+Then(
+  "a lista deve conter o usuário {string} com {int} perfis",
+  function (nome, quantidadePerfis) {
+    const usuario = this.result.data.find((u) => u.nome === nome);
+    expect(usuario).to.exist;
+    expect(usuario.perfis).to.have.lengthOf(quantidadePerfis);
+  },
+);
 
 Then("eu devo receber um erro {string}", function (errorMessage) {
   expect(this.result.error).to.equal(errorMessage);
