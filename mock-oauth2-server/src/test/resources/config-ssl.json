@@ -1,7 +1,0 @@
-{
-  "interactiveLogin": true,
-  "httpServer": {
-    "type": "NettyWrapper",
-    "ssl": {}
-  }
-}
