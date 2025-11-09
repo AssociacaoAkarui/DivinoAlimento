@@ -77,6 +77,13 @@ const rootValue = {
       version: "1.0.0",
     };
   },
+  listarUsuarios: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const usuarios = await context.usuarioService.listarTodos();
+    return usuarios;
+  },
 };
 
 const schemaSDL = fs.readFileSync(path.join(__dirname, "api.graphql"), "utf8");

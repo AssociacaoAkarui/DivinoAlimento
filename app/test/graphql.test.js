@@ -465,4 +465,169 @@ describe("Graphql", async function () {
     expect(resultSystemInfo.errors).to.exist;
     expect(resultSystemInfo.errors[0].message).to.equal("Unauthorized");
   });
+  it("admin user can list all usuarios", async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create({
+      email: "admin@example.com",
+      senha: "password",
+    });
+
+    await usuarioService.create(
+      {
+        email: "user1@example.com",
+        senha: "password",
+      },
+      {
+        perfis: ["consumidor"],
+      },
+    );
+
+    await usuarioService.create(
+      {
+        email: "user2@example.com",
+        senha: "password",
+      },
+      {
+        perfis: ["fornecedor"],
+      },
+    );
+
+    const resultLogin = await graphql({
+      schema: APIGraphql.schema,
+      source: `
+        mutation Login($input: LoginInput!) {
+          sessionLogin(input: $input) {
+            usuarioId
+            token
+          }
+        }
+      `,
+      variableValues: {
+        input: { email: "admin@example.com", senha: "password" },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: { usuarioService },
+    });
+
+    const queryListarUsuarios = `
+      query ListarUsuarios {
+        listarUsuarios {
+          id
+          nome
+          email
+          status
+          perfis
+        }
+      }
+    `;
+
+    const resultListarUsuarios = await graphql({
+      schema: APIGraphql.schema,
+      source: queryListarUsuarios,
+      rootValue: APIGraphql.rootValue,
+      contextValue: {
+        usuarioService,
+        sessionToken: resultLogin.data.sessionLogin.token,
+      },
+    });
+
+    expect(resultListarUsuarios.data.listarUsuarios).to.have.lengthOf(3);
+    expect(resultListarUsuarios.data.listarUsuarios[0]).to.have.property("email");
+    expect(resultListarUsuarios.data.listarUsuarios[0]).to.have.property("perfis");
+  });
+
+  it("non-admin user cannot list usuarios", async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const currentUsuario = await usuarioService.create(
+      {
+        email: "user@example.com",
+        senha: "password",
+      },
+      {
+        perfis: ["consumidor"],
+      },
+    );
+
+    const resultLogin = await graphql({
+      schema: APIGraphql.schema,
+      source: `
+        mutation Login($input: LoginInput!) {
+          sessionLogin(input: $input) {
+            usuarioId
+            token
+          }
+        }
+      `,
+      variableValues: {
+        input: { email: "user@example.com", senha: "password" },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: { usuarioService },
+    });
+
+    const queryListarUsuarios = `
+      query ListarUsuarios {
+        listarUsuarios {
+          id
+          nome
+          email
+        }
+      }
+    `;
+
+    const resultListarUsuarios = await graphql({
+      schema: APIGraphql.schema,
+      source: queryListarUsuarios,
+      rootValue: APIGraphql.rootValue,
+      contextValue: {
+        usuarioService,
+        sessionToken: resultLogin.data.sessionLogin.token,
+      },
+    });
+
+    expect(resultListarUsuarios.errors).to.exist;
+    expect(resultListarUsuarios.errors[0].message).to.equal("Admin required");
+  });
+
+  it("unauthenticated user cannot list usuarios", async function () {
+    await sequelize.sync({ force: true });
+
+    const queryListarUsuarios = `
+      query ListarUsuarios {
+        listarUsuarios {
+          id
+          nome
+          email
+        }
+      }
+    `;
+
+    const resultListarUsuarios = await graphql({
+      schema: APIGraphql.schema,
+      source: queryListarUsuarios,
+      rootValue: APIGraphql.rootValue,
+      contextValue: {
+        usuarioService: new UsuarioService({
+          uuid4() {
+            return "1234567890";
+          },
+        }),
+      },
+    });
+
+    expect(resultListarUsuarios.errors).to.exist;
+    expect(resultListarUsuarios.errors[0].message).to.equal("Unauthorized");
+  });
 });

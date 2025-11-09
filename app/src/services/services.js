@@ -1035,7 +1035,7 @@ class UsuarioService {
       sessionId: session.id,
       usuarioId: user.id,
       email: user.email,
-      perfis: ["admin"],
+      perfis: user.perfis,
       loggedIn: true,
       token: session.token,
     };
@@ -1060,6 +1060,14 @@ class UsuarioService {
         },
       },
     });
+  }
+
+  async listarTodos() {
+    const usuarios = await Usuario.findAll({
+      attributes: ["id", "nome", "email", "status", "perfis"],
+      order: [["nome", "ASC"]],
+    });
+    return usuarios.map((u) => u.toJSON());
   }
 }
 

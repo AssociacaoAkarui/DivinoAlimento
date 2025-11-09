@@ -82,3 +82,30 @@ Funcionalidade: Gestão de Usuários
     E que o usuário AUTH exista cadastrado no sistema
     Quando eu clico em logar
     Então o sistema retorna os dados do usuário
+
+  @usuario @USR-08
+  Cenário: Listar todos os usuários (admin)
+    Dado que existe um usuário admin "admin@example.com" com senha "password"
+    E que existem os seguintes usuários cadastrados:
+      | nome           | email              | perfis       | status  |
+      | João Silva     | joao@example.com   | consumidor   | ativo   |
+      | Maria Santos   | maria@example.com  | fornecedor   | ativo   |
+      | Pedro Costa    | pedro@example.com  | consumidor   | inativo |
+    Quando eu faço login como "admin@example.com" com senha "password"
+    E eu solicito a listagem de todos os usuários
+    Então eu devo receber uma lista com 4 usuários
+    E a lista deve conter o usuário "João Silva"
+    E a lista deve conter o usuário "Maria Santos"
+    E a lista deve conter o usuário "Pedro Costa"
+
+  @usuario @USR-09
+  Cenário: Listar usuários sem ser admin (não autorizado)
+    Dado que existe um usuário "user@example.com" com senha "password" e perfil "consumidor"
+    Quando eu faço login como "user@example.com" com senha "password"
+    E eu solicito a listagem de todos os usuários
+    Então eu devo receber um erro "Admin required"
+
+  @usuario @USR-10
+  Cenário: Listar usuários sem autenticação
+    Quando eu solicito a listagem de todos os usuários sem autenticação
+    Então eu devo receber um erro "Unauthorized"

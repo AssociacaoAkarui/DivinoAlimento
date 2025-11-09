@@ -81,7 +81,11 @@ server.all(
   createHandler({
     schema: APIGraphql.schema,
     rootValue: APIGraphql.rootValue,
-    context: APIGraphql.context,
+    context: (req) => {
+      const authHeader = req.headers.authorization || req.headers.Authorization;
+      const token = authHeader?.replace("Bearer ", "");
+      return APIGraphql.buildContext(token);
+    },
   }),
 );
 

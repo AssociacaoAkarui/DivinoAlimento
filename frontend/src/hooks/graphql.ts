@@ -26,6 +26,14 @@ interface SystemInformation {
   version: string;
 }
 
+interface Usuario {
+  id: string;
+  nome: string;
+  email: string;
+  status: string;
+  perfis: string[];
+}
+
 export function useLoginUsuario(
   options?: UseMutationOptions<
     { sessionLogin: SessionLogin },
@@ -73,6 +81,32 @@ export function useSystemInformation() {
           }
         }
       `);
+    },
+  });
+}
+
+export function useListarUsuarios() {
+  return useQuery<Usuario[], Error>({
+    queryKey: ["listar_usuarios"],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request<{
+        listarUsuarios: Usuario[];
+      }>(gql`
+        query ListarUsuarios {
+          listarUsuarios {
+            id
+            nome
+            email
+            status
+            perfis
+          }
+        }
+      `);
+      return response.listarUsuarios;
     },
   });
 }

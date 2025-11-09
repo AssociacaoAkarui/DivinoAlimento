@@ -1,70 +1,60 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { 
-  Search, 
-  Plus, 
-  Edit2, 
-  Trash2,
-  LogOut
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import { Search, Plus, Edit2, Trash2, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useListarUsuarios } from "@/hooks/graphql";
 
 interface Usuario {
   id: string;
   nome: string;
   email: string;
-  status: 'ativo' | 'inativo';
+  status: "ativo" | "inativo";
+  perfis: string[];
 }
 
 const Usuarios = () => {
   const navigate = useNavigate();
   const { activeRole } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const { data: usuarios = [], isLoading, error } = useListarUsuarios();
+  console.log("DEBUG Usuarios:", { usuarios, isLoading, error });
 
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
-    navigate('/');
+    localStorage.removeItem("adminAuth");
+    navigate("/");
   };
 
-  // Mock data for users
-  const usuarios: Usuario[] = [
-    { id: '1', nome: 'João Silva', email: 'joao@email.com', status: 'ativo' },
-    { id: '2', nome: 'Maria Santos', email: 'maria@email.com', status: 'ativo' },
-    { id: '3', nome: 'Pedro Costa', email: 'pedro@email.com', status: 'inativo' },
-    { id: '4', nome: 'Ana Oliveira', email: 'ana@email.com', status: 'ativo' },
-    { id: '5', nome: 'Carlos Pereira', email: 'carlos@email.com', status: 'ativo' },
-  ];
-
-  const filteredUsers = usuarios.filter(usuario => 
-    usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = usuarios.filter(
+    (usuario) =>
+      usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      usuario.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleEdit = (id: string) => {
-    console.log('Editar usuário:', id);
+    console.log("Editar usuário:", id);
     // TODO: Implementar edição
   };
 
   const handleDelete = (id: string) => {
-    console.log('Excluir usuário:', id);
+    console.log("Excluir usuário:", id);
     // TODO: Implementar exclusão
   };
 
   const handleAddUser = () => {
-    console.log('Adicionar usuário');
+    console.log("Adicionar usuário");
     // TODO: Implementar adição
   };
 
   return (
-    <ResponsiveLayout 
+    <ResponsiveLayout
       headerContent={
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="sm"
           onClick={handleLogout}
           className="focus-ring text-primary-foreground hover:bg-primary-hover"
@@ -79,7 +69,10 @@ const Usuarios = () => {
         <div className="md:flex md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
-              {activeRole === 'admin_mercado' ? 'Administrador de mercado - ' : ''}Usuários
+              {activeRole === "admin_mercado"
+                ? "Administrador de mercado - "
+                : ""}
+              Usuários
             </h1>
             <p className="text-sm md:text-base text-muted-foreground">
               Gerenciar perfis e acessos do sistema
@@ -117,9 +110,19 @@ const Usuarios = () => {
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
-              {filteredUsers.length === 0 ? (
+              {isLoading ? (
                 <div className="p-6 text-center text-muted-foreground">
-                  {searchTerm ? 'Nenhum usuário encontrado.' : 'Nenhum usuário cadastrado.'}
+                  Carregando usuários...
+                </div>
+              ) : error ? (
+                <div className="p-6 text-center text-destructive">
+                  Erro ao carregar usuários: {error.message}
+                </div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="p-6 text-center text-muted-foreground">
+                  {searchTerm
+                    ? "Nenhum usuário encontrado."
+                    : "Nenhum usuário cadastrado."}
                 </div>
               ) : (
                 filteredUsers.map((usuario) => (
@@ -130,11 +133,17 @@ const Usuarios = () => {
                           <h3 className="font-medium text-sm md:text-base">
                             {usuario.nome}
                           </h3>
-                          <Badge 
-                            variant={usuario.status === 'ativo' ? 'default' : 'secondary'}
-                            className={usuario.status === 'ativo' ? 'bg-green-500' : ''}
+                          <Badge
+                            variant={
+                              usuario.status === "ativo"
+                                ? "default"
+                                : "secondary"
+                            }
+                            className={
+                              usuario.status === "ativo" ? "bg-green-500" : ""
+                            }
                           >
-                            {usuario.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                            {usuario.status === "ativo" ? "Ativo" : "Inativo"}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
