@@ -4,7 +4,11 @@ import {
   useQueryClient,
   useQuery,
 } from "@tanstack/react-query";
-import { graphqlClient, graphqlClientSecure } from "../lib/graphql-client";
+import {
+  graphqlClient,
+  graphqlClientSecure,
+  getSessionToken,
+} from "../lib/graphql-client";
 import { gql } from "graphql-request";
 
 interface LoginInput {
@@ -30,10 +34,9 @@ export function useLoginUsuario(
   >,
 ) {
   const queryClient = useQueryClient();
-
   return useMutation<{ sessionLogin: SessionLogin }, Error, LoginInput>({
     mutationFn: (input: LoginInput) =>
-      graphqlClient.request<SessionLogin>(
+      graphqlClient.request<{ sessionLogin: SessionLogin }>(
         gql`
           mutation Login($input: LoginInput!) {
             sessionLogin(input: $input) {
@@ -49,18 +52,21 @@ export function useLoginUsuario(
       const sessionLogin = data.sessionLogin;
       queryClient.setQueryData<SessionLogin>(["usuario"], sessionLogin);
     },
+    ...options,
   });
 }
 
 export function useSystemInformation() {
-  const queryClient = useQueryClient();
-
-  return useQuery<SystemInformation, Error>({
+  return useQuery<{ systemInformation: SystemInformation }, Error>({
     queryKey: ["system_information"],
     queryFn: () => {
-      const usuario = queryClient.getQueryData<SessionLogin>(["usuario"]);
-      console.log(usuario);
-      return graphqlClientSecure(usuario.token).request<SystemInformation>(gql`
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return graphqlClientSecure(token).request<{
+        systemInformation: SystemInformation;
+      }>(gql`
         query SystemInformation {
           systemInformation {
             version

@@ -2,7 +2,6 @@ import { GraphQLClient } from "graphql-request";
 
 const GRAPHQL_ENDPOINT =
   import.meta.env.VITE_GRAPHQL_ENDPOINT || "http://localhost:13000/graphql";
-
 const SESSION_TOKEN_KEY = "session_token";
 
 export const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
