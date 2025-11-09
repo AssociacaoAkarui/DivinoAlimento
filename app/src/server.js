@@ -65,6 +65,17 @@ server.use("/js", express.static("node_modules/jquery/dist"));
 
 // API GRAPHQL
 const { default: APIGraphql } = require("./api-graphql");
+
+// Habilitar interface GraphQL (ruru) apenas em desenvolvimento
+if (process.env.NODE_ENV === "development") {
+  const { ruruHTML } = require("ruru/server");
+
+  server.get("/graphql", (_req, res) => {
+    res.type("html");
+    res.end(ruruHTML({ endpoint: "/graphql" }));
+  });
+}
+
 server.all(
   "/graphql",
   createHandler({
