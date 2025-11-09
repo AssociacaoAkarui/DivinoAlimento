@@ -40,7 +40,9 @@ describe("Howto", function () {
       attributes: ["id", "email", "perfis"],
     });
 
-    expect(currentUsuario.perfis).to.equal(dbUsuario.perfis);
+    const dbUsuarioJSON = dbUsuario.toJSON();
+
+    expect(currentUsuario.perfis).to.deep.equal(dbUsuarioJSON.perfis);
   });
 });
 
@@ -314,7 +316,6 @@ describe("Graphql", async function () {
       contextValue: { usuarioService }, // mock database, authorization, loaders, etc.
     });
 
-    // TODO
     expect(resultLogin).to.not.deep.equal({
       data: {
         sessionLogin: {
@@ -323,5 +324,145 @@ describe("Graphql", async function () {
         },
       },
     });
+  });
+
+  it("admin user can access systemInformation", async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const currentUsuario = await usuarioService.create({
+      email: "admin@example.com",
+      senha: "password",
+    });
+
+    const resultLogin = await graphql({
+      schema: APIGraphql.schema,
+      source: `
+        mutation Login($input: LoginInput!) {
+          sessionLogin(input: $input) {
+            usuarioId
+            token
+          }
+        }
+      `,
+      variableValues: {
+        input: { email: "admin@example.com", senha: "password" },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: { usuarioService },
+    });
+
+    const querySystemInfo = `
+      query SystemInformation {
+        systemInformation {
+          version
+        }
+      }
+    `;
+
+    const resultSystemInfo = await graphql({
+      schema: APIGraphql.schema,
+      source: querySystemInfo,
+      rootValue: APIGraphql.rootValue,
+      contextValue: {
+        usuarioService,
+        sessionToken: resultLogin.data.sessionLogin.token,
+      },
+    });
+
+    expect(resultSystemInfo.data).to.deep.equal({
+      systemInformation: {
+        version: "1.0.0",
+      },
+    });
+  });
+
+  it("non-admin user cannot access systemInformation", async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const currentUsuario = await usuarioService.create(
+      {
+        email: "user@example.com",
+        senha: "password",
+      },
+      {
+        perfis: ["consumidor"],
+      },
+    );
+
+    const resultLogin = await graphql({
+      schema: APIGraphql.schema,
+      source: `
+        mutation Login($input: LoginInput!) {
+          sessionLogin(input: $input) {
+            usuarioId
+            token
+          }
+        }
+      `,
+      variableValues: {
+        input: { email: "user@example.com", senha: "password" },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: { usuarioService },
+    });
+
+    const querySystemInfo = `
+      query SystemInformation {
+        systemInformation {
+          version
+        }
+      }
+    `;
+
+    const resultSystemInfo = await graphql({
+      schema: APIGraphql.schema,
+      source: querySystemInfo,
+      rootValue: APIGraphql.rootValue,
+      contextValue: {
+        usuarioService,
+        sessionToken: resultLogin.data.sessionLogin.token,
+      },
+    });
+
+    expect(resultSystemInfo.errors).to.exist;
+    expect(resultSystemInfo.errors[0].message).to.equal("Admin required");
+  });
+
+  it("unauthenticated user cannot access systemInformation", async function () {
+    await sequelize.sync({ force: true });
+
+    const querySystemInfo = `
+      query SystemInformation {
+        systemInformation {
+          version
+        }
+      }
+    `;
+
+    const resultSystemInfo = await graphql({
+      schema: APIGraphql.schema,
+      source: querySystemInfo,
+      rootValue: APIGraphql.rootValue,
+      contextValue: {
+        usuarioService: new UsuarioService({
+          uuid4() {
+            return "1234567890";
+          },
+        }),
+      },
+    });
+
+    expect(resultSystemInfo.errors).to.exist;
+    expect(resultSystemInfo.errors[0].message).to.equal("Unauthorized");
   });
 });
