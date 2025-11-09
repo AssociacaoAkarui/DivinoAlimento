@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { buildSchema } = require("graphql");
-const { Session } = require("../models");
+const { Session, Usuario } = require("../models");
 
 const {
   UsuarioService,
@@ -15,10 +15,15 @@ async function requiredAuthenticated(context) {
 }
 
 async function requiredAdmin(context) {
-  // TODO: pendient perfis
-  //   if (!context.session.perfis.includes("admin")) {
-  //   throw new Error("Admin required");
-  // }
+  const usuario = await Usuario.findByPk(context.session.usuarioId);
+
+  if (!usuario) {
+    throw new Error("User not found");
+  }
+
+  if (!usuario.perfis.includes("admin")) {
+    throw new Error("Admin required");
+  }
 }
 
 async function setupSession(context) {
