@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useLoginUsuario } from "@/hooks/graphql";
 import { setSessionToken, clearSessionToken } from "@/lib/graphql-client";
 
-export type UserRole = "consumidor" | "fornecedor" | "admin" | "admin_mercado";
+export type UserRole = "consumidor" | "fornecedor" | "admin" | "adminmercado";
 
 interface User {
   id: string;
@@ -59,7 +59,7 @@ const getDefaultRoute = (role: UserRole): string => {
       return "/fornecedor/loja";
     case "admin":
       return "/admin/dashboard";
-    case "admin_mercado":
+    case "adminmercado":
       return "/adminmercado/dashboard";
   }
 };
@@ -120,6 +120,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       switch (perfil) {
         case "admin":
           return "admin";
+        case "adminmercado":
+          return "adminmercado";
         case "fornecedor":
           return "fornecedor";
         case "consumidor":
