@@ -56,7 +56,6 @@ services:
       - .env.prod
     environment:
       - VITE_GRAPHQL_ENDPOINT=${VITE_GRAPHQL_ENDPOINT}
-      - NODE_ENV=production
     networks:
       - network_prod
     depends_on:
