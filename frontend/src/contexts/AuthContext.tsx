@@ -110,8 +110,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     const response = await loginMutation.mutateAsync({
-      email,
-      senha: password,
+      input: {
+        email,
+        senha: password,
+      },
     });
 
     const { sessionLogin } = response;
