@@ -56,6 +56,7 @@ services:
       - .env.prod
     environment:
       - VITE_GRAPHQL_ENDPOINT=${VITE_GRAPHQL_ENDPOINT}
+      - GRAPHQL_SCHEMA_URL=http://app.prod:13000/graphql
     networks:
       - network_prod
     depends_on:
