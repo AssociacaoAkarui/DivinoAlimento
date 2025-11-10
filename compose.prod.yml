@@ -36,11 +36,7 @@ services:
     networks:
       - network_prod
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          'curl -f -X POST http://localhost:13000/graphql -H ''Content-Type: application/json'' -d ''{"query":"{ __typename }"}'' || exit 1',
-        ]
+      test: ["CMD-SHELL", "nc -z localhost 13000 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
