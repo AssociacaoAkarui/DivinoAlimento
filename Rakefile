@@ -29,6 +29,13 @@ end
 
 desc 'Ambiente Vivo'
 namespace :vivo do
+  desc 'GraphQL Codegen - Gerar tipos do schema GraphQL'
+  task :codegen do
+    Dir.chdir('frontend') do
+      sh 'npm run codegen'
+    end
+  end
+
   desc 'DB migração'
   task :migracao do
     compose('exec', 'app.dev', 'npx', 'sequelize', 'db:migrate', compose: COMPOSE_LIVE)
@@ -87,6 +94,13 @@ end
 
 desc 'Ambiente Testes'
 namespace :testes do
+  desc 'GraphQL Codegen - Gerar tipos do schema GraphQL'
+  task :codegen do
+    Dir.chdir('frontend') do
+      sh 'NODE_ENV=test npm run codegen'
+    end
+  end
+
   desc 'Construir ambiente'
   task :constroi do
     compose('up', '--build', '-d', compose: COMPOSE_TESTS)
