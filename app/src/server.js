@@ -99,7 +99,11 @@ function init_server(config) {
     next();
   });
   server.use(routes);
-  server.listen(port, () => console.log("Voce ta Rodando Agora!!!!!"));
+  server.listen(port, "0.0.0.0", () =>
+    console.log(
+      `Voce ta Rodando Agora!!!!! Server listening on 0.0.0.0:${port}`,
+    ),
+  );
 }
 
 if (process.env.NODE_ENV === "development") {
