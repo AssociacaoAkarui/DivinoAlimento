@@ -1,5 +1,6 @@
 COMPOSE_LIVE = 'compose.live.yml'
 COMPOSE_TESTS = 'compose.tests.yml'
+COMPOSE_PROD = 'compose.prod.yml'
 
 def compose(*arg, compose: COMPOSE_LIVE)
   sh "docker compose -f #{compose} #{arg.join(' ')}"
@@ -7,6 +8,10 @@ end
 
 def compose_tests(*arg, compose: COMPOSE_TESTS)
   sh "UID=#{ENV['UID']} GID=#{ENV['GID']} docker compose -f #{compose} #{arg.join(' ')}"
+end
+
+def compose_prod(*arg, compose: COMPOSE_PROD)
+  sh "docker compose -f #{compose} #{arg.join(' ')}"
 end
 
 desc 'Ambiente Vivo'
@@ -273,5 +278,68 @@ namespace :testes do
     puts "#{'='*130}"
     sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npx cucumber-js --dry-run --format json 2>&1 | grep -v 'ExperimentalWarning\\|DeprecationWarning\\|Use `node\\|trace-warnings\\|Recreating\\|Starting\\|Stopping\\|Creating\\|Removing' | jq -r '.[] | select(.elements != null) | . as $feature | .elements[] | .name + (\" \" * (50 - (.name | length))) + \"| \" + ((.tags | map(select(.name | startswith(\"@\") and (. | contains(\"pending\") | not) and (. | test(\"^@[A-Z]+-[0-9]+$\")))) | .[0].name) // \"SEM-TAG     \") + \" | \" + ($feature.name + (\" \" * (40 - ($feature.name | length)))) + \" | \" + ($feature.uri | split(\"/\")[-1] | split(\".\")[0])'"
     puts "\nDica: Use 'rake testes:funcionalidade[ARQUIVO]' ou 'rake \"testes:tags[TAG]\"'"
+  end
+end
+
+desc 'Ambiente Produção'
+namespace :prod do
+  desc 'Construir ambiente'
+  task :constroi do
+    compose_prod('up', '--build', '-d')
+  end
+
+  desc 'Eliminar ambiente e remover'
+  task :del do
+    compose_prod('down', '-v', '--rmi', 'all')
+  end
+
+  desc 'Eliminar ambiente'
+  task :elimina do
+    compose_prod('down')
+  end
+
+  desc 'Iniciar ambiente'
+  task :liga do
+    compose_prod('start')
+  end
+
+  desc 'Parar ambiente'
+  task :para do
+    compose_prod('stop')
+  end
+
+  desc 'Reiniciar ambiente'
+  task :reinicia do
+    compose_prod('restart')
+  end
+
+  desc 'Monitorar saída, últimas 100 linhas do programa'
+  task :mensagens do
+    compose_prod('logs', '-f', '-n 100')
+  end
+
+  desc 'Ver status dos serviços'
+  task :status do
+    compose_prod('ps')
+  end
+
+  desc 'Entrar no bash do app DivinoAlimento'
+  task :sh do
+    compose_prod('exec', 'app.prod', 'sh')
+  end
+
+  desc 'Entrar no bash do banco de dados DivinoAlimento'
+  task :psql do
+    compose_prod('exec', 'db.prod', 'psql', '-U', 'postgres')
+  end
+
+  desc 'Executar migrações de base de datos'
+  task :migracao do
+    compose_prod('exec', 'app.prod', 'npx', 'sequelize', 'db:migrate')
+  end
+
+  desc 'Pull das últimas imagens'
+  task :pull do
+    compose_prod('pull')
   end
 end
