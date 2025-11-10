@@ -18,7 +18,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, UserRole } from "@/contexts/AuthContext";
 
 const getDefaultRoute = (role: UserRole): string => {
   switch (role) {
