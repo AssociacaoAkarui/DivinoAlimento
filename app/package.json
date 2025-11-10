@@ -12,7 +12,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "bootstrap": "^5.0.2",
     "chai": "^4.3.6",

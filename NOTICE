@@ -1,0 +1,44 @@
+Divino Alimento
+Copyright (C) 2025 Tekopora (https://www.tekopora.top)
+Copyright (C) 2025 Akarui (https://www.akarui.org.br)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+===============================================================================
+
+This software includes third-party open source software components.
+The following is a list of the main dependencies:
+
+Frontend:
+- React (MIT License)
+- Radix UI (MIT License)
+- TanStack Query (MIT License)
+- Tailwind CSS (MIT License)
+- Lucide React (ISC License)
+
+Backend:
+- Express (MIT License)
+- Sequelize (MIT License)
+- GraphQL (MIT License)
+- PostgreSQL Client (MIT License)
+- Bcrypt (MIT License)
+- Cucumber (MIT License)
+- Mocha (MIT License)
+- Chai (MIT License)
+
+All third-party components are licensed under permissive licenses
+(MIT, ISC, Apache-2.0, BSD) that are compatible with AGPL-3.0-or-later.
+
+For the complete list of dependencies and their licenses, please refer
+to the package.json files in the frontend/ and app/ directories.

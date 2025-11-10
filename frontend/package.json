@@ -1,7 +1,8 @@
 {
   "name": "vite_react_shadcn_ts",
-  "private": true,
+  "name": "divino-alimento-frontend",
   "version": "0.0.0",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "dev": "vite",
