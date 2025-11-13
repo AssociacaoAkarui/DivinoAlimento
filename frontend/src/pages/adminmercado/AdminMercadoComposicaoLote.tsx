@@ -13,6 +13,7 @@ import { formatBRL } from '@/utils/currency';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ProductGroupItem } from '@/components/admin/ProductGroupItem';
 import { groupAndSortProducts, filterProducts, Oferta } from '@/utils/product-grouping';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 
 export default function AdminMercadoComposicaoLote() {
   const { cicloId } = useParams();
@@ -51,7 +52,7 @@ export default function AdminMercadoComposicaoLote() {
     }
   }, [cicloId, mercadoId]);
 
-  // Mock data - produtos ofertados para este mercado
+  // Mock data - alimentos ofertados para este mercado
   const [ofertas] = useState<Oferta[]>([
     {
       id: '1',
@@ -283,9 +284,7 @@ export default function AdminMercadoComposicaoLote() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-primary">
-            Administrador de mercado - Composição de Ofertas – {ciclo.mercado}
-          </h1>
+          <RoleTitle page={`Composição de Ofertas – ${ciclo.mercado}`} className="text-2xl md:text-3xl" />
           <p className="text-sm md:text-base text-muted-foreground">
             Configure os produtos, quantidades e valores que serão oferecidos neste ciclo
           </p>
@@ -319,14 +318,14 @@ export default function AdminMercadoComposicaoLote() {
             </div>
           </CardHeader>
         </Card>
-        {/* Produtos Selecionados */}
+        {/* Alimentos Selecionados */}
         {selectedItems.length > 0 && (
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Produtos Selecionados</CardTitle>
+                <CardTitle>Alimentos Selecionados</CardTitle>
                 <div className="text-sm text-muted-foreground">
-                  {selectedItems.length} produto(s) · {totalItens} itens
+                  {selectedItems.length} alimento(s) · {totalItens} itens
                 </div>
               </div>
             </CardHeader>
@@ -334,10 +333,10 @@ export default function AdminMercadoComposicaoLote() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Produto</TableHead>
+                    <TableHead>Alimento</TableHead>
                     <TableHead>Medida</TableHead>
                     <TableHead className="text-right">Valor Unit.</TableHead>
-                    <TableHead>Fornecedor</TableHead>
+                    <TableHead>Fornecedor(a)</TableHead>
                     <TableHead className="text-right">Ofertados</TableHead>
                     <TableHead className="text-right">Pedidos</TableHead>
                     <TableHead className="text-right">Valor Acumulado</TableHead>
@@ -408,14 +407,14 @@ export default function AdminMercadoComposicaoLote() {
         <Card>
           <CardHeader>
             <div className="space-y-4">
-              <CardTitle>Produtos Ofertados</CardTitle>
+              <CardTitle>Alimentos Ofertados</CardTitle>
               
               {/* Action Bar */}
               <div className="flex items-center gap-2">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar produto..."
+                    placeholder="Buscar alimento..."
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
                     className="pl-10"

@@ -9,6 +9,7 @@ import { useCycle } from '@/hooks/useCycle';
 import { Button } from '@/components/ui/button';
 import { formatBRL } from '@/utils/currency';
 import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
+import leafTitleIcon from '@/assets/leaf-title-icon.png';
 
 
 const Dashboard = () => {
@@ -21,29 +22,32 @@ const Dashboard = () => {
       descricao: 'Ver itens da sua cesta no ciclo atual',
       icone: ShoppingBasket,
       rota: '/minhaCesta/1',
-      habilitado: true
+      habilitado: true,
+      badge: undefined
     },
     {
       titulo: 'Pedido em Varejo',
-      descricao: 'Comprar produtos da feira direta',
+      descricao: 'Comprar alimentos da venda direta',
       icone: ShoppingCart,
-      rota: '/pedidoConsumidores/1',
-      habilitado: true
+      rota: '/consumidor/selecionar-ciclo',
+      habilitado: true,
+      badge: undefined
     },
     {
-      titulo: 'Meus Pagamentos',
-      descricao: 'Acompanhe seus pagamentos (em aberto e quitados)',
-      icone: Wallet,
-      rota: '/consumidor/pagamentos',
+      titulo: 'Relatório de Pedidos',
+      descricao: 'Visualize e exporte relatórios dos seus pedidos',
+      icone: FileText,
+      rota: '/consumidor/relatorio-pedidos',
       habilitado: true,
-      badge: 'Pendente'
+      badge: undefined
     },
     {
       titulo: 'Dados Pessoais',
       descricao: 'Atualize seu perfil e contato',
       icone: UserCircle,
       rota: '/usuario/1',
-      habilitado: true
+      habilitado: true,
+      badge: undefined
     }
   ];
 
@@ -53,15 +57,17 @@ const Dashboard = () => {
         <UserMenuLarge />
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-6 pt-8">
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-primary">
-            Bem-vindo e bem-vinda à plataforma do Divino Alimento
+        <div className="text-center relative mb-8">
+          <img 
+            src={leafTitleIcon} 
+            alt="" 
+            className="absolute left-1/2 -translate-x-[175px] md:-translate-x-[250px] top-1/2 -translate-y-[80%] w-10 h-10 md:w-16 md:h-16"
+          />
+          <h1 className="text-xl md:text-[28px] font-bold text-primary">
+            Gerencie suas compras
           </h1>
-          <p className="text-sm md:text-base text-muted-foreground mt-1">
-            Gerencie suas cestas e pedidos
-          </p>
         </div>
 
         {/* Resumo do Ciclo Atual */}
@@ -98,15 +104,15 @@ const Dashboard = () => {
 
           {/* Conteúdo - Duas Colunas */}
           <div className="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Coluna Esquerda - Produtos da Cesta */}
+            {/* Coluna Esquerda - Alimentos da Cesta */}
             <div className="bg-[#E8F5E9] rounded-[10px] p-4">
               <h4 className="text-[#2C3E50] text-base font-bold mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
-                Produtos da Cesta:
+                Alimentos da Cesta:
               </h4>
               <ul className="space-y-2 text-[#333] text-sm mb-4">
-                <li>- Tomate (3 kg) — Fornecedor: Sítio Bela Vista</li>
-                <li>- Alface (5 unidades) — Fornecedor: Orgânicos da Serra</li>
-                <li>- Cenoura (2 kg) — Fornecedor: Fazenda São José</li>
+                <li>- Tomate (3 kg) — Fornecedor(a): Sítio Bela Vista</li>
+                <li>- Alface (5 unidades) — Fornecedor(a): Orgânicos da Serra</li>
+                <li>- Cenoura (2 kg) — Fornecedor(a): Fazenda São José</li>
               </ul>
               <div className="pt-3 border-t border-[#126B3F]/20">
                 <p className="text-[#2C3E50] text-base font-bold">Valor Total Cesta: {formatBRL(48.50)}</p>
@@ -119,8 +125,8 @@ const Dashboard = () => {
                 Compras em Varejo:
               </h4>
               <ul className="space-y-2 text-[#333] text-sm mb-4">
-                <li>- Banana Nanica (1,5 kg) — Fornecedor: Sítio Boa Esperança</li>
-                <li>- Mel Orgânico (300 g) — Fornecedor: Apiário Flor do Campo</li>
+                <li>- Banana Nanica (1,5 kg) — Fornecedor(a): Sítio Boa Esperança</li>
+                <li>- Mel Orgânico (300 g) — Fornecedor(a): Apiário Flor do Campo</li>
               </ul>
               <div className="pt-3 border-t border-[#E0E0E0]">
                 <p className="text-[#2C3E50] text-base font-bold">Valor Total: {formatBRL(32.50)}</p>

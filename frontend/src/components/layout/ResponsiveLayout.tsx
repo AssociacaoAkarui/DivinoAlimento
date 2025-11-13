@@ -33,9 +33,9 @@ export const ResponsiveLayout = ({
   // Mobile-First Fornecedor Login/Onboarding Layout
   if (isFornecedorRoute && isLoginRoute) {
     return (
-      <div className="min-h-screen bg-gradient-surface">
+      <div className="min-h-screen bg-gradient-surface overflow-x-hidden">
         {/* Mobile container for login/onboarding */}
-        <div className="lg:hidden min-h-screen flex flex-col">
+        <div className="lg:hidden min-h-screen flex flex-col overflow-x-hidden">
           {showHeader && (
             <AppBarDivino leftContent={leftHeaderContent}>
               {headerContent}
@@ -93,15 +93,15 @@ export const ResponsiveLayout = ({
 
   // Responsive layout for fornecedor and consumer pages
   return (
-    <div className="min-h-screen bg-gradient-surface">
+    <div className="min-h-screen bg-gradient-surface overflow-x-hidden">
       {/* Mobile Layout */}
-      <div className="lg:hidden min-h-screen flex flex-col">
+      <div className="lg:hidden min-h-screen flex flex-col overflow-x-hidden">
         {showHeader && (
           <AppBarDivino leftContent={leftHeaderContent}>
             {headerContent}
           </AppBarDivino>
         )}
-        <main className="flex-1 px-4 py-6">
+        <main className="flex-1 px-4 pt-8 pb-6">
           {children}
         </main>
       </div>

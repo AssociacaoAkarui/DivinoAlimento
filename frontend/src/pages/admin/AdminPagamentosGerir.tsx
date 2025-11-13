@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, Edit2, Check } from "lucide-react";
+import { RoleTitle } from '@/components/layout/RoleTitle';
+import { ArrowLeft, Search, Edit2, Check, Trash2 } from "lucide-react";
 import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
@@ -16,10 +18,12 @@ interface Pagamento {
   id: string;
   tipo: "Fornecedor" | "Consumidor";
   nome: string;
-  produto: string;
+  ciclo: string;
+  mercado: string;
   valorTotal: number;
   status: "Pendente" | "Pago";
   dataPagamento?: string;
+  observacao?: string;
 }
 
 const AdminPagamentosGerir = () => {
@@ -30,7 +34,11 @@ const AdminPagamentosGerir = () => {
   const [ordenacao, setOrdenacao] = useState<"nome" | "data" | "valor">("nome");
   const [editandoPagamento, setEditandoPagamento] = useState<Pagamento | null>(null);
   const [novoValor, setNovoValor] = useState<string>("");
+  const [novoStatus, setNovoStatus] = useState<"Pendente" | "Pago">("Pendente");
+  const [novaDataPagamento, setNovaDataPagamento] = useState<string>("");
+  const [novaObservacao, setNovaObservacao] = useState<string>("");
   const [dialogAberto, setDialogAberto] = useState(false);
+  const [pagamentoParaExcluir, setPagamentoParaExcluir] = useState<string | null>(null);
 
   useEffect(() => {
     // Carregar dados do localStorage
@@ -49,7 +57,8 @@ const AdminPagamentosGerir = () => {
           id: "1",
           tipo: "Fornecedor",
           nome: "Sítio Verde",
-          produto: "Tomate Orgânico",
+          ciclo: "Ciclo 01/2025",
+          mercado: "Mercado Central",
           valorTotal: 450.00,
           status: "Pendente",
         },
@@ -57,16 +66,19 @@ const AdminPagamentosGerir = () => {
           id: "2",
           tipo: "Consumidor",
           nome: "Ana Souza",
-          produto: "Cesta semanal",
+          ciclo: "Ciclo 01/2025",
+          mercado: "Mercado Central",
           valorTotal: 120.00,
           status: "Pago",
           dataPagamento: "2025-01-10",
+          observacao: "Pagamento via PIX",
         },
         {
           id: "3",
           tipo: "Fornecedor",
           nome: "Maria Horta",
-          produto: "Banana Prata",
+          ciclo: "Ciclo 02/2025",
+          mercado: "Mercado Norte",
           valorTotal: 300.00,
           status: "Pendente",
         },
@@ -92,6 +104,9 @@ const AdminPagamentosGerir = () => {
   const handleEditarPagamento = (pagamento: Pagamento) => {
     setEditandoPagamento(pagamento);
     setNovoValor(pagamento.valorTotal.toFixed(2).replace(".", ","));
+    setNovoStatus(pagamento.status);
+    setNovaDataPagamento(pagamento.dataPagamento || "");
+    setNovaObservacao(pagamento.observacao || "");
     setDialogAberto(true);
   };
 
@@ -101,16 +116,33 @@ const AdminPagamentosGerir = () => {
       setPagamentos(prev =>
         prev.map(p =>
           p.id === editandoPagamento.id
-            ? { ...p, valorTotal: valorFormatado }
+            ? { 
+                ...p, 
+                valorTotal: valorFormatado,
+                status: novoStatus,
+                dataPagamento: novaDataPagamento || undefined,
+                observacao: novaObservacao || undefined
+              }
             : p
         )
       );
       toast({
-        title: "Valor atualizado!",
+        title: "Pagamento atualizado!",
         description: "O pagamento foi editado com sucesso.",
       });
       setDialogAberto(false);
       setEditandoPagamento(null);
+    }
+  };
+
+  const handleExcluirPagamento = () => {
+    if (pagamentoParaExcluir) {
+      setPagamentos(prev => prev.filter(p => p.id !== pagamentoParaExcluir));
+      toast({
+        title: "Pagamento excluído",
+        description: "O registro de pagamento foi removido com sucesso.",
+      });
+      setPagamentoParaExcluir(null);
     }
   };
 
@@ -131,7 +163,8 @@ const AdminPagamentosGerir = () => {
   let pagamentosFiltrados = pagamentos.filter(p => {
     const matchBusca = 
       p.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      p.produto.toLowerCase().includes(busca.toLowerCase()) ||
+      p.ciclo.toLowerCase().includes(busca.toLowerCase()) ||
+      p.mercado.toLowerCase().includes(busca.toLowerCase()) ||
       p.tipo.toLowerCase().includes(busca.toLowerCase());
     
     const matchStatus =
@@ -176,9 +209,7 @@ const AdminPagamentosGerir = () => {
     >
       <div className="container max-w-6xl mx-auto py-8 px-4">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-primary mb-2">
-            Administrador - Gerir Lista de Pagamentos
-          </h1>
+          <RoleTitle page="Gerir Lista de Pagamentos" className="text-3xl mb-2" />
           <p className="text-muted-foreground">
             Acompanhe, edite e registre os pagamentos pendentes e realizados.
           </p>
@@ -194,7 +225,7 @@ const AdminPagamentosGerir = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nome, tipo ou produto..."
+                  placeholder="Buscar por nome, tipo, ciclo ou mercado..."
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
                   className="pl-10"
@@ -239,7 +270,8 @@ const AdminPagamentosGerir = () => {
                   <tr className="border-b">
                     <th className="text-left py-3 px-4 font-semibold text-primary">Tipo</th>
                     <th className="text-left py-3 px-4 font-semibold text-primary">Nome</th>
-                    <th className="text-left py-3 px-4 font-semibold text-primary">Produto / Item</th>
+                    <th className="text-left py-3 px-4 font-semibold text-primary">Ciclo</th>
+                    <th className="text-left py-3 px-4 font-semibold text-primary">Mercado</th>
                     <th className="text-left py-3 px-4 font-semibold text-primary">Valor Total</th>
                     <th className="text-left py-3 px-4 font-semibold text-primary">Status</th>
                     <th className="text-left py-3 px-4 font-semibold text-primary">Data do Pagamento</th>
@@ -260,7 +292,8 @@ const AdminPagamentosGerir = () => {
                         </Badge>
                       </td>
                       <td className="py-3 px-4">{pagamento.nome}</td>
-                      <td className="py-3 px-4">{pagamento.produto}</td>
+                      <td className="py-3 px-4">{pagamento.ciclo}</td>
+                      <td className="py-3 px-4">{pagamento.mercado}</td>
                       <td className="py-3 px-4 font-semibold">{formatarValor(pagamento.valorTotal)}</td>
                       <td className="py-3 px-4">
                         <Badge variant={pagamento.status === "Pago" ? "success" : "outline"}>
@@ -272,21 +305,32 @@ const AdminPagamentosGerir = () => {
                         <div className="flex gap-2">
                           {pagamento.status === "Pendente" && (
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="icon-sm"
                               onClick={() => handleMarcarPago(pagamento.id)}
                               title="Marcar como pago"
+                              className="border-green-500 text-green-600 hover:bg-green-50"
                             >
-                              <Check className="h-4 w-4 text-success" />
+                              <Check className="h-4 w-4" />
                             </Button>
                           )}
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon-sm"
                             onClick={() => handleEditarPagamento(pagamento)}
-                            title="Editar valor"
+                            title="Editar"
+                            className="border-green-500 text-green-600 hover:bg-green-50"
                           >
                             <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon-sm"
+                            onClick={() => setPagamentoParaExcluir(pagamento.id)}
+                            title="Excluir"
+                            className="border-red-500 text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>
@@ -336,23 +380,55 @@ const AdminPagamentosGerir = () => {
           </Button>
         </div>
 
-        {/* Dialog para Editar Valor */}
+        {/* Dialog para Editar Pagamento */}
         <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Editar Valor do Pagamento</DialogTitle>
+              <DialogTitle>Editar Pagamento</DialogTitle>
               <DialogDescription>
-                Ajuste o valor total do pagamento
+                Ajuste os dados do pagamento
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <Label htmlFor="valor">Valor Total (R$)</Label>
-              <Input
-                id="valor"
-                value={novoValor}
-                onChange={(e) => setNovoValor(e.target.value)}
-                placeholder="0,00"
-              />
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="valor">Valor Total (R$)</Label>
+                <Input
+                  id="valor"
+                  value={novoValor}
+                  onChange={(e) => setNovoValor(e.target.value)}
+                  placeholder="0,00"
+                />
+              </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select value={novoStatus} onValueChange={(v: any) => setNovoStatus(v)}>
+                  <SelectTrigger id="status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pendente">Pendente</SelectItem>
+                    <SelectItem value="Pago">Pago</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="dataPagamento">Data do Pagamento</Label>
+                <Input
+                  id="dataPagamento"
+                  type="date"
+                  value={novaDataPagamento}
+                  onChange={(e) => setNovaDataPagamento(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="observacao">Observação</Label>
+                <Input
+                  id="observacao"
+                  value={novaObservacao}
+                  onChange={(e) => setNovaObservacao(e.target.value)}
+                  placeholder="Ex: Pagamento via PIX"
+                />
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogAberto(false)}>
@@ -364,6 +440,24 @@ const AdminPagamentosGerir = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* AlertDialog para Confirmar Exclusão */}
+        <AlertDialog open={!!pagamentoParaExcluir} onOpenChange={() => setPagamentoParaExcluir(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir este registro de pagamento? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleExcluirPagamento}>
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </ResponsiveLayout>
   );

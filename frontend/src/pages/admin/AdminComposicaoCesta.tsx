@@ -15,6 +15,7 @@ import { formatBRL } from '@/utils/currency';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ProductGroupItem } from '@/components/admin/ProductGroupItem';
 import { groupAndSortProducts, filterProducts, Oferta } from '@/utils/product-grouping';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 
 export default function AdminComposicaoCesta() {
   const { id } = useParams();
@@ -281,7 +282,7 @@ export default function AdminComposicaoCesta() {
           <CardHeader>
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <CardTitle className="text-2xl">{ciclo.nome}</CardTitle>
+                <RoleTitle page={`Composição de Cesta – ${ciclo.nome}`} className="text-2xl" />
                 <p className="text-sm text-muted-foreground mt-1">
                   Tipo: {ciclo.tipo}
                 </p>
@@ -328,16 +329,16 @@ export default function AdminComposicaoCesta() {
         {selectedItems.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Produtos Selecionados</CardTitle>
+              <CardTitle>Alimentos Selecionados</CardTitle>
             </CardHeader>
             <CardContent>
               <Table className="tabela-produtos-selecionados">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="td-texto">Produto</TableHead>
+                    <TableHead className="td-texto">Alimento</TableHead>
                     <TableHead className="td-texto">Medida</TableHead>
                     <TableHead className="td-valor">Valor Unit.</TableHead>
-                    <TableHead className="td-texto">Fornecedor</TableHead>
+                    <TableHead className="td-texto">Fornecedor(a)</TableHead>
                     <TableHead className="td-numero">Ofertados</TableHead>
                     <TableHead className="td-numero">Pedidos</TableHead>
                     <TableHead className="td-valor">Valor Acumulado</TableHead>
@@ -404,14 +405,14 @@ export default function AdminComposicaoCesta() {
         <Card>
           <CardHeader>
             <div className="space-y-4">
-              <CardTitle>Produtos Ofertados</CardTitle>
+              <CardTitle>Alimentos Ofertados</CardTitle>
               
               {/* Action Bar */}
               <div className="flex items-center gap-2">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar produto, fornecedor ou unidade..."
+                    placeholder="Buscar alimento, fornecedor ou unidade..."
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
                     className="pl-10"
@@ -485,7 +486,7 @@ export default function AdminComposicaoCesta() {
                   </TooltipTrigger>
                   {!podePublicar && (
                     <TooltipContent>
-                      <p>Selecione pelo menos um produto com quantidade maior que zero.</p>
+                      <p>Selecione pelo menos um alimento com quantidade maior que zero.</p>
                     </TooltipContent>
                   )}
                   {podePublicar && excedeuValor && (

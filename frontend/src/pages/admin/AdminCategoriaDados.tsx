@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -94,9 +95,7 @@ const AdminCategoriaDados = () => {
     >
       <div className="max-w-4xl mx-auto space-y-6 pb-20">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
-            Administrador - Editar Categoria de Produto
-          </h1>
+          <RoleTitle page="Editar Categoria de Alimento" className="text-2xl md:text-3xl" />
           <p className="text-sm md:text-base text-muted-foreground">
             Atualize as informações da categoria
           </p>
@@ -109,7 +108,7 @@ const AdminCategoriaDados = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="nome">
-                Nome da Categoria de Produto <span className="text-destructive">*</span>
+                Nome da Categoria de Alimento <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="nome"

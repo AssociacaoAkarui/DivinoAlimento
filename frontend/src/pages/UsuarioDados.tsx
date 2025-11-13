@@ -19,6 +19,7 @@ import {
   validarConta 
 } from '@/utils/validation';
 import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 
 const UsuarioDados = () => {
   const { id } = useParams();
@@ -167,11 +168,9 @@ const UsuarioDados = () => {
         </Button>
       }
     >
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6 pt-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
-            {activeRole === 'consumidor' ? 'Consumidor - ' : activeRole === 'fornecedor' ? 'Fornecedor - ' : activeRole === 'admin_mercado' ? 'Administrador de mercado - ' : ''}Dados Pessoais
-          </h1>
+          <RoleTitle page="Dados Pessoais" />
           <p className="text-sm md:text-base text-muted-foreground">
             Atualize suas informações pessoais
           </p>
@@ -424,7 +423,7 @@ const UsuarioDados = () => {
                 htmlFor="perfilFornecedor" 
                 className={activeRole !== 'admin' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
               >
-                Fornecedor{activeRole !== 'admin' ? ' (não editável)' : ''}
+                Fornecedor(a){activeRole !== 'admin' ? ' (não editável)' : ''}
               </Label>
             </div>
 
@@ -441,7 +440,7 @@ const UsuarioDados = () => {
                 htmlFor="perfilConsumidor" 
                 className={activeRole !== 'admin' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
               >
-                Consumidor{activeRole !== 'admin' ? ' (não editável)' : ''}
+                Consumidor(a){activeRole !== 'admin' ? ' (não editável)' : ''}
               </Label>
             </div>
 
@@ -458,7 +457,7 @@ const UsuarioDados = () => {
                 htmlFor="perfilAdministradorMercado" 
                 className={activeRole !== 'admin' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
               >
-                Administrador de Mercado{activeRole !== 'admin' ? ' (não editável)' : ''}
+                Administrador(a) de Mercado{activeRole !== 'admin' ? ' (não editável)' : ''}
               </Label>
             </div>
 
@@ -475,7 +474,7 @@ const UsuarioDados = () => {
                 htmlFor="perfilAdministrador" 
                 className="cursor-not-allowed opacity-50"
               >
-                Administrador (não editável)
+                Administrador(a) (não editável)
               </Label>
             </div>
           </CardContent>

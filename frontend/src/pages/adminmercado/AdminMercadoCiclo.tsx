@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Plus, X, GripVertical, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
+import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
 import { formatBRLInput } from '@/utils/currency';
 import {
   DndContext,
@@ -274,14 +276,13 @@ const AdminMercadoCiclo = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
       }
+      headerContent={<UserMenuLarge />}
     >
       <div className="space-y-6 pb-20">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-primary">
-              Administrador de mercado - {isEdit ? 'Editar Ciclo' : 'Novo Ciclo'}
-            </h1>
+            <RoleTitle page={isEdit ? 'Editar Ciclo' : 'Novo Ciclo'} className="text-2xl md:text-3xl" />
             <p className="text-sm text-muted-foreground mt-1">
               Responsável: {administradorResponsavel}
             </p>
@@ -315,7 +316,7 @@ const AdminMercadoCiclo = () => {
                 </div>
 
                 <div>
-                  <Label>Administrador Responsável</Label>
+                  <Label>Administrador(a)</Label>
                   <Input
                     value={administradorResponsavel}
                     disabled

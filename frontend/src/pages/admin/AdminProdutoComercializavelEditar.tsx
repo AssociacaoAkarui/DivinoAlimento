@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,7 +64,7 @@ const AdminProdutoComercializavelEditar = () => {
 
     toast({
       title: "Sucesso",
-      description: "Produto comercializável atualizado com sucesso!",
+      description: "Alimento comercializável atualizado com sucesso!",
     });
 
     navigate('/admin/produtos-comercializaveis');
@@ -80,7 +81,7 @@ const AdminProdutoComercializavelEditar = () => {
   const confirmDelete = () => {
     toast({
       title: "Produto excluído",
-      description: "O produto comercializável foi removido com sucesso.",
+      description: "O alimento comercializável foi removido com sucesso.",
     });
     navigate('/admin/produtos-comercializaveis');
   };
@@ -100,9 +101,7 @@ const AdminProdutoComercializavelEditar = () => {
     >
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary mb-2">
-            Administrador - Editar Produto Comercializável
-          </h1>
+          <RoleTitle page="Editar Alimento Comercializável" className="text-2xl md:text-3xl mb-2" />
           <p className="text-muted-foreground">
             Atualize as informações da variação comercial
           </p>
@@ -111,7 +110,7 @@ const AdminProdutoComercializavelEditar = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Informações do Produto</CardTitle>
+              <CardTitle>Informações do Alimento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <ProductSearch
@@ -119,13 +118,13 @@ const AdminProdutoComercializavelEditar = () => {
                 onSelect={(productName) => 
                   setFormData({ ...formData, produto_base: productName })
                 }
-                label="Buscar produto base *"
-                placeholder="Digite para buscar produto base..."
+                label="Buscar alimento base *"
+                placeholder="Digite para buscar alimento base..."
               />
 
               <div className="space-y-2">
                 <Label htmlFor="produto_base_select">
-                  Produto Base <span className="text-destructive">*</span>
+                  Alimento Base <span className="text-destructive">*</span>
                 </Label>
                 <Select
                   value={formData.produto_base}
@@ -134,7 +133,7 @@ const AdminProdutoComercializavelEditar = () => {
                   }
                 >
                   <SelectTrigger id="produto_base_select">
-                    <SelectValue placeholder="Selecione o produto base" />
+                    <SelectValue placeholder="Selecione o alimento base" />
                   </SelectTrigger>
                   <SelectContent>
                     {produtosReferencia.map((produto) => (
@@ -244,7 +243,7 @@ const AdminProdutoComercializavelEditar = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este produto comercializável? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir este alimento comercializável? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,83 +1,71 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
-import { Search, Plus, Edit2, Trash2, LogOut } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useListarUsuarios } from "@/hooks/graphql";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
+import { 
+  Search, 
+  Plus, 
+  Edit2, 
+  Trash2,
+  LogOut
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 
 interface Usuario {
   id: string;
   nome: string;
   email: string;
-  status: "ativo" | "inativo";
-  perfis: string[];
-}
-
-interface ViewUsuario {
-  id: string;
-  nome: string;
-  email: string;
-  status: "ativo" | "inativo";
-  perfis: string[];
-  perfis_titulo: string;
+  status: 'ativo' | 'inativo';
 }
 
 const Usuarios = () => {
   const navigate = useNavigate();
   const { activeRole } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
-  const { data: usuarios = [], isLoading, error } = useListarUsuarios();
-  console.log("DEBUG Usuarios:", { usuarios, isLoading, error });
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleLogout = () => {
-    localStorage.removeItem("adminAuth");
-    navigate("/");
+    localStorage.removeItem('adminAuth');
+    navigate('/');
   };
 
-  const viewUsers = usuarios
-    .filter(
-      (usuario) =>
-        usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        usuario.email.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
-    .map((usuario) => ({
-      id: usuario.id,
-      nome: usuario.nome,
-      email: usuario.email,
-      status: usuario.status,
-      perfis: usuario.perfis,
-    }));
+  // Mock data for users
+  const usuarios: Usuario[] = [
+    { id: '1', nome: 'João Silva', email: 'joao@email.com', status: 'ativo' },
+    { id: '2', nome: 'Maria Santos', email: 'maria@email.com', status: 'ativo' },
+    { id: '3', nome: 'Pedro Costa', email: 'pedro@email.com', status: 'inativo' },
+    { id: '4', nome: 'Ana Oliveira', email: 'ana@email.com', status: 'ativo' },
+    { id: '5', nome: 'Carlos Pereira', email: 'carlos@email.com', status: 'ativo' },
+  ];
 
-  const viewModel = {
-    perfis_active_titulo:
-      activeRole === "admin_mercado" ? "Administrador de Mercado" : "EEE",
-    filteredUsers: viewUsers,
-  };
+  const filteredUsers = usuarios.filter(usuario => 
+    usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleEdit = (id: string) => {
-    console.log("Editar usuário:", id);
+    console.log('Editar usuário:', id);
     // TODO: Implementar edição
   };
 
   const handleDelete = (id: string) => {
-    console.log("Excluir usuário:", id);
+    console.log('Excluir usuário:', id);
     // TODO: Implementar exclusão
   };
 
   const handleAddUser = () => {
-    console.log("Adicionar usuário");
+    console.log('Adicionar usuário');
     // TODO: Implementar adição
   };
 
   return (
-    <ResponsiveLayout
+    <ResponsiveLayout 
       headerContent={
-        <Button
-          variant="ghost"
+        <Button 
+          variant="ghost" 
           size="sm"
           onClick={handleLogout}
           className="focus-ring text-primary-foreground hover:bg-primary-hover"
@@ -91,10 +79,7 @@ const Usuarios = () => {
         {/* Header */}
         <div className="md:flex md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
-              {viewModel.perfis_active_titulo}
-              Usuários
-            </h1>
+            <RoleTitle page="Usuários" className="text-2xl md:text-3xl" />
             <p className="text-sm md:text-base text-muted-foreground">
               Gerenciar perfis e acessos do sistema
             </p>
@@ -126,27 +111,17 @@ const Usuarios = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg md:text-xl">
-              Lista de Usuários ({viewModel.filteredUsers.length})
+              Lista de Usuários ({filteredUsers.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
-              {isLoading ? (
+              {filteredUsers.length === 0 ? (
                 <div className="p-6 text-center text-muted-foreground">
-                  Carregando usuários...
-                </div>
-              ) : error ? (
-                <div className="p-6 text-center text-destructive">
-                  Erro ao carregar usuários: {error.message}
-                </div>
-              ) : viewModel.filteredUsers.length === 0 ? (
-                <div className="p-6 text-center text-muted-foreground">
-                  {searchTerm
-                    ? "Nenhum usuário encontrado."
-                    : "Nenhum usuário cadastrado."}
+                  {searchTerm ? 'Nenhum usuário encontrado.' : 'Nenhum usuário cadastrado.'}
                 </div>
               ) : (
-                viewModel.filteredUsers.map((usuario) => (
+                filteredUsers.map((usuario) => (
                   <div key={usuario.id} className="p-4 md:p-6">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                       <div className="flex-1">
@@ -154,17 +129,11 @@ const Usuarios = () => {
                           <h3 className="font-medium text-sm md:text-base">
                             {usuario.nome}
                           </h3>
-                          <Badge
-                            variant={
-                              usuario.status === "ativo"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className={
-                              usuario.status === "ativo" ? "bg-green-500" : ""
-                            }
+                          <Badge 
+                            variant={usuario.status === 'ativo' ? 'default' : 'secondary'}
+                            className={usuario.status === 'ativo' ? 'bg-green-500' : ''}
                           >
-                            {usuario.status === "ativo" ? "Ativo" : "Inativo"}
+                            {usuario.status === 'ativo' ? 'Ativo' : 'Inativo'}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">

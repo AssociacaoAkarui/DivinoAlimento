@@ -14,8 +14,9 @@ import { toast } from '@/hooks/use-toast';
 import { groupAndSortProducts, type Oferta } from '@/utils/product-grouping';
 import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 
-// Mock data - produtos disponíveis para venda direta
+// Mock data - alimentos disponíveis para venda direta
 const mockProdutos: Oferta[] = [
   {
     id: '1',
@@ -78,7 +79,7 @@ const PedidoConsumidores = () => {
 
   const TAXA_SERVICO = 5.00;
 
-  // Agrupar e filtrar produtos
+  // Agrupar e filtrar alimentos
   const productGroups = useMemo(() => {
     const groups = groupAndSortProducts(mockProdutos);
     if (!busca) return groups;
@@ -127,7 +128,7 @@ const PedidoConsumidores = () => {
     if (value > produto.quantidadeOfertada) {
       toast({
         title: 'Quantidade indisponível',
-        description: 'Reduza a quantidade ou selecione outro produto.',
+        description: 'Reduza a quantidade ou selecione outro alimento.',
         variant: 'destructive',
       });
       return;
@@ -148,8 +149,8 @@ const PedidoConsumidores = () => {
   const handleConfirmarPedido = () => {
     if (selectedProducts.size === 0) {
       toast({
-        title: 'Nenhum produto selecionado',
-        description: 'Selecione pelo menos um produto para continuar.',
+        title: 'Nenhum alimento selecionado',
+        description: 'Selecione pelo menos um alimento para continuar.',
         variant: 'destructive',
       });
       return;
@@ -185,7 +186,7 @@ const PedidoConsumidores = () => {
       headerContent={<UserMenuLarge />}
       leftHeaderContent={
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/consumidor/selecionar-ciclo')}
           className="flex items-center text-primary-foreground hover:opacity-80 transition-opacity focus-ring p-2 -ml-2"
           aria-label="Voltar"
         >
@@ -193,14 +194,12 @@ const PedidoConsumidores = () => {
         </button>
       }
     >
-      <div className="p-4 space-y-6">
+      <div className="p-4 space-y-6 pt-8">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-2xl lg:text-3xl font-bold text-gradient-primary">
-            Consumidor - Comprar Produtos Venda Direta
-          </h1>
+          <RoleTitle page="Comprar Alimentos Venda Direta" />
           <p className="text-muted-foreground">
-            Selecione produtos da feira direta com os produtores
+            Selecione alimentos da feira direta com os produtores
           </p>
         </div>
 
@@ -246,19 +245,19 @@ const PedidoConsumidores = () => {
                 className="w-full justify-center"
               >
                 {selectedProducts.size > 0
-                  ? `${selectedProducts.size} ${selectedProducts.size === 1 ? 'produto selecionado' : 'produtos selecionados'}`
+                  ? `${selectedProducts.size} ${selectedProducts.size === 1 ? 'alimento selecionado' : 'alimentos selecionados'}`
                   : 'Aguardando seleção'}
               </Badge>
             </div>
           </CardContent>
         </Card>
 
-        {/* Produtos Selecionados */}
+        {/* Alimentos Selecionados */}
         {selectedProducts.size > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>
-                Produtos Selecionados ({selectedProducts.size})
+                Alimentos Selecionados ({selectedProducts.size})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -284,7 +283,7 @@ const PedidoConsumidores = () => {
                           size="sm"
                           onClick={() => handleToggleProduct(item.id)}
                           className="h-8 w-8 p-0 -mt-1 -mr-1"
-                          aria-label="Remover produto"
+                          aria-label="Remover alimento"
                         >
                           ✕
                         </Button>
@@ -335,8 +334,8 @@ const PedidoConsumidores = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Produto</TableHead>
-                      <TableHead>Fornecedor</TableHead>
+                      <TableHead>Alimento</TableHead>
+                      <TableHead>Fornecedor(a)</TableHead>
                       <TableHead className="text-right">Valor Unit.</TableHead>
                       <TableHead className="text-center w-32">Quantidade</TableHead>
                       <TableHead className="text-right">Subtotal</TableHead>
@@ -374,7 +373,7 @@ const PedidoConsumidores = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleToggleProduct(item.id)}
-                            aria-label="Remover produto"
+                            aria-label="Remover alimento"
                           >
                             ✕
                           </Button>
@@ -388,16 +387,16 @@ const PedidoConsumidores = () => {
           </Card>
         )}
 
-        {/* Lista de Produtos Disponíveis */}
+        {/* Lista de Alimentos Disponíveis */}
         <Card>
           <CardHeader>
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <CardTitle>Produtos Disponíveis</CardTitle>
+              <CardTitle>Alimentos Disponíveis</CardTitle>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1 lg:w-80">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
-                    placeholder="Buscar produto ou fornecedor"
+                    placeholder="Buscar alimento ou fornecedor"
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
                     className="pl-10"
@@ -519,7 +518,7 @@ const PedidoConsumidores = () => {
                 
                 {productGroups.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
-                    Nenhum produto encontrado
+                    Nenhum alimento encontrado
                   </div>
                 )}
               </div>
@@ -529,10 +528,10 @@ const PedidoConsumidores = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12"></TableHead>
-                      <TableHead>Produto</TableHead>
+                      <TableHead>Alimento</TableHead>
                       <TableHead>Medida</TableHead>
                       <TableHead className="text-right">Valor Unitário</TableHead>
-                      <TableHead>Fornecedor</TableHead>
+                      <TableHead>Fornecedor(a)</TableHead>
                       <TableHead className="text-right">Disponível</TableHead>
                       <TableHead className="text-center w-32">Quantidade</TableHead>
                       <TableHead className="text-right">Subtotal</TableHead>
@@ -634,13 +633,13 @@ const PedidoConsumidores = () => {
             <DialogHeader>
               <DialogTitle>Confirmar Pedido de Venda Direta</DialogTitle>
               <DialogDescription>
-                Revise os produtos selecionados antes de confirmar o pedido.
+                Revise os alimentos selecionados antes de confirmar o pedido.
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <h4 className="font-medium">Produtos Selecionados:</h4>
+                <h4 className="font-medium">Alimentos Selecionados:</h4>
                 <div className="border rounded-lg divide-y">
                   {selectedItems.map(item => (
                     <div key={item.id} className="p-3 flex justify-between items-center">

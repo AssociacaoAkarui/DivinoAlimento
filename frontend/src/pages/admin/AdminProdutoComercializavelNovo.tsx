@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,7 +50,7 @@ const AdminProdutoComercializavelNovo = () => {
 
     toast({
       title: "Sucesso",
-      description: "Produto comercializável criado com sucesso!",
+      description: "Alimento comercializável criado com sucesso!",
     });
 
     navigate('/admin/produtos-comercializaveis');
@@ -74,18 +75,16 @@ const AdminProdutoComercializavelNovo = () => {
     >
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary mb-2">
-            Administrador - Adicionar Produto Comercializável
-          </h1>
+          <RoleTitle page="Adicionar Alimento Comercializável" className="text-2xl md:text-3xl mb-2" />
           <p className="text-muted-foreground">
-            Cadastre uma nova variação comercial de produto
+            Cadastre uma nova variação comercial de alimento
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Informações do Produto</CardTitle>
+              <CardTitle>Informações do Alimento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <ProductSearch
@@ -93,13 +92,13 @@ const AdminProdutoComercializavelNovo = () => {
                 onSelect={(productName) => 
                   setFormData({ ...formData, produto_base: productName })
                 }
-                label="Buscar produto base *"
-                placeholder="Digite para buscar produto base..."
+                label="Buscar alimento base *"
+                placeholder="Digite para buscar alimento base..."
               />
 
               <div className="space-y-2">
                 <Label htmlFor="produto_base_select">
-                  Produto Base <span className="text-destructive">*</span>
+                  Alimento Base <span className="text-destructive">*</span>
                 </Label>
                 <Select
                   value={formData.produto_base}
@@ -108,7 +107,7 @@ const AdminProdutoComercializavelNovo = () => {
                   }
                 >
                   <SelectTrigger id="produto_base_select">
-                    <SelectValue placeholder="Selecione o produto base" />
+                    <SelectValue placeholder="Selecione o alimento base" />
                   </SelectTrigger>
                   <SelectContent>
                     {produtosReferencia.map((produto) => (

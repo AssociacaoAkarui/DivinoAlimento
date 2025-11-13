@@ -15,7 +15,8 @@ import { ArrowLeft, User, Mail, Phone, Lock, AlertCircle, CheckCircle2, Store, S
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useConsumer } from '@/contexts/ConsumerContext';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { useAuth, UserRole, Gender } from '@/contexts/AuthContext';
+import { roleLabel, roleDescription } from '@/utils/labels';
 
 const getDefaultRoute = (role: UserRole): string => {
   switch (role) {
@@ -46,6 +47,7 @@ const mockPriorityMarkets = [
 type FormData = {
   name: string;
   phone: string;
+  gender: Gender;
   email: string;
   confirmEmail: string;
   password: string;
@@ -81,6 +83,7 @@ const Register = () => {
     defaultValues: {
       name: '',
       phone: '',
+      gender: 'unspecified',
       email: '',
       confirmEmail: '',
       password: '',
@@ -110,6 +113,7 @@ const Register = () => {
     if (!data.name.trim()) errors.push('Nome é obrigatório');
     if (!data.phone.trim()) errors.push('Celular é obrigatório');
     else if (!/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(data.phone)) errors.push('Celular inválido');
+    if (!data.gender) errors.push('Selecione seu gênero');
     if (!data.email.trim()) errors.push('E-mail é obrigatório');
     else if (!/\S+@\S+\.\S+/.test(data.email)) errors.push('E-mail inválido');
     if (!data.confirmEmail.trim()) errors.push('Confirmação de e-mail é obrigatória');
@@ -144,8 +148,8 @@ const Register = () => {
       if (data.profiles.adminGeral) selectedRoles.push('admin');
       if (data.profiles.adminMercado) selectedRoles.push('admin_mercado');
       
-      // Registrar usuário com roles
-      await registerUser(data.email, data.password, data.name, selectedRoles);
+      // Registrar usuário com roles e gênero
+      await registerUser(data.email, data.password, data.name, selectedRoles, data.gender);
       
       toast({
         title: "Conta criada com sucesso!",
@@ -259,6 +263,34 @@ const Register = () => {
                                 />
                               </div>
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel htmlFor="gender">Gênero *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger 
+                                  id="gender" 
+                                  className="lg:h-12 lg:text-base"
+                                  aria-required="true"
+                                >
+                                  <SelectValue placeholder="Selecione seu gênero" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="male">Masculino</SelectItem>
+                                <SelectItem value="female">Feminino</SelectItem>
+                                <SelectItem value="nonbinary">Não binário</SelectItem>
+                                <SelectItem value="unspecified">Prefiro não informar</SelectItem>
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -382,6 +414,7 @@ const Register = () => {
                                 form.setValue('profiles.consumidor', !form.getValues('profiles.consumidor'));
                               }
                             }}
+                            aria-label={`Selecionar perfil: ${roleLabel('consumidor', watchedValues.gender)}`}
                           >
                             <FormField
                               control={form.control}
@@ -398,11 +431,11 @@ const Register = () => {
                                     </FormControl>
                                     <ShoppingBasket className="w-5 h-5 max-[767px]:w-[20px] max-[767px]:h-[20px] min-[1200px]:w-[22px] min-[1200px]:h-[22px] text-primary flex-shrink-0" />
                                     <FormLabel className="cursor-pointer font-semibold text-base max-[767px]:text-[15px] min-[1200px]:text-[17px] leading-[1.25] whitespace-normal break-words hyphens-auto m-0">
-                                      Consumidor(@)
+                                      {roleLabel('consumidor', watchedValues.gender)}
                                     </FormLabel>
                                   </div>
                                   <p className="text-[14px] max-[767px]:text-[13px] min-[1200px]:text-[15px] text-[#606C76] leading-[1.45] whitespace-normal break-words hyphens-auto line-clamp-2 min-[1200px]:line-clamp-3 ml-[34px] max-[767px]:ml-[30px]">
-                                    Acesso a cestas ou venda direta. Ideal para quem deseja receber produtos orgânicos.
+                                    {roleDescription('consumidor')}
                                   </p>
                                 </FormItem>
                               )}
@@ -420,6 +453,7 @@ const Register = () => {
                                 form.setValue('profiles.fornecedor', !form.getValues('profiles.fornecedor'));
                               }
                             }}
+                            aria-label={`Selecionar perfil: ${roleLabel('fornecedor', watchedValues.gender)}`}
                           >
                             <FormField
                               control={form.control}
@@ -436,11 +470,11 @@ const Register = () => {
                                     </FormControl>
                                     <Store className="w-5 h-5 max-[767px]:w-[20px] max-[767px]:h-[20px] min-[1200px]:w-[22px] min-[1200px]:h-[22px] text-accent flex-shrink-0" />
                                     <FormLabel className="cursor-pointer font-semibold text-base max-[767px]:text-[15px] min-[1200px]:text-[17px] leading-[1.25] whitespace-normal break-words hyphens-auto m-0">
-                                      Fornecedor(@)
+                                      {roleLabel('fornecedor', watchedValues.gender)}
                                     </FormLabel>
                                   </div>
                                   <p className="text-[14px] max-[767px]:text-[13px] min-[1200px]:text-[15px] text-[#606C76] leading-[1.45] whitespace-normal break-words hyphens-auto line-clamp-2 min-[1200px]:line-clamp-3 ml-[34px] max-[767px]:ml-[30px]">
-                                    Gestão de produtos e vendas para estabelecimentos.
+                                    {roleDescription('fornecedor')}
                                   </p>
                                 </FormItem>
                               )}
@@ -458,6 +492,7 @@ const Register = () => {
                                 form.setValue('profiles.adminGeral', !form.getValues('profiles.adminGeral'));
                               }
                             }}
+                            aria-label={`Selecionar perfil: ${roleLabel('admin', watchedValues.gender)}`}
                           >
                             <FormField
                               control={form.control}
@@ -474,11 +509,11 @@ const Register = () => {
                                     </FormControl>
                                     <Shield className="w-5 h-5 max-[767px]:w-[20px] max-[767px]:h-[20px] min-[1200px]:w-[22px] min-[1200px]:h-[22px] text-destructive flex-shrink-0" />
                                     <FormLabel className="cursor-pointer font-semibold text-base max-[767px]:text-[15px] min-[1200px]:text-[17px] leading-[1.25] whitespace-normal break-words hyphens-auto m-0">
-                                      Administrador(@)
+                                      {roleLabel('admin', watchedValues.gender)}
                                     </FormLabel>
                                   </div>
                                   <p className="text-[14px] max-[767px]:text-[13px] min-[1200px]:text-[15px] text-[#606C76] leading-[1.45] whitespace-normal break-words hyphens-auto line-clamp-2 min-[1200px]:line-clamp-3 ml-[34px] max-[767px]:ml-[30px]">
-                                    Gestão completa da plataforma e todos os mercados.
+                                    {roleDescription('admin')}
                                   </p>
                                 </FormItem>
                               )}
@@ -496,6 +531,7 @@ const Register = () => {
                                 form.setValue('profiles.adminMercado', !form.getValues('profiles.adminMercado'));
                               }
                             }}
+                            aria-label={`Selecionar perfil: ${roleLabel('admin_mercado', watchedValues.gender)}`}
                           >
                             <FormField
                               control={form.control}
@@ -512,11 +548,11 @@ const Register = () => {
                                     </FormControl>
                                     <UserCheck className="w-5 h-5 max-[767px]:w-[20px] max-[767px]:h-[20px] min-[1200px]:w-[22px] min-[1200px]:h-[22px] text-warning flex-shrink-0" />
                                     <FormLabel className="cursor-pointer font-semibold text-base max-[767px]:text-[15px] min-[1200px]:text-[17px] leading-[1.25] whitespace-normal break-words hyphens-auto m-0">
-                                      Administrador(@) de mercado
+                                      {roleLabel('admin_mercado', watchedValues.gender)}
                                     </FormLabel>
                                   </div>
                                   <p className="text-[14px] max-[767px]:text-[13px] min-[1200px]:text-[15px] text-[#606C76] leading-[1.45] whitespace-normal break-words hyphens-auto line-clamp-2 min-[1200px]:line-clamp-3 ml-[34px] max-[767px]:ml-[30px]">
-                                    Gestão específica de um mercado e seus fornecedores.
+                                    {roleDescription('admin_mercado')}
                                   </p>
                                 </FormItem>
                               )}
@@ -544,6 +580,14 @@ const Register = () => {
                               <div className="w-4 h-4 rounded-full border-2 border-muted-foreground" />
                             )}
                             <span className="text-sm">Celular válido</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            {watchedValues.gender ? (
+                              <CheckCircle2 className="w-4 h-4 text-success" />
+                            ) : (
+                              <div className="w-4 h-4 rounded-full border-2 border-muted-foreground" />
+                            )}
+                            <span className="text-sm">Gênero selecionado</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             {watchedValues.email && /\S+@\S+\.\S+/.test(watchedValues.email) ? (

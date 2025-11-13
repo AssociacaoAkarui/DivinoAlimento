@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ciclos } from "@/fixtures/ciclos";
 import { sobrasPorCiclo } from "@/fixtures/produtosSobra";
 import { formatBRL } from "@/utils/currency";
+import { RoleTitle } from '@/components/layout/RoleTitle';
 
 interface ProdutoMigracao {
   id: string;
@@ -218,9 +219,7 @@ export default function AdminMercadoMigrarOfertas() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-primary">
-            Administrador de mercado - Migrar Ofertas de um Ciclo para Outro
-          </h1>
+          <RoleTitle page="Migrar Ofertas de um Ciclo para Outro" className="text-2xl md:text-3xl" />
           <p className="text-sm md:text-base text-muted-foreground">
             Copie as ofertas já configuradas em um ciclo anterior para este ciclo
           </p>
@@ -341,9 +340,9 @@ export default function AdminMercadoMigrarOfertas() {
             <CardHeader>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <CardTitle className="text-primary">Produtos que sobraram</CardTitle>
+                  <CardTitle className="text-primary">Alimentos que sobraram</CardTitle>
                   <CardDescription>
-                    Selecione os produtos e quantidades que deseja migrar
+                    Selecione os alimentos e quantidades que deseja migrar
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
@@ -369,7 +368,7 @@ export default function AdminMercadoMigrarOfertas() {
             <CardContent>
               <div className="mb-4">
                 <Input
-                  placeholder="Buscar produto ou fornecedor..."
+                  placeholder="Buscar alimento ou fornecedor..."
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
                 />
@@ -379,8 +378,8 @@ export default function AdminMercadoMigrarOfertas() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">Sel.</TableHead>
-                    <TableHead>Produto</TableHead>
-                    <TableHead>Fornecedor</TableHead>
+                    <TableHead>Alimento</TableHead>
+                    <TableHead>Fornecedor(a)</TableHead>
                     <TableHead>Medida</TableHead>
                     <TableHead className="text-right">Ofertados</TableHead>
                     <TableHead className="text-right">Pedidos</TableHead>

@@ -12,8 +12,6 @@ dist
 dist-ssr
 *.local
 
-src/types/graphql/
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

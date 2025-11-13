@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -96,12 +97,14 @@ export default function AdminOferta() {
   
   // Form state
   const [selectedProdutoId, setSelectedProdutoId] = useState('');
+  const [selectedProdutoBase, setSelectedProdutoBase] = useState('');
   const [valorUnitario, setValorUnitario] = useState('');
   const [quantidadeDisponivel, setQuantidadeDisponivel] = useState('');
   const [precoBaseSugerido, setPrecoBaseSugerido] = useState<number | null>(null);
   const [salvandoOferta, setSalvandoOferta] = useState(false);
   const [certificacao, setCertificacao] = useState<CertificacaoType | ''>('');
   const [tipoAgricultura, setTipoAgricultura] = useState<TipoAgriculturaType | ''>('');
+  const [ofertaSalva, setOfertaSalva] = useState(false);
 
   // Refs para foco automático
   const valorInputRef = useRef<HTMLInputElement>(null);
@@ -139,6 +142,21 @@ export default function AdminOferta() {
     );
   }, [searchProduto]);
 
+  // Lista única de produtos base (para o primeiro dropdown mobile)
+  const produtosBase = useMemo(() => {
+    const baseMap = new Map<string, string>();
+    mockProdutosComercializaveis.forEach(p => {
+      baseMap.set(p.produto_base_id, p.produto_base_nome);
+    });
+    return Array.from(baseMap.entries()).map(([id, nome]) => ({ id, nome }));
+  }, []);
+
+  // Variações do produto base selecionado (para o segundo dropdown mobile)
+  const variacoesProduto = useMemo(() => {
+    if (!selectedProdutoBase) return [];
+    return mockProdutosComercializaveis.filter(p => p.produto_base_id === selectedProdutoBase);
+  }, [selectedProdutoBase]);
+
   // Ao selecionar um produto, preencher o valor unitário com o preço base e focar
   useEffect(() => {
     if (selectedProdutoId && !editingOferta) {
@@ -164,6 +182,7 @@ export default function AdminOferta() {
   const handleLimparFormulario = () => {
     setEditingOferta(null);
     setSelectedProdutoId('');
+    setSelectedProdutoBase('');
     setValorUnitario('');
     setQuantidadeDisponivel('');
     setPrecoBaseSugerido(null);
@@ -241,6 +260,10 @@ export default function AdminOferta() {
   const handleEditarOferta = (oferta: OfertaProduto) => {
     setEditingOferta(oferta);
     setSelectedProdutoId(oferta.produto_comercializavel_id);
+    const produto = mockProdutosComercializaveis.find(p => p.id === oferta.produto_comercializavel_id);
+    if (produto) {
+      setSelectedProdutoBase(produto.produto_base_id);
+    }
     const precoFormatado = oferta.valor_unitario.toFixed(2).replace('.', ',');
     setValorUnitario(precoFormatado);
     setQuantidadeDisponivel(oferta.quantidade_disponivel.toString());
@@ -315,6 +338,7 @@ export default function AdminOferta() {
     });
 
     setSalvandoOferta(false);
+    setOfertaSalva(true);
 
     toast({
       title: '✓ Oferta registrada com sucesso',
@@ -349,21 +373,19 @@ export default function AdminOferta() {
         <Card className="border-0 shadow-none bg-transparent">
           <CardContent className="p-0 space-y-6">
             {/* Title and Badge */}
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-                  {activeRole === 'fornecedor' ? 'Fornecedor - ' : activeRole === 'admin_mercado' ? 'Administrador de mercado - ' : ''}{mockCiclo.nome}
-                </h1>
+            <div className="flex flex-col items-center gap-4 md:flex-row md:items-start md:justify-between">
+              <Badge 
+                variant={periodoOfertaAberto ? "default" : "secondary"}
+                className={periodoOfertaAberto ? "bg-green-600 hover:bg-green-700 text-white whitespace-nowrap md:order-2" : "bg-orange-500 hover:bg-orange-600 text-white whitespace-nowrap md:order-2"}
+              >
+                {periodoOfertaAberto ? "Período de oferta aberto" : "Período de oferta encerrado"}
+              </Badge>
+              <div className="text-center md:text-left md:order-1">
+                <RoleTitle page={mockCiclo.nome} className="text-2xl md:text-3xl" />
                 <p className="text-sm text-muted-foreground mt-1">
                   Período: {format(mockCiclo.data_inicio_oferta, 'dd/MM/yyyy', { locale: ptBR })} - {format(mockCiclo.data_fim_oferta, 'dd/MM/yyyy', { locale: ptBR })}
                 </p>
               </div>
-              <Badge 
-                variant={periodoOfertaAberto ? "default" : "secondary"}
-                className={periodoOfertaAberto ? "bg-green-600 hover:bg-green-700 text-white whitespace-nowrap" : "bg-orange-500 hover:bg-orange-600 text-white whitespace-nowrap"}
-              >
-                {periodoOfertaAberto ? "Período de oferta aberto" : "Período de oferta encerrado"}
-              </Badge>
             </div>
 
             {/* Stepper */}
@@ -378,22 +400,22 @@ export default function AdminOferta() {
               
               <div className="h-0.5 w-12 md:w-20 bg-green-600" />
               
-              {/* Etapa 2 - Ativa */}
+              {/* Etapa 2 - Ativa ou Completa */}
               <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-600 text-white font-bold">
-                  2
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full ${ofertaSalva ? 'bg-green-600' : 'bg-green-600'} text-white font-bold`}>
+                  {ofertaSalva ? <CheckCircle2 className="h-5 w-5" /> : '2'}
                 </div>
                 <span className="text-sm font-medium text-foreground">Seleção de produtos</span>
               </div>
               
-              <div className="h-0.5 w-12 md:w-20 bg-muted" />
+              <div className={`h-0.5 w-12 md:w-20 ${ofertaSalva ? 'bg-green-600' : 'bg-muted'}`} />
               
-              {/* Etapa 3 - Pendente */}
+              {/* Etapa 3 - Pendente ou Completa */}
               <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-muted text-muted-foreground font-bold">
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full ${ofertaSalva ? 'bg-green-600 text-white' : 'border-2 border-muted text-muted-foreground'} font-bold`}>
                   3
                 </div>
-                <span className="text-sm font-medium text-muted-foreground">Oferta enviada</span>
+                <span className={`text-sm font-medium ${ofertaSalva ? 'text-foreground' : 'text-muted-foreground'}`}>Oferta enviada</span>
               </div>
             </div>
           </CardContent>
@@ -420,18 +442,18 @@ export default function AdminOferta() {
         {/* Formulário inline - Adicionar Produto à Oferta */}
         <Card>
           <CardHeader>
-            <CardTitle>{editingOferta ? 'Editar Produto' : 'Adicionar Produto à Oferta'}</CardTitle>
+            <CardTitle>{editingOferta ? 'Editar Alimento' : 'Adicionar Alimento à Oferta'}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {/* Busca de produto */}
               <div>
-                <Label htmlFor="search">Buscar Produto</Label>
+                <Label htmlFor="search">Buscar alimento</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder="Digite o nome do produto..."
+                    placeholder="Digite o nome do alimento..."
                     value={searchProduto}
                     onChange={(e) => setSearchProduto(e.target.value)}
                     className="pl-9"
@@ -439,12 +461,12 @@ export default function AdminOferta() {
                 </div>
               </div>
 
-              {/* Seleção de produto */}
-              <div>
-                <Label htmlFor="produto">Produto *</Label>
+              {/* Seleção de produto - Desktop (dropdown único) */}
+              <div className="hidden md:block">
+                <Label htmlFor="produto">Alimento *</Label>
                 <Select value={selectedProdutoId} onValueChange={setSelectedProdutoId}>
                   <SelectTrigger id="produto">
-                    <SelectValue placeholder="Selecione o produto e variação" />
+                    <SelectValue placeholder="Selecione o alimento e variação" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px] bg-background z-50">
                     {produtosFiltrados.map((produto) => (
@@ -455,8 +477,53 @@ export default function AdminOferta() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Todas as variações do mesmo produto base estão disponíveis
+                  Todas as variações do mesmo alimento base estão disponíveis
                 </p>
+              </div>
+
+              {/* Seleção de produto - Mobile (dois dropdowns) */}
+              <div className="md:hidden space-y-4">
+                {/* Dropdown 1: Alimento Base */}
+                <div>
+                  <Label htmlFor="produto-base-mobile">Alimento *</Label>
+                  <Select 
+                    value={selectedProdutoBase} 
+                    onValueChange={(value) => {
+                      setSelectedProdutoBase(value);
+                      setSelectedProdutoId(''); // Limpar variação ao mudar o alimento
+                    }}
+                  >
+                    <SelectTrigger id="produto-base-mobile">
+                      <SelectValue placeholder="Selecione o alimento" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px] bg-background z-50">
+                      {produtosBase.map((base) => (
+                        <SelectItem key={base.id} value={base.id}>
+                          {base.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Dropdown 2: Variação */}
+                {selectedProdutoBase && (
+                  <div>
+                    <Label htmlFor="variacao-mobile">Variação *</Label>
+                    <Select value={selectedProdutoId} onValueChange={setSelectedProdutoId}>
+                      <SelectTrigger id="variacao-mobile">
+                        <SelectValue placeholder="Selecione a variação" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px] bg-background z-50">
+                        {variacoesProduto.map((produto) => (
+                          <SelectItem key={produto.id} value={produto.id}>
+                            ({produto.unidade}) - {produto.peso ? `${produto.peso.toFixed(2)} kg` : produto.volume ? `${produto.volume.toFixed(2)} L` : ''} - {produto.quantidade > 1 ? `${produto.quantidade} un. - ` : ''}{formatBRL(produto.preco_base)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
 
               {/* Valor Unitário */}
@@ -510,20 +577,20 @@ export default function AdminOferta() {
                   <Card>
                     <CardContent className="pt-6">
                       <fieldset>
-                        <legend className="text-sm font-medium mb-3">Certificação do produto *</legend>
+                        <legend className="text-sm font-medium mb-3">Certificação do alimento *</legend>
                         <RadioGroup value={certificacao} onValueChange={(value) => setCertificacao(value as CertificacaoType)}>
                           <div className="space-y-2">
                             <div className="flex items-center space-x-2">
                               <RadioGroupItem value="organico" id="cert-organico" />
-                              <Label htmlFor="cert-organico" className="font-normal cursor-pointer">Produto orgânico</Label>
+                              <Label htmlFor="cert-organico" className="font-normal cursor-pointer">Alimento orgânico</Label>
                             </div>
                             <div className="flex items-center space-x-2">
                               <RadioGroupItem value="transicao" id="cert-transicao" />
-                              <Label htmlFor="cert-transicao" className="font-normal cursor-pointer">Produto em transição agroecológica</Label>
+                              <Label htmlFor="cert-transicao" className="font-normal cursor-pointer">Alimento em transição</Label>
                             </div>
                             <div className="flex items-center space-x-2">
                               <RadioGroupItem value="convencional" id="cert-convencional" />
-                              <Label htmlFor="cert-convencional" className="font-normal cursor-pointer">Produto convencional</Label>
+                              <Label htmlFor="cert-convencional" className="font-normal cursor-pointer">Alimento convencional</Label>
                             </div>
                           </div>
                         </RadioGroup>
@@ -571,17 +638,17 @@ export default function AdminOferta() {
                   onClick={handleAdicionarProduto}
                   disabled={!isFormValid}
                 >
-                  {editingOferta ? 'Atualizar Produto' : 'Adicionar Produto'}
+                  {editingOferta ? 'Atualizar Alimento' : 'Adicionar Alimento'}
                 </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Produtos Ofertados Table */}
+        {/* Alimentos Ofertados Table */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Produtos Ofertados</CardTitle>
+            <CardTitle>Alimentos Ofertados</CardTitle>
             {ofertas.length > 0 && (
               <Button 
                 onClick={handleSalvarOferta}
@@ -604,7 +671,7 @@ export default function AdminOferta() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Produto</TableHead>
+                        <TableHead>Alimento</TableHead>
                         <TableHead>Unidade</TableHead>
                         <TableHead>Peso/Volume</TableHead>
                         <TableHead>Preço Base</TableHead>
@@ -703,21 +770,21 @@ export default function AdminOferta() {
                     const precoAlterado = oferta.valor_unitario !== oferta.preco_base;
                     
                     return (
-                      <Card key={oferta.id} className="p-4">
+                      <Card key={oferta.id} className="p-4 overflow-hidden">
                         <div className="space-y-3">
                           {/* Linha 1: Produto e Total */}
-                          <div className="flex justify-between items-start gap-2">
-                            <h3 className="font-semibold text-base">{oferta.produto_base_nome}</h3>
-                            <span className="font-bold text-primary whitespace-nowrap">
+                          <div className="flex justify-between items-start gap-3">
+                            <h3 className="font-semibold text-base break-words flex-1 min-w-0">{oferta.produto_base_nome}</h3>
+                            <span className="font-bold text-primary whitespace-nowrap shrink-0">
                               {formatBRL(total)}
                             </span>
                           </div>
 
                           {/* Linha 2: Medida, Valor Unit, Quantidade */}
-                          <div className="flex gap-4 text-sm text-muted-foreground flex-wrap">
-                            <span>{oferta.unidade}</span>
-                            <span>|</span>
-                            <span>
+                          <div className="flex gap-2 text-sm text-muted-foreground flex-wrap items-center">
+                            <span className="break-words">{oferta.unidade}</span>
+                            <span className="text-xs">•</span>
+                            <span className="break-words">
                               {precoAlterado ? (
                                 <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950 border-amber-300 dark:border-amber-700 text-xs">
                                   {formatBRL(oferta.valor_unitario)}
@@ -726,8 +793,8 @@ export default function AdminOferta() {
                                 formatBRL(oferta.valor_unitario)
                               )}
                             </span>
-                            <span>|</span>
-                            <span>Qtd: {oferta.quantidade_disponivel}</span>
+                            <span className="text-xs">•</span>
+                            <span className="whitespace-nowrap">Qtd: {oferta.quantidade_disponivel}</span>
                           </div>
 
                           {/* Linha 3: Badges de Certificação e Tipo */}

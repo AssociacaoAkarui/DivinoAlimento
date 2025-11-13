@@ -22,6 +22,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { StatusToggle } from '@/components/ui/status-toggle';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 
 interface ProdutoComercializavel {
   id: string;
@@ -115,8 +116,8 @@ const AdminProdutosComercializaveis = () => {
     setProdutos(prev => prev.filter(p => p.id !== id));
     
     toast({
-      title: "Produto excluído",
-      description: "O produto comercializável foi removido com sucesso.",
+      title: "Alimento excluído",
+      description: "O alimento comercializável foi removido com sucesso.",
     });
   };
 
@@ -134,7 +135,7 @@ const AdminProdutosComercializaveis = () => {
     
     toast({
       title: "Status atualizado",
-      description: `Status do produto alterado para ${newStatus}.`,
+      description: `Status do alimento alterado para ${newStatus}.`,
     });
   };
 
@@ -156,11 +157,9 @@ const AdminProdutosComercializaveis = () => {
         {/* Header */}
         <div className="md:flex md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
-              Administrador - Produtos Comercializáveis
-            </h1>
+            <RoleTitle page="Alimentos Comercializáveis" className="text-2xl md:text-3xl" />
             <p className="text-sm md:text-base text-muted-foreground">
-              Gerencie produtos comercializáveis com preços e unidades
+              Gerencie alimentos comercializáveis com preços e unidades
             </p>
           </div>
         </div>
@@ -177,12 +176,12 @@ const AdminProdutosComercializaveis = () => {
               resultCount={filteredProdutos.length}
               hasActiveFilters={hasActiveFilters()}
               filtersOpen={isOpen}
-              searchPlaceholder="Buscar produto comercializável por nome…"
+              searchPlaceholder="Buscar alimento comercializável por nome…"
             />
           </div>
           <Button onClick={handleAddProduto} className="whitespace-nowrap">
             <Plus className="w-4 h-4 mr-2" />
-            Adicionar Produto
+            Adicionar Alimento
           </Button>
         </div>
 
@@ -190,7 +189,7 @@ const AdminProdutosComercializaveis = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg md:text-xl">
-              Lista de Produtos
+              Lista de Alimentos
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -199,7 +198,7 @@ const AdminProdutosComercializaveis = () => {
                 <p className="text-muted-foreground">
                   {hasActiveFilters() 
                     ? 'Sem resultados para os filtros selecionados.' 
-                    : 'Nenhum produto cadastrado.'}
+                    : 'Nenhum alimento cadastrado.'}
                 </p>
                 {hasActiveFilters() && (
                   <Button variant="outline" onClick={clearFilters}>
@@ -212,7 +211,7 @@ const AdminProdutosComercializaveis = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Produto Base</TableHead>
+                      <TableHead>Alimento Base</TableHead>
                       <TableHead>Unidade</TableHead>
                       <TableHead>Peso (kg)</TableHead>
                       <TableHead>Preço Base</TableHead>
@@ -241,7 +240,7 @@ const AdminProdutosComercializaveis = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => handleEdit(produto.id)}
-                              className="flex items-center gap-2"
+                              className="flex items-center gap-2 border-green-600 text-green-600 hover:bg-green-50"
                             >
                               <Edit2 className="w-4 h-4" />
                               <span className="hidden md:inline">Editar</span>
@@ -251,7 +250,7 @@ const AdminProdutosComercializaveis = () => {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="flex items-center gap-2 text-destructive hover:text-destructive"
+                                  className="flex items-center gap-2 border-red-600 text-red-600 hover:bg-red-50"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                   <span className="hidden md:inline">Excluir</span>
@@ -261,7 +260,7 @@ const AdminProdutosComercializaveis = () => {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Deseja realmente excluir este produto? Esta ação não pode ser desfeita.
+                                    Deseja realmente excluir este alimento comercializável? Esta ação não pode ser desfeita.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -316,7 +315,7 @@ const AdminProdutosComercializaveis = () => {
         </div>
 
         <div className="space-y-4">
-          <Label>Produto Base</Label>
+          <Label>Alimento Base</Label>
           <div className="space-y-2">
             {produtosBase.map((produtoBase) => (
               <div key={produtoBase} className="flex items-center space-x-2">

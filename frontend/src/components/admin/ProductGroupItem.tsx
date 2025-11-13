@@ -23,9 +23,9 @@ interface ProductGroupItemProps {
 }
 
 const certificacaoOptions: FilterOption[] = [
-  { value: 'organico', label: 'Produto orgânico' },
-  { value: 'transicao', label: 'Produto em transição agroecológica' },
-  { value: 'convencional', label: 'Produto convencional' },
+  { value: 'organico', label: 'Alimento orgânico' },
+  { value: 'transicao', label: 'Alimento em transição agroecológica' },
+  { value: 'convencional', label: 'Alimento convencional' },
 ];
 
 const agriculturaOptions: FilterOption[] = [
@@ -213,7 +213,7 @@ export function ProductGroupItem({
               <div className="grid grid-cols-14 gap-3 text-xs font-medium text-muted-foreground pb-2 border-b">
                 <div className="col-span-1">Sel.</div>
                 <div className="col-span-1">Unidade</div>
-                <div className="col-span-3">Fornecedor</div>
+                <div className="col-span-3">Fornecedor(a)</div>
                 <div className="col-span-2">Preço Unit.</div>
                 <div className="col-span-1">Ofertados</div>
                 <div className="col-span-1">Disponível</div>

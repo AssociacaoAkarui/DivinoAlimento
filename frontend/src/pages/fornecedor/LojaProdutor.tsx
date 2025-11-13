@@ -16,6 +16,10 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
+import { useAuth } from '@/contexts/AuthContext';
+import { roleLabel } from '@/utils/labels';
+import { useEffect } from 'react';
+import leafTitleIcon from '@/assets/leaf-title-icon.png';
 
 // Mock data - in real app would come from API/context
 const mockFornecedorData = {
@@ -44,7 +48,17 @@ const mockFornecedorData = {
 
 const LojaProdutor = () => {
   const navigate = useNavigate();
+  const { activeRole, user } = useAuth();
   const { nomeFornecedor, ciclos } = mockFornecedorData;
+
+  const roleText = activeRole ? roleLabel(activeRole, user?.gender) : '';
+  const pageTitle = `Painel ${roleText}`;
+
+  useEffect(() => {
+    if (pageTitle) {
+      document.title = `${pageTitle} | Divino Alimento`;
+    }
+  }, [pageTitle]);
 
   const acoesLoja = [
     {
@@ -56,21 +70,14 @@ const LojaProdutor = () => {
     },
     {
       title: 'Relatório de Entregas',
-      description: 'Veja os pedidos e locais de entrega dos produtos desse ciclo.',
+      description: 'Veja os pedidos e locais de entrega dos alimentos desse ciclo.',
       icon: Truck,
-      route: `/fornecedor/entregas/${ciclos[0]?.id || '1'}`,
+      route: '/fornecedor/selecionar-ciclo-entregas',
       enabled: true
     }
   ];
 
   const acoesAdministracao = [
-    {
-      title: 'Pedidos e Gestão de Pagamentos',
-      description: 'Acompanhe pedidos recebidos e controle os pagamentos efetuados e pendentes.',
-      icon: Wallet,
-      route: '/fornecedor/pagamentos',
-      enabled: true
-    },
     {
       title: 'Dados Pessoais',
       description: 'Atualize suas informações de perfil e contato.',
@@ -96,11 +103,16 @@ const LojaProdutor = () => {
         <UserMenuLarge />
       }
     >
-      <div className="container max-w-7xl mx-auto py-6 px-4 space-y-8">
+      <div className="container max-w-7xl mx-auto py-6 px-4 space-y-8 pt-8">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-primary">
-            Fornecedor - Painel fornecedor @
+        <div className="text-center relative mb-8">
+          <img 
+            src={leafTitleIcon} 
+            alt="" 
+            className="absolute left-1/2 -translate-x-[175px] md:-translate-x-[270px] top-1/2 -translate-y-[90%] w-10 h-10 md:w-16 md:h-16"
+          />
+          <h1 className="text-xl md:text-[28px] font-bold text-primary">
+            Agricultoras e agricultores
           </h1>
         </div>
 

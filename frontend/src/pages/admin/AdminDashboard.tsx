@@ -55,8 +55,8 @@ const AdminDashboard = () => {
       route: '/admin/produtos-comercializaveis'
     },
     {
-      title: 'Categorias de Produtos',
-      description: 'Gerenciar categorias dos produtos comercializados',
+      title: 'Categorias de Alimentos',
+      description: 'Gerenciar categorias dos alimentos comercializados',
       icon: FolderTree,
       route: '/admin/categorias'
     }
@@ -237,10 +237,10 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-poppins font-semibold text-base text-foreground mb-1">
-                      Lista de Pagamentos
+                      Gerar Registros de Pagamento
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Registros de pagamentos de consumidores e fornecedores
+                      Gerar registros de pagamentos de consumidores e fornecedores
                     </p>
                   </div>
                 </div>
@@ -259,7 +259,7 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-poppins font-semibold text-base text-foreground mb-1">
-                      Editar Lista de Pagamentos
+                      Administrar Pagamentos
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Acompanhe, edite e registre os pagamentos pendentes e realizados

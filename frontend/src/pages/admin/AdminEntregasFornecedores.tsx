@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -154,9 +155,7 @@ export default function AdminEntregasFornecedores() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-primary">
-            Administrador - Relatório de Entregas dos Fornecedores
-          </h1>
+          <RoleTitle page="Relatório de Entregas dos Fornecedores" className="text-2xl md:text-3xl" />
           <p className="text-sm md:text-base text-muted-foreground">
             Visualize e exporte as entregas realizadas no ciclo selecionado
           </p>
@@ -192,7 +191,7 @@ export default function AdminEntregasFornecedores() {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar fornecedor ou produto"
+              placeholder="Buscar fornecedor ou alimento"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -258,7 +257,7 @@ export default function AdminEntregasFornecedores() {
                   onClick={handleSortByFornecedor}
                 >
                   <div className="flex items-center gap-2">
-                    Fornecedor
+                    Fornecedor(a)
                     <ArrowUpDown className="h-4 w-4" />
                     {sortBy === 'fornecedor' && (
                       <span className="text-xs text-muted-foreground">
@@ -267,7 +266,7 @@ export default function AdminEntregasFornecedores() {
                     )}
                   </div>
                 </TableHead>
-                <TableHead>Produto</TableHead>
+                <TableHead>Alimento</TableHead>
                 <TableHead>Unidade de Medida</TableHead>
                 <TableHead className="text-right">Valor Unitário</TableHead>
                 <TableHead className="text-right">Quantidade Entregue</TableHead>

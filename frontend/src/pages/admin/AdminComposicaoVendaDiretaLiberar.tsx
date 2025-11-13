@@ -16,6 +16,7 @@ import { ProductGroupItem } from '@/components/admin/ProductGroupItem';
 import { groupAndSortProducts, filterProducts, Oferta } from '@/utils/product-grouping';
 import { useCompositionFilters } from '@/hooks/useCompositionFilters';
 import { CompositionFilters } from '@/components/admin/CompositionFilters';
+import { RoleTitle } from '@/components/layout/RoleTitle';
 
 export default function AdminComposicaoVendaDiretaLiberar() {
   const { id } = useParams();
@@ -257,7 +258,7 @@ export default function AdminComposicaoVendaDiretaLiberar() {
       const totalItens = selectedItems.reduce((acc, item) => acc + item.quantidade, 0);
       
       toast({
-        title: "Venda direta publicada com sucesso",
+        title: "Composição salva com sucesso",
         description: `${selectedItems.length} produto(s), ${totalItens} itens, ${formatBRL(valorTotal)}`,
         className: "bg-green-600 text-white border-green-700",
         duration: 5000,
@@ -298,7 +299,7 @@ export default function AdminComposicaoVendaDiretaLiberar() {
           <CardHeader>
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <CardTitle className="text-2xl">{ciclo.nome}</CardTitle>
+                <RoleTitle page={`Composição de Venda Direta – ${ciclo.nome}`} className="text-2xl" />
                 <p className="text-sm text-muted-foreground mt-1">
                   Tipo: {ciclo.tipo} • {ciclo.mercado}
                 </p>
@@ -322,14 +323,14 @@ export default function AdminComposicaoVendaDiretaLiberar() {
           </CardHeader>
         </Card>
 
-        {/* Produtos Selecionados */}
+        {/* Alimentos Selecionados */}
         {selectedItems.length > 0 && (
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Produtos Selecionados para Venda Direta</CardTitle>
+                <CardTitle>Alimentos Selecionados para Venda Direta</CardTitle>
                 <div className="text-sm text-muted-foreground">
-                  {selectedItems.length} produto(s)
+                  {selectedItems.length} alimento(s)
                 </div>
               </div>
             </CardHeader>
@@ -337,10 +338,10 @@ export default function AdminComposicaoVendaDiretaLiberar() {
               <Table className="tabela-produtos-selecionados">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="td-texto">Produto</TableHead>
+                    <TableHead className="td-texto">Alimento</TableHead>
                     <TableHead className="td-texto">Medida</TableHead>
                     <TableHead className="td-valor">Valor Unit.</TableHead>
-                    <TableHead className="td-texto">Fornecedor</TableHead>
+                    <TableHead className="td-texto">Fornecedor(a)</TableHead>
                     <TableHead className="td-numero">Ofertados</TableHead>
                     <TableHead className="td-numero">Pedidos</TableHead>
                     <TableHead className="td-valor">Valor Acumulado</TableHead>
@@ -404,16 +405,16 @@ export default function AdminComposicaoVendaDiretaLiberar() {
           </Card>
         )}
 
-        {/* Produtos Agrupados */}
+        {/* Alimentos Agrupados */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between flex-wrap gap-4">
-              <CardTitle>Produtos Ofertados</CardTitle>
+              <CardTitle>Alimentos Ofertados</CardTitle>
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="relative w-64">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar produto, fornecedor ou unidade..."
+                    placeholder="Buscar alimento, fornecedor ou unidade..."
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
                     className="pl-10"
@@ -493,7 +494,7 @@ export default function AdminComposicaoVendaDiretaLiberar() {
                         onClick={handlePublicarClick}
                         disabled={!podePublicar || isLoading}
                       >
-                        {isLoading ? 'Publicando...' : 'Publicar Venda Direta'}
+                        {isLoading ? 'Salvando...' : 'Salvar Composição'}
                       </Button>
                     </span>
                   </TooltipTrigger>
