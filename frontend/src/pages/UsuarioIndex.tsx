@@ -1,35 +1,52 @@
-import React, { useState, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { FiltersBar } from '@/components/admin/FiltersBar';
-import { FiltersPanel } from '@/components/admin/FiltersPanel';
-import { useFilters } from '@/hooks/useFilters';
-import { 
-  Search, 
-  Plus, 
-  Edit2, 
-  Trash2,
-  ArrowLeft
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { StatusToggle } from '@/components/ui/status-toggle';
-import { useAuth } from '@/contexts/AuthContext';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
-import { RoleTitle } from '@/components/layout/RoleTitle';
+import React, { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import { FiltersBar } from "@/components/admin/FiltersBar";
+import { FiltersPanel } from "@/components/admin/FiltersPanel";
+import { useFilters } from "@/hooks/useFilters";
+import { Search, Plus, Edit2, Trash2, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { StatusToggle } from "@/components/ui/status-toggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { RoleTitle } from "@/components/layout/RoleTitle";
+import { useListarUsuarios, useAtualizarUsuario } from "@/hooks/graphql";
+import {
+  applyAllFilters,
+  normalizeUsuarios,
+} from "@/lib/usuario-index-helpers";
 
 interface Usuario {
   id: string;
-  nomeCompleto: string;
+  nomeCompleto?: string;
+  nome: string;
   email: string;
-  status: 'Ativo' | 'Inativo';
+  status: "Ativo" | "Inativo" | "ativo" | "inativo";
   perfis: string[];
 }
 
@@ -37,58 +54,82 @@ const UsuarioIndex = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeRole } = useAuth();
-  const { 
+  const { data: usuariosBackend = [], isLoading, error } = useListarUsuarios();
+  const atualizarUsuario = useAtualizarUsuario();
+  const {
     filters,
     debouncedSearch,
-    updateFilter, 
-    toggleArrayValue, 
-    clearFilters, 
+    updateFilter,
+    toggleArrayValue,
+    clearFilters,
     clearFilterGroup,
-    getActiveChips, 
+    getActiveChips,
     hasActiveFilters,
     isOpen,
-    setIsOpen 
-  } = useFilters('/usuario-index');
+    setIsOpen,
+  } = useFilters("/usuario-index");
 
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
-    navigate('/');
+    localStorage.removeItem("adminAuth");
+    navigate("/");
   };
 
-  const [usuarios] = useState<Usuario[]>([
-    { id: '1', nomeCompleto: 'João Silva', email: 'joao@email.com', status: 'Ativo', perfis: ['Fornecedor', 'Administrador'] },
-    { id: '2', nomeCompleto: 'Maria Santos', email: 'maria@email.com', status: 'Ativo', perfis: ['Consumidora'] },
-    { id: '3', nomeCompleto: 'Pedro Costa', email: 'pedro@email.com', status: 'Inativo', perfis: ['Fornecedor(a)'] },
-    { id: '4', nomeCompleto: 'Ana Oliveira', email: 'ana@email.com', status: 'Ativo', perfis: ['Consumidora', 'Fornecedora'] },
-    { id: '5', nomeCompleto: 'Carlos Pereira', email: 'carlos@email.com', status: 'Ativo', perfis: ['Administrador(a)'] },
-    { id: '6', nomeCompleto: 'Fernanda Lima', email: 'fernanda@email.com', status: 'Ativo', perfis: ['Administradora de Mercado'] },
-  ]);
+  const usuarios: Usuario[] = normalizeUsuarios(usuariosBackend);
 
-  const perfisDisponiveis = ['Administrador(a)', 'Administrador(a) de Mercado', 'Fornecedor(a)', 'Consumidor(a)'];
+  const usuariosMock = [
+    {
+      id: "1",
+      nomeCompleto: "João Silva",
+      email: "joao@email.com",
+      status: "Ativo",
+      perfis: ["Fornecedor", "Administrador"],
+    },
+    {
+      id: "2",
+      nomeCompleto: "Maria Santos",
+      email: "maria@email.com",
+      status: "Ativo",
+      perfis: ["Consumidora"],
+    },
+    {
+      id: "3",
+      nomeCompleto: "Pedro Costa",
+      email: "pedro@email.com",
+      status: "Inativo",
+      perfis: ["Fornecedor(a)"],
+    },
+    {
+      id: "4",
+      nomeCompleto: "Ana Oliveira",
+      email: "ana@email.com",
+      status: "Ativo",
+      perfis: ["Consumidora", "Fornecedora"],
+    },
+    {
+      id: "5",
+      nomeCompleto: "Carlos Pereira",
+      email: "carlos@email.com",
+      status: "Ativo",
+      perfis: ["Administrador(a)"],
+    },
+    {
+      id: "6",
+      nomeCompleto: "Fernanda Lima",
+      email: "fernanda@email.com",
+      status: "Ativo",
+      perfis: ["Administradora de Mercado"],
+    },
+  ];
+
+  const perfisDisponiveis = [
+    "Administrador(a)",
+    "Administrador(a) de Mercado",
+    "Fornecedor(a)",
+    "Consumidor(a)",
+  ];
 
   const filteredUsers = useMemo(() => {
-    let result = [...usuarios];
-
-    if (debouncedSearch) {
-      result = result.filter(usuario =>
-        usuario.nomeCompleto.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        usuario.email.toLowerCase().includes(debouncedSearch.toLowerCase())
-      );
-    }
-
-    if (filters.status.length > 0) {
-      result = result.filter(usuario => 
-        filters.status.includes(usuario.status)
-      );
-    }
-
-    if (filters.perfis.length > 0) {
-      result = result.filter(usuario =>
-        usuario.perfis.some(perfil => filters.perfis.includes(perfil))
-      );
-    }
-
-    return result;
+    return applyAllFilters(usuarios, filters, debouncedSearch);
   }, [usuarios, filters, debouncedSearch]);
 
   const handleEdit = (id: string) => {
@@ -103,27 +144,41 @@ const UsuarioIndex = () => {
   };
 
   const handleAddUser = () => {
-    navigate('/usuario');
+    navigate("/usuario");
   };
 
-  const handleStatusChange = async (id: string, newStatus: 'Ativo' | 'Inativo') => {
-    // Aqui você faria a chamada PATCH /{recurso}/{id} body { status: "ativo"|"inativo" }
-    // Simulando uma chamada API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    toast({
-      title: "Status atualizado",
-      description: `Status do usuário alterado para ${newStatus}.`,
-    });
+  const handleStatusChange = async (
+    id: string,
+    newStatus: "Ativo" | "Inativo",
+  ) => {
+    try {
+      await atualizarUsuario.mutateAsync({
+        id,
+        input: {
+          status: newStatus.toLowerCase() as "ativo" | "inativo",
+        },
+      });
+      toast({
+        title: "Status atualizado",
+        description: `Status do usuário alterado para ${newStatus}.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar status",
+        description:
+          error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <ResponsiveLayout 
+    <ResponsiveLayout
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon-sm"
-          onClick={() => navigate('/admin/dashboard')}
+          onClick={() => navigate("/admin/dashboard")}
           className="text-primary-foreground hover:bg-primary-hover"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -145,7 +200,7 @@ const UsuarioIndex = () => {
           <div className="flex-1">
             <FiltersBar
               searchValue={filters.search}
-              onSearchChange={(value) => updateFilter('search', value)}
+              onSearchChange={(value) => updateFilter("search", value)}
               onFiltersClick={() => setIsOpen(true)}
               activeChips={getActiveChips()}
               onRemoveChip={clearFilterGroup}
@@ -167,12 +222,20 @@ const UsuarioIndex = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {filteredUsers.length === 0 ? (
+            {isLoading ? (
+              <div className="p-6 text-center text-muted-foreground">
+                Carregando usuários...
+              </div>
+            ) : error ? (
+              <div className="p-6 text-center text-destructive">
+                Erro ao carregar usuários: {error.message}
+              </div>
+            ) : filteredUsers.length === 0 ? (
               <div className="p-6 text-center space-y-4">
                 <p className="text-muted-foreground">
-                  {hasActiveFilters() 
-                    ? 'Sem resultados para os filtros selecionados.' 
-                    : 'Nenhum usuário cadastrado.'}
+                  {hasActiveFilters()
+                    ? "Sem resultados para os filtros selecionados."
+                    : "Nenhum usuário cadastrado."}
                 </p>
                 {hasActiveFilters() && (
                   <Button variant="outline" onClick={clearFilters}>
@@ -195,18 +258,26 @@ const UsuarioIndex = () => {
                   <TableBody>
                     {filteredUsers.map((usuario) => (
                       <TableRow key={usuario.id}>
-                        <TableCell className="font-medium">{usuario.nomeCompleto}</TableCell>
+                        <TableCell className="font-medium">
+                          {usuario.nomeCompleto}
+                        </TableCell>
                         <TableCell>{usuario.email}</TableCell>
                         <TableCell>
                           <StatusToggle
                             currentStatus={usuario.status}
-                            onStatusChange={(newStatus) => handleStatusChange(usuario.id, newStatus)}
+                            onStatusChange={(newStatus) =>
+                              handleStatusChange(usuario.id, newStatus)
+                            }
                           />
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {usuario.perfis.map((perfil, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                className="text-xs"
+                              >
                                 {perfil}
                               </Badge>
                             ))}
@@ -231,19 +302,26 @@ const UsuarioIndex = () => {
                                   className="flex items-center gap-2 text-destructive hover:text-destructive"
                                 >
                                   <Trash2 className="w-4 h-4" />
-                                  <span className="hidden md:inline">Excluir</span>
+                                  <span className="hidden md:inline">
+                                    Excluir
+                                  </span>
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                  <AlertDialogTitle>
+                                    Confirmar exclusão
+                                  </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Deseja realmente excluir este usuário? Esta ação não pode ser desfeita.
+                                    Deseja realmente excluir este usuário? Esta
+                                    ação não pode ser desfeita.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction 
+                                  <AlertDialogCancel>
+                                    Cancelar
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
                                     onClick={() => handleDelete(usuario.id)}
                                     className="bg-destructive hover:bg-destructive/90"
                                   >
@@ -273,14 +351,17 @@ const UsuarioIndex = () => {
         <div className="space-y-4">
           <Label>Status</Label>
           <div className="space-y-2">
-            {['Ativo', 'Inativo'].map((status) => (
+            {["Ativo", "Inativo"].map((status) => (
               <div key={status} className="flex items-center space-x-2">
                 <Checkbox
                   id={`status-${status}`}
                   checked={filters.status.includes(status)}
-                  onCheckedChange={() => toggleArrayValue('status', status)}
+                  onCheckedChange={() => toggleArrayValue("status", status)}
                 />
-                <label htmlFor={`status-${status}`} className="text-sm font-medium cursor-pointer">
+                <label
+                  htmlFor={`status-${status}`}
+                  className="text-sm font-medium cursor-pointer"
+                >
                   {status}
                 </label>
               </div>
@@ -296,9 +377,12 @@ const UsuarioIndex = () => {
                 <Checkbox
                   id={`perfil-${perfil}`}
                   checked={filters.perfis.includes(perfil)}
-                  onCheckedChange={() => toggleArrayValue('perfis', perfil)}
+                  onCheckedChange={() => toggleArrayValue("perfis", perfil)}
                 />
-                <label htmlFor={`perfil-${perfil}`} className="text-sm font-medium cursor-pointer">
+                <label
+                  htmlFor={`perfil-${perfil}`}
+                  className="text-sm font-medium cursor-pointer"
+                >
                   {perfil}
                 </label>
               </div>
