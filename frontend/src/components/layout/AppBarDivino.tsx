@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 interface AppBarDivinoProps {
   children?: React.ReactNode;

@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCycle } from "@/hooks/useCycle";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatBRL } from "@/utils/currency";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
