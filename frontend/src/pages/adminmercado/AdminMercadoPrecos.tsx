@@ -1,4 +1,3 @@
-import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, DollarSign, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ import { mercadosLocais } from "@/data/mercados-locais";
 import { RoleTitle } from '@/components/layout/RoleTitle';
 
 // Mock data - administrador atual
-const CURRENT_ADMIN_ID = 1;
+const _CURRENT_ADMIN_ID = 1;
 const CURRENT_ADMIN_NAME = 'João Silva';
 
 // Simulação de dados de mercados com administrador
@@ -70,7 +69,7 @@ export default function AdminMercadoPrecos() {
     }
 
     return result;
-  }, [filters, debouncedSearch]);
+  }, [filters, debouncedSearch, userMercados]);
 
   return (
     <ResponsiveLayout

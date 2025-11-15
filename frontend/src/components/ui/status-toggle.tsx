@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface StatusToggleProps {
-  currentStatus: 'Ativo' | 'Inativo';
-  onStatusChange: (newStatus: 'Ativo' | 'Inativo') => Promise<void>;
+  currentStatus: "Ativo" | "Inativo";
+  onStatusChange: (newStatus: "Ativo" | "Inativo") => Promise<void>;
   disabled?: boolean;
 }
 
@@ -23,7 +23,7 @@ export const StatusToggle: React.FC<StatusToggleProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [localStatus, setLocalStatus] = useState(currentStatus);
 
-  const handleStatusChange = async (newStatus: 'Ativo' | 'Inativo') => {
+  const handleStatusChange = async (newStatus: "Ativo" | "Inativo") => {
     if (newStatus === localStatus || isUpdating) return;
 
     const previousStatus = localStatus;
@@ -32,7 +32,7 @@ export const StatusToggle: React.FC<StatusToggleProps> = ({
 
     try {
       await onStatusChange(newStatus);
-    } catch (error) {
+    } catch (_error) {
       // Reverter em caso de erro
       setLocalStatus(previousStatus);
     } finally {
@@ -42,7 +42,7 @@ export const StatusToggle: React.FC<StatusToggleProps> = ({
 
   if (disabled) {
     return (
-      <Badge variant={localStatus === 'Ativo' ? 'success' : 'warning'}>
+      <Badge variant={localStatus === "Ativo" ? "success" : "warning"}>
         {localStatus}
       </Badge>
     );
@@ -54,10 +54,10 @@ export const StatusToggle: React.FC<StatusToggleProps> = ({
         disabled={isUpdating}
         className={cn(
           "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-          localStatus === 'Ativo'
+          localStatus === "Ativo"
             ? "border-transparent bg-green-600 text-white hover:bg-green-700"
             : "border-transparent bg-orange-500 text-white hover:bg-orange-600",
-          isUpdating && "opacity-70 cursor-wait"
+          isUpdating && "opacity-70 cursor-wait",
         )}
       >
         {isUpdating ? (
@@ -71,19 +71,19 @@ export const StatusToggle: React.FC<StatusToggleProps> = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="z-50 bg-popover">
         <DropdownMenuItem
-          onClick={() => handleStatusChange('Ativo')}
+          onClick={() => handleStatusChange("Ativo")}
           className={cn(
             "cursor-pointer",
-            localStatus === 'Ativo' && "bg-accent"
+            localStatus === "Ativo" && "bg-accent",
           )}
         >
           Ativo
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => handleStatusChange('Inativo')}
+          onClick={() => handleStatusChange("Inativo")}
           className={cn(
             "cursor-pointer",
-            localStatus === 'Inativo' && "bg-accent"
+            localStatus === "Inativo" && "bg-accent",
           )}
         >
           Inativo

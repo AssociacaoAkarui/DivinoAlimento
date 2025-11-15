@@ -44,7 +44,7 @@ const AdminPagamentosGerir = () => {
     // Carregar dados do localStorage
     const dadosSalvos = localStorage.getItem("pagamentosGerados");
     if (dadosSalvos) {
-      const pagamentosIniciais = JSON.parse(dadosSalvos).map((p: any) => ({
+      const pagamentosIniciais = JSON.parse(dadosSalvos).map((p: Record<string, unknown>) => ({
         ...p,
         status: "Pendente" as const,
         dataPagamento: undefined,
@@ -231,7 +231,7 @@ const AdminPagamentosGerir = () => {
                   className="pl-10"
                 />
               </div>
-              <Select value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)}>
+              <Select value={filtroStatus} onValueChange={(v: Record<string, unknown>) => setFiltroStatus(v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Mostrar" />
                 </SelectTrigger>
@@ -241,7 +241,7 @@ const AdminPagamentosGerir = () => {
                   <SelectItem value="Pagos">Pagos</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={ordenacao} onValueChange={(v: any) => setOrdenacao(v)}>
+              <Select value={ordenacao} onValueChange={(v: Record<string, unknown>) => setOrdenacao(v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Ordenar por" />
                 </SelectTrigger>
@@ -401,7 +401,7 @@ const AdminPagamentosGerir = () => {
               </div>
               <div>
                 <Label htmlFor="status">Status</Label>
-                <Select value={novoStatus} onValueChange={(v: any) => setNovoStatus(v)}>
+                <Select value={novoStatus} onValueChange={(v: Record<string, unknown>) => setNovoStatus(v)}>
                   <SelectTrigger id="status">
                     <SelectValue />
                   </SelectTrigger>

@@ -27,7 +27,7 @@ export default function AdminMercadoCicloIndex() {
     filters,
     debouncedSearch,
     updateFilter, 
-    toggleArrayValue, 
+    _toggleArrayValue, 
     clearFilters, 
     clearFilterGroup,
     getActiveChips, 

@@ -100,7 +100,7 @@ export default function AdminMercadoRelatorioConsumidoresResultado() {
       const { exportConsumidoresCSV } = await import('@/utils/export');
       exportConsumidoresCSV(filteredPedidos, ciclosData);
       toast.success('Download do CSV concluído');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao exportar CSV');
     }
   };
@@ -112,7 +112,7 @@ export default function AdminMercadoRelatorioConsumidoresResultado() {
       const { exportConsumidoresPDF } = await import('@/utils/export');
       exportConsumidoresPDF(filteredPedidos, ciclosData, resumo);
       toast.success('Download do PDF concluído');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao exportar PDF');
     }
   };

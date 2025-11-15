@@ -175,7 +175,7 @@ export default function AdminRelatorioConsumidoresResultado() {
 
   const handleExportCSV = async () => {
     try {
-      const ciclosData = ciclosIds.map((id, index) => ({
+      const ciclosData = ciclosIds.map((id, _index) => ({
         id: parseInt(id),
         nome: `Ciclo ${id}`
       }));
@@ -183,14 +183,14 @@ export default function AdminRelatorioConsumidoresResultado() {
       const { exportConsumidoresCSV } = await import('@/utils/export');
       exportConsumidoresCSV(filteredPedidos, ciclosData);
       toast.success('Download do CSV concluído');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao exportar CSV');
     }
   };
 
   const handleExportPDF = async () => {
     try {
-      const ciclosData = ciclosIds.map((id, index) => ({
+      const ciclosData = ciclosIds.map((id, _index) => ({
         id: parseInt(id),
         nome: `Ciclo ${id}`
       }));
@@ -204,7 +204,7 @@ export default function AdminRelatorioConsumidoresResultado() {
       const { exportConsumidoresPDF } = await import('@/utils/export');
       exportConsumidoresPDF(filteredPedidos, ciclosData, resumo);
       toast.success('Download do PDF concluído');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao exportar PDF');
     }
   };

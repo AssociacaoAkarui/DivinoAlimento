@@ -38,7 +38,7 @@ export default function AdminMercadoRelatorioConsumidores() {
   const isMobile = useIsMobile();
   const { cicloId } = useParams();
   const [searchParams] = useSearchParams();
-  const mercadoId = searchParams.get('mercado');
+  const _mercadoId = searchParams.get('mercado');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPedido, setSelectedPedido] = useState<PedidoDetalhado | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -100,7 +100,7 @@ export default function AdminMercadoRelatorioConsumidores() {
   ];
 
   // Mock data - informações do mercado
-  const mercadoInfo = {
+  const _mercadoInfo = {
     nome: 'Mercado Central',
     pontoRetirada: 'Praça Central, 123',
     dataRetirada: '26/11/2025',
@@ -153,7 +153,7 @@ export default function AdminMercadoRelatorioConsumidores() {
       const { exportConsumidoresCSV } = await import('@/utils/export');
       exportConsumidoresCSV(filteredPedidos, ciclosData);
       toast.success('Download do CSV concluído');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao exportar CSV');
     }
   };
@@ -165,7 +165,7 @@ export default function AdminMercadoRelatorioConsumidores() {
       const { exportConsumidoresPDF } = await import('@/utils/export');
       exportConsumidoresPDF(filteredPedidos, ciclosData, resumo);
       toast.success('Download do PDF concluído');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao exportar PDF');
     }
   };

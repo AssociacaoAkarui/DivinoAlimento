@@ -1,63 +1,70 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import type { CertificationType, AgricultureType } from '@/components/admin/CompositionFilters';
+import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import type {
+  CertificationType,
+  AgricultureType,
+} from "@/components/admin/CompositionFilters";
 
 export function useCompositionFilters() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Inicializar com todos os filtros marcados
   const [certificacoes, setCertificacoes] = useState<Set<CertificationType>>(
-    new Set(['organico', 'transicao', 'convencional'])
+    new Set(["organico", "transicao", "convencional"]),
   );
-  const [tiposAgricultura, setTiposAgricultura] = useState<Set<AgricultureType>>(
-    new Set(['familiar', 'nao_familiar'])
-  );
+  const [tiposAgricultura, setTiposAgricultura] = useState<
+    Set<AgricultureType>
+  >(new Set(["familiar", "nao_familiar"]));
 
   // Carregar filtros dos query params ao montar
   useEffect(() => {
-    const certParam = searchParams.get('cert');
-    const agriParam = searchParams.get('agri');
+    const certParam = searchParams.get("cert");
+    const agriParam = searchParams.get("agri");
 
     if (certParam) {
-      const certs = certParam.split(',').filter((c): c is CertificationType => 
-        ['organico', 'transicao', 'convencional'].includes(c)
-      );
+      const certs = certParam
+        .split(",")
+        .filter((c): c is CertificationType =>
+          ["organico", "transicao", "convencional"].includes(c),
+        );
       if (certs.length > 0) {
         setCertificacoes(new Set(certs));
       }
     }
 
     if (agriParam) {
-      const tipos = agriParam.split(',').filter((t): t is AgricultureType => 
-        ['familiar', 'nao_familiar'].includes(t)
-      );
+      const tipos = agriParam
+        .split(",")
+        .filter((t): t is AgricultureType =>
+          ["familiar", "nao_familiar"].includes(t),
+        );
       if (tipos.length > 0) {
         setTiposAgricultura(new Set(tipos));
       }
     }
-  }, []);
+  }, [searchParams]);
 
   // Atualizar query params quando filtros mudarem
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
-    
+
     if (certificacoes.size > 0 && certificacoes.size < 3) {
-      params.set('cert', Array.from(certificacoes).join(','));
+      params.set("cert", Array.from(certificacoes).join(","));
     } else {
-      params.delete('cert');
+      params.delete("cert");
     }
 
     if (tiposAgricultura.size > 0 && tiposAgricultura.size < 2) {
-      params.set('agri', Array.from(tiposAgricultura).join(','));
+      params.set("agri", Array.from(tiposAgricultura).join(","));
     } else {
-      params.delete('agri');
+      params.delete("agri");
     }
 
     setSearchParams(params, { replace: true });
-  }, [certificacoes, tiposAgricultura]);
+  }, [certificacoes, tiposAgricultura, searchParams, setSearchParams]);
 
   const toggleCertificacao = (cert: CertificationType) => {
-    setCertificacoes(prev => {
+    setCertificacoes((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(cert)) {
         newSet.delete(cert);
@@ -70,7 +77,7 @@ export function useCompositionFilters() {
   };
 
   const toggleTipoAgricultura = (tipo: AgricultureType) => {
-    setTiposAgricultura(prev => {
+    setTiposAgricultura((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(tipo)) {
         newSet.delete(tipo);
@@ -83,8 +90,8 @@ export function useCompositionFilters() {
   };
 
   const clearFilters = () => {
-    setCertificacoes(new Set(['organico', 'transicao', 'convencional']));
-    setTiposAgricultura(new Set(['familiar', 'nao_familiar']));
+    setCertificacoes(new Set(["organico", "transicao", "convencional"]));
+    setTiposAgricultura(new Set(["familiar", "nao_familiar"]));
   };
 
   const hasActiveFilters = useMemo(() => {

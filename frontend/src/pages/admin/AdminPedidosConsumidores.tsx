@@ -151,7 +151,7 @@ export default function AdminPedidosConsumidores() {
       const { exportConsumidoresCSV } = await import('@/utils/export');
       exportConsumidoresCSV(pedidosExport, ciclosData);
       toast({ title: "Sucesso", description: "Download do CSV concluído" });
-    } catch (error) {
+    } catch (_error) {
       toast({ title: "Erro", description: "Erro ao exportar CSV", variant: "destructive" });
     }
   };
@@ -179,7 +179,7 @@ export default function AdminPedidosConsumidores() {
       const { exportConsumidoresPDF } = await import('@/utils/export');
       exportConsumidoresPDF(pedidosExport, ciclosData, resumo);
       toast({ title: "Sucesso", description: "Download do PDF concluído" });
-    } catch (error) {
+    } catch (_error) {
       toast({ title: "Erro", description: "Erro ao exportar PDF", variant: "destructive" });
     }
   };

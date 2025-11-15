@@ -5,10 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { Search, ArrowLeft, AlertTriangle, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { formatBRL } from '@/utils/currency';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ProductGroupItem } from '@/components/admin/ProductGroupItem';
@@ -23,7 +21,7 @@ export default function AdminMercadoComposicaoLote() {
 
   const [busca, setBusca] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [_showConfirmModal, setShowConfirmModal] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   
   const [selectedByGroup, setSelectedByGroup] = useState<Map<string, Set<string>>>(new Map());
@@ -223,7 +221,7 @@ export default function AdminMercadoComposicaoLote() {
   };
 
   const executarPublicacao = () => {
-    const payload = {
+    const _payload = {
       itens: selectedItems.map(item => {
         const oferta = ofertas.find(o => o.id === item.id);
         return {
@@ -266,7 +264,7 @@ export default function AdminMercadoComposicaoLote() {
   };
 
   const podePublicar = selectedItems.length > 0;
-  const excedeuValor = valorAtual > ciclo.valorMaximo;
+  const _excedeuValor = valorAtual > ciclo.valorMaximo;
 
   return (
     <ResponsiveLayout

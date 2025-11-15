@@ -1,56 +1,67 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { ArrowLeft, Info } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import InputMask from 'react-input-mask';
-import { 
-  validarCelular, 
-  validarChavePix, 
-  validarAgencia, 
-  validarConta 
-} from '@/utils/validation';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
-import { RoleTitle } from '@/components/layout/RoleTitle';
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import { ArrowLeft, Info } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import InputMask from "react-input-mask";
+import {
+  validarCelular,
+  validarChavePix,
+  validarAgencia,
+  validarConta,
+} from "@/utils/validation";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { RoleTitle } from "@/components/layout/RoleTitle";
 
 const UsuarioDados = () => {
-  const { id } = useParams();
+  const { id: _id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeRole } = useAuth();
 
   const [formData, setFormData] = useState({
-    nomeCompleto: 'João da Silva',
-    nomeFantasia: 'João Silva',
-    celular: '11987654321',
-    banco: 'Itaú',
-    agencia: '1234',
-    conta: '56789-0',
-    chavePix: 'joao@email.com',
-    email: 'joao.silva@email.com',
+    nomeCompleto: "João da Silva",
+    nomeFantasia: "João Silva",
+    celular: "11987654321",
+    banco: "Itaú",
+    agencia: "1234",
+    conta: "56789-0",
+    chavePix: "joao@email.com",
+    email: "joao.silva@email.com",
     aceitePolitica: true,
     perfilFornecedor: true,
     perfilConsumidor: false,
     perfilAdministrador: true,
     perfilAdministradorMercado: false,
-    situacao: 'Ativo'
+    situacao: "Ativo",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Limpar erro do campo ao editar
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -58,42 +69,44 @@ const UsuarioDados = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.nomeCompleto.trim()) {
-      newErrors.nomeCompleto = 'Nome completo é obrigatório';
+      newErrors.nomeCompleto = "Nome completo é obrigatório";
     }
 
     if (!formData.celular.trim()) {
-      newErrors.celular = 'Celular é obrigatório';
+      newErrors.celular = "Celular é obrigatório";
     } else if (!validarCelular(formData.celular)) {
-      newErrors.celular = 'Informe um celular válido no formato (11) 95555-9999.';
+      newErrors.celular =
+        "Informe um celular válido no formato (11) 95555-9999.";
     }
 
     if (!formData.banco) {
-      newErrors.banco = 'Banco é obrigatório';
+      newErrors.banco = "Banco é obrigatório";
     }
 
     if (!formData.agencia.trim()) {
-      newErrors.agencia = 'Agência é obrigatória';
+      newErrors.agencia = "Agência é obrigatória";
     } else if (!validarAgencia(formData.agencia)) {
-      newErrors.agencia = 'Agência deve ter 4 ou 5 dígitos.';
+      newErrors.agencia = "Agência deve ter 4 ou 5 dígitos.";
     }
 
     if (!formData.conta.trim()) {
-      newErrors.conta = 'Conta é obrigatória';
+      newErrors.conta = "Conta é obrigatória";
     } else if (!validarConta(formData.conta)) {
-      newErrors.conta = 'Conta deve estar no formato 123456-7.';
+      newErrors.conta = "Conta deve estar no formato 123456-7.";
     }
 
     if (!formData.chavePix.trim()) {
-      newErrors.chavePix = 'Chave PIX é obrigatória';
+      newErrors.chavePix = "Chave PIX é obrigatória";
     } else {
       const validacao = validarChavePix(formData.chavePix);
       if (!validacao.valido) {
-        newErrors.chavePix = validacao.mensagem || 'Chave PIX inválida';
+        newErrors.chavePix = validacao.mensagem || "Chave PIX inválida";
       }
     }
 
     if (!formData.aceitePolitica) {
-      newErrors.aceitePolitica = 'É obrigatório aceitar a Política de Privacidade e Termos de Uso';
+      newErrors.aceitePolitica =
+        "É obrigatório aceitar a Política de Privacidade e Termos de Uso";
     }
 
     setErrors(newErrors);
@@ -107,23 +120,23 @@ const UsuarioDados = () => {
         title: "Sucesso",
         description: "Dados atualizados com sucesso",
       });
-      
+
       // Redirecionar baseado no perfil ativo
       switch (activeRole) {
-        case 'consumidor':
-          navigate('/dashboard');
+        case "consumidor":
+          navigate("/dashboard");
           break;
-        case 'fornecedor':
-          navigate('/fornecedor/loja');
+        case "fornecedor":
+          navigate("/fornecedor/loja");
           break;
-        case 'admin_mercado':
-          navigate('/adminmercado/dashboard');
+        case "admin_mercado":
+          navigate("/adminmercado/dashboard");
           break;
-        case 'admin':
-          navigate('/admin/dashboard');
+        case "admin":
+          navigate("/admin/dashboard");
           break;
         default:
-          navigate('/dashboard');
+          navigate("/dashboard");
       }
     } else {
       toast({
@@ -137,20 +150,20 @@ const UsuarioDados = () => {
   const handleCancel = () => {
     // Redirecionar baseado no perfil ativo
     switch (activeRole) {
-      case 'consumidor':
-        navigate('/dashboard');
+      case "consumidor":
+        navigate("/dashboard");
         break;
-      case 'fornecedor':
-        navigate('/fornecedor/loja');
+      case "fornecedor":
+        navigate("/fornecedor/loja");
         break;
-      case 'admin_mercado':
-        navigate('/adminmercado/dashboard');
+      case "admin_mercado":
+        navigate("/adminmercado/dashboard");
         break;
-      case 'admin':
-        navigate('/admin/dashboard');
+      case "admin":
+        navigate("/admin/dashboard");
         break;
       default:
-        navigate('/dashboard');
+        navigate("/dashboard");
     }
   };
 
@@ -158,8 +171,8 @@ const UsuarioDados = () => {
     <ResponsiveLayout
       headerContent={<UserMenuLarge />}
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon-sm"
           onClick={() => navigate(-1)}
           className="text-primary-foreground hover:bg-primary-hover"
@@ -188,11 +201,15 @@ const UsuarioDados = () => {
               <Input
                 id="nomeCompleto"
                 value={formData.nomeCompleto}
-                onChange={(e) => handleInputChange('nomeCompleto', e.target.value)}
-                className={errors.nomeCompleto ? 'border-destructive' : ''}
+                onChange={(e) =>
+                  handleInputChange("nomeCompleto", e.target.value)
+                }
+                className={errors.nomeCompleto ? "border-destructive" : ""}
               />
               {errors.nomeCompleto && (
-                <p className="text-sm text-destructive">{errors.nomeCompleto}</p>
+                <p className="text-sm text-destructive">
+                  {errors.nomeCompleto}
+                </p>
               )}
             </div>
 
@@ -201,7 +218,9 @@ const UsuarioDados = () => {
               <Input
                 id="nomeFantasia"
                 value={formData.nomeFantasia}
-                onChange={(e) => handleInputChange('nomeFantasia', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("nomeFantasia", e.target.value)
+                }
               />
             </div>
 
@@ -212,16 +231,21 @@ const UsuarioDados = () => {
               <InputMask
                 mask="(99) 99999-9999"
                 value={formData.celular}
-                onChange={(e) => handleInputChange('celular', e.target.value.replace(/\D/g, ''))}
+                onChange={(e) =>
+                  handleInputChange(
+                    "celular",
+                    e.target.value.replace(/\D/g, ""),
+                  )
+                }
               >
-                {/* @ts-ignore */}
-                {(inputProps: any) => (
+                {/* @ts-expect-error - InputMask children function type mismatch */}
+                {(inputProps: Record<string, unknown>) => (
                   <Input
                     {...inputProps}
                     id="celular"
                     type="tel"
                     placeholder="(11) 95555-9999"
-                    className={errors.celular ? 'border-destructive' : ''}
+                    className={errors.celular ? "border-destructive" : ""}
                     inputMode="numeric"
                   />
                 )}
@@ -267,11 +291,11 @@ const UsuarioDados = () => {
                 </Label>
                 <Select
                   value={formData.banco}
-                  onValueChange={(value) => handleInputChange('banco', value)}
+                  onValueChange={(value) => handleInputChange("banco", value)}
                 >
-                  <SelectTrigger 
+                  <SelectTrigger
                     id="banco"
-                    className={errors.banco ? 'border-destructive' : ''}
+                    className={errors.banco ? "border-destructive" : ""}
                   >
                     <SelectValue placeholder="Selecione o banco" />
                   </SelectTrigger>
@@ -279,8 +303,12 @@ const UsuarioDados = () => {
                     <SelectItem value="Itaú">Itaú</SelectItem>
                     <SelectItem value="Bradesco">Bradesco</SelectItem>
                     <SelectItem value="Santander">Santander</SelectItem>
-                    <SelectItem value="Caixa">Caixa Econômica Federal</SelectItem>
-                    <SelectItem value="Banco do Brasil">Banco do Brasil</SelectItem>
+                    <SelectItem value="Caixa">
+                      Caixa Econômica Federal
+                    </SelectItem>
+                    <SelectItem value="Banco do Brasil">
+                      Banco do Brasil
+                    </SelectItem>
                     <SelectItem value="Nubank">Nubank</SelectItem>
                     <SelectItem value="Inter">Inter</SelectItem>
                     <SelectItem value="Sicredi">Sicredi</SelectItem>
@@ -303,11 +331,11 @@ const UsuarioDados = () => {
                   inputMode="numeric"
                   value={formData.agencia}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '').slice(0, 5);
-                    handleInputChange('agencia', value);
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 5);
+                    handleInputChange("agencia", value);
                   }}
                   placeholder="1234"
-                  className={errors.agencia ? 'border-destructive' : ''}
+                  className={errors.agencia ? "border-destructive" : ""}
                   maxLength={5}
                 />
                 {errors.agencia && (
@@ -325,16 +353,16 @@ const UsuarioDados = () => {
                   inputMode="numeric"
                   value={formData.conta}
                   onChange={(e) => {
-                    let value = e.target.value.replace(/[^\d-]/g, '');
+                    let value = e.target.value.replace(/[^\d-]/g, "");
                     // Limitar a 12 dígitos + hífen + 1 dígito
                     const match = value.match(/^(\d{0,12})-?(\d?)$/);
                     if (match) {
-                      value = match[1] + (match[2] ? '-' + match[2] : '');
+                      value = match[1] + (match[2] ? "-" + match[2] : "");
                     }
-                    handleInputChange('conta', value);
+                    handleInputChange("conta", value);
                   }}
                   placeholder="56789-0"
-                  className={errors.conta ? 'border-destructive' : ''}
+                  className={errors.conta ? "border-destructive" : ""}
                   maxLength={14}
                 />
                 {errors.conta && (
@@ -350,9 +378,11 @@ const UsuarioDados = () => {
                   id="chavePix"
                   type="text"
                   value={formData.chavePix}
-                  onChange={(e) => handleInputChange('chavePix', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("chavePix", e.target.value)
+                  }
                   placeholder="joao@email.com"
-                  className={errors.chavePix ? 'border-destructive' : ''}
+                  className={errors.chavePix ? "border-destructive" : ""}
                 />
                 {errors.chavePix && (
                   <p className="text-sm text-destructive">{errors.chavePix}</p>
@@ -381,26 +411,31 @@ const UsuarioDados = () => {
               <Checkbox
                 id="aceitePolitica"
                 checked={formData.aceitePolitica}
-                onCheckedChange={(checked) => 
-                  handleInputChange('aceitePolitica', checked as boolean)
+                onCheckedChange={(checked) =>
+                  handleInputChange("aceitePolitica", checked as boolean)
                 }
-                className={errors.aceitePolitica ? 'border-destructive' : ''}
+                className={errors.aceitePolitica ? "border-destructive" : ""}
               />
-              <Label htmlFor="aceitePolitica" className="cursor-pointer text-sm">
-                Aceito a Política de Privacidade e os{' '}
-                <a 
-                  href="https://docs.google.com/document/d/1u69VUNkih50pM5IBT0ecp69JLR2SBIEc/edit" 
-                  target="_blank" 
+              <Label
+                htmlFor="aceitePolitica"
+                className="cursor-pointer text-sm"
+              >
+                Aceito a Política de Privacidade e os{" "}
+                <a
+                  href="https://docs.google.com/document/d/1u69VUNkih50pM5IBT0ecp69JLR2SBIEc/edit"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"
                 >
                   Termos de Uso
-                </a>{' '}
+                </a>{" "}
                 <span className="text-destructive">*</span>
               </Label>
             </div>
             {errors.aceitePolitica && (
-              <p className="text-sm text-destructive">{errors.aceitePolitica}</p>
+              <p className="text-sm text-destructive">
+                {errors.aceitePolitica}
+              </p>
             )}
           </CardContent>
         </Card>
@@ -414,16 +449,20 @@ const UsuarioDados = () => {
               <Checkbox
                 id="perfilFornecedor"
                 checked={formData.perfilFornecedor}
-                disabled={activeRole !== 'admin'}
-                onCheckedChange={(checked) => 
-                  handleInputChange('perfilFornecedor', checked as boolean)
+                disabled={activeRole !== "admin"}
+                onCheckedChange={(checked) =>
+                  handleInputChange("perfilFornecedor", checked as boolean)
                 }
               />
-              <Label 
-                htmlFor="perfilFornecedor" 
-                className={activeRole !== 'admin' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+              <Label
+                htmlFor="perfilFornecedor"
+                className={
+                  activeRole !== "admin"
+                    ? "cursor-not-allowed opacity-50"
+                    : "cursor-pointer"
+                }
               >
-                Fornecedor(a){activeRole !== 'admin' ? ' (não editável)' : ''}
+                Fornecedor(a){activeRole !== "admin" ? " (não editável)" : ""}
               </Label>
             </div>
 
@@ -431,16 +470,20 @@ const UsuarioDados = () => {
               <Checkbox
                 id="perfilConsumidor"
                 checked={formData.perfilConsumidor}
-                disabled={activeRole !== 'admin'}
-                onCheckedChange={(checked) => 
-                  handleInputChange('perfilConsumidor', checked as boolean)
+                disabled={activeRole !== "admin"}
+                onCheckedChange={(checked) =>
+                  handleInputChange("perfilConsumidor", checked as boolean)
                 }
               />
-              <Label 
-                htmlFor="perfilConsumidor" 
-                className={activeRole !== 'admin' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+              <Label
+                htmlFor="perfilConsumidor"
+                className={
+                  activeRole !== "admin"
+                    ? "cursor-not-allowed opacity-50"
+                    : "cursor-pointer"
+                }
               >
-                Consumidor(a){activeRole !== 'admin' ? ' (não editável)' : ''}
+                Consumidor(a){activeRole !== "admin" ? " (não editável)" : ""}
               </Label>
             </div>
 
@@ -448,16 +491,24 @@ const UsuarioDados = () => {
               <Checkbox
                 id="perfilAdministradorMercado"
                 checked={formData.perfilAdministradorMercado || false}
-                disabled={activeRole !== 'admin'}
-                onCheckedChange={(checked) => 
-                  handleInputChange('perfilAdministradorMercado', checked as boolean)
+                disabled={activeRole !== "admin"}
+                onCheckedChange={(checked) =>
+                  handleInputChange(
+                    "perfilAdministradorMercado",
+                    checked as boolean,
+                  )
                 }
               />
-              <Label 
-                htmlFor="perfilAdministradorMercado" 
-                className={activeRole !== 'admin' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+              <Label
+                htmlFor="perfilAdministradorMercado"
+                className={
+                  activeRole !== "admin"
+                    ? "cursor-not-allowed opacity-50"
+                    : "cursor-pointer"
+                }
               >
-                Administrador(a) de Mercado{activeRole !== 'admin' ? ' (não editável)' : ''}
+                Administrador(a) de Mercado
+                {activeRole !== "admin" ? " (não editável)" : ""}
               </Label>
             </div>
 
@@ -466,12 +517,12 @@ const UsuarioDados = () => {
                 id="perfilAdministrador"
                 checked={formData.perfilAdministrador}
                 disabled
-                onCheckedChange={(checked) => 
-                  handleInputChange('perfilAdministrador', checked as boolean)
+                onCheckedChange={(checked) =>
+                  handleInputChange("perfilAdministrador", checked as boolean)
                 }
               />
-              <Label 
-                htmlFor="perfilAdministrador" 
+              <Label
+                htmlFor="perfilAdministrador"
                 className="cursor-not-allowed opacity-50"
               >
                 Administrador(a) (não editável)
@@ -481,10 +532,7 @@ const UsuarioDados = () => {
         </Card>
 
         <div className="flex justify-end space-x-4 pb-6">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-          >
+          <Button variant="outline" onClick={handleCancel}>
             Cancelar
           </Button>
           <Button

@@ -31,7 +31,7 @@ import { ProductSearch } from '@/components/ui/product-search';
 
 const AdminProdutoComercializavelEditar = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id: _id } = useParams();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Mock data - em produção, carregar dados do produto com base no ID
@@ -43,7 +43,7 @@ const AdminProdutoComercializavelEditar = () => {
     status: 'ativo' as 'ativo' | 'inativo',
   });
 
-  const unidadesComercializacao = ['Unidade', 'Dúzia', 'Litro', 'Kg'];
+  const _unidadesComercializacao = ['Unidade', 'Dúzia', 'Litro', 'Kg'];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +60,7 @@ const AdminProdutoComercializavelEditar = () => {
 
     // Converter preço para número antes de salvar
     const precoNumerico = parseBRLToNumber(formData.preco_base);
-    console.log('Atualizando produto com preço:', precoNumerico);
+    console.warn('Atualizando produto com preço:', precoNumerico);
 
     toast({
       title: "Sucesso",

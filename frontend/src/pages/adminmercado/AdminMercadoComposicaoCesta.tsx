@@ -18,10 +18,10 @@ import { groupAndSortProducts, filterProducts, Oferta } from '@/utils/product-gr
 import { RoleTitle } from '@/components/layout/RoleTitle';
 
 export default function AdminMercadoComposicaoCesta() {
-  const { id } = useParams();
+  const { id: _id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const mercadoId = searchParams.get('mercado');
+  const _mercadoId = searchParams.get('mercado');
   const [busca, setBusca] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -254,9 +254,9 @@ export default function AdminMercadoComposicaoCesta() {
       
       // Telemetria: logar se publicou acima do limite
       if (excedeuValor) {
-        console.log('Evento: cesta_publicada_acima_do_limite', payload);
+        console.warn('Evento: cesta_publicada_acima_do_limite', payload);
       } else {
-        console.log('Dados enviados:', payload);
+        console.warn('Dados enviados:', payload);
       }
     }, 1000);
   };

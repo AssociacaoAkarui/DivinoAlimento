@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Plus, ExternalLink } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { produtosReferencia, ProdutoReferencia } from '@/data/produtos-referencia';
+import React, { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search, Plus, ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  produtosReferencia,
+  ProdutoReferencia,
+} from "@/data/produtos-referencia";
 
 interface ProductSearchProps {
-  value: string;
   onSelect: (productName: string) => void;
   label?: string;
   placeholder?: string;
@@ -17,16 +19,17 @@ interface ProductSearchProps {
 }
 
 export const ProductSearch: React.FC<ProductSearchProps> = ({
-  value,
   onSelect,
   label = "Buscar alimento base",
   placeholder = "Digite para buscar...",
   className,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [filteredProducts, setFilteredProducts] = useState<ProdutoReferencia[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProdutoReferencia[]>(
+    [],
+  );
 
   // Debounce search
   useEffect(() => {
@@ -40,9 +43,12 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
   // Filter products
   useEffect(() => {
     if (debouncedSearch.trim()) {
-      const filtered = produtosReferencia.filter((produto) =>
-        produto.nome.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        produto.categoria.toLowerCase().includes(debouncedSearch.toLowerCase())
+      const filtered = produtosReferencia.filter(
+        (produto) =>
+          produto.nome.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          produto.categoria
+            .toLowerCase()
+            .includes(debouncedSearch.toLowerCase()),
       );
       setFilteredProducts(filtered);
     } else {
@@ -52,18 +58,18 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
 
   const handleSelect = (product: ProdutoReferencia) => {
     onSelect(product.nome);
-    setSearchTerm('');
+    setSearchTerm("");
     setIsOpen(false);
   };
 
   const handleCreateNew = () => {
-    window.open('/admin/alimentos/new', '_blank');
+    window.open("/admin/alimentos/new", "_blank");
   };
 
   return (
     <div className={cn("space-y-2 relative", className)}>
       {label && <Label>{label}</Label>}
-      
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
@@ -82,11 +88,11 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          
+
           {/* Results dropdown */}
           <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border rounded-md shadow-lg">
             <ScrollArea className="max-h-[300px]">
@@ -127,15 +133,15 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
                             </div>
                           </div>
                           <Badge
-                            variant={product.ativo ? 'success' : 'warning'}
+                            variant={product.ativo ? "success" : "warning"}
                             className="shrink-0"
                           >
-                            {product.ativo ? 'Ativo' : 'Inativo'}
+                            {product.ativo ? "Ativo" : "Inativo"}
                           </Badge>
                         </div>
                       </button>
                     ))}
-                    
+
                     {filteredProducts.length > 0 && (
                       <div className="pt-2 mt-2 border-t">
                         <Button

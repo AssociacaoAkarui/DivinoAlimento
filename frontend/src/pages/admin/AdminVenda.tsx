@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { ArrowLeft, Store, Package, Users, Plus, Minus } from 'lucide-react';
+import { ArrowLeft, Store, Package, Plus, Minus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -51,7 +51,7 @@ const AdminVenda = () => {
   const [activeMarket, setActiveMarket] = useState('cesta');
   const [selectedMarketLocation, setSelectedMarketLocation] = useState('central');
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast: _toast } = useToast();
 
   const updateProductQuantity = (productId: number, change: number) => {
     setProducts(prev => prev.map(product => 

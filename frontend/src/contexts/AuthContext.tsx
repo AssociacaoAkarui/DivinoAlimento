@@ -1,11 +1,11 @@
 import React, {
   createContext,
+  /* eslint-disable react-refresh/only-export-components */
   useContext,
   useState,
   ReactNode,
   useEffect,
 } from "react";
-import { useNavigate } from "react-router-dom";
 import { useLoginUsuario } from "@/hooks/graphql";
 import { setSessionToken, clearSessionToken } from "@/lib/graphql-client";
 
@@ -51,20 +51,6 @@ export const useAuth = () => {
 interface AuthProviderProps {
   children: ReactNode;
 }
-
-// Função para obter a rota padrão de cada perfil
-const getDefaultRoute = (role: UserRole): string => {
-  switch (role) {
-    case "consumidor":
-      return "/dashboard";
-    case "fornecedor":
-      return "/fornecedor/loja";
-    case "admin":
-      return "/admin/dashboard";
-    case "adminmercado":
-      return "/adminmercado/dashboard";
-  }
-};
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const loginMutation = useLoginUsuario();

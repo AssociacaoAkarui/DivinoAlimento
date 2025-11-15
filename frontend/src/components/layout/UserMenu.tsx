@@ -1,31 +1,30 @@
-import React from 'react';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useAuth, UserRole } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChevronDown, User, LogOut } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { roleLabel } from '@/utils/labels';
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ChevronDown, User, LogOut } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { roleLabel } from "@/utils/labels";
 
 const getDefaultRoute = (role: UserRole): string => {
   switch (role) {
-    case 'consumidor':
-      return '/dashboard';
-    case 'fornecedor':
-      return '/fornecedor/loja';
-    case 'admin':
-      return '/admin/dashboard';
-    case 'admin_mercado':
-      return '/adminmercado/dashboard';
+    case "consumidor":
+      return "/dashboard";
+    case "fornecedor":
+      return "/fornecedor/loja";
+    case "admin":
+      return "/admin/dashboard";
+    case "admin_mercado":
+      return "/adminmercado/dashboard";
   }
 };
-
 
 export const UserMenu: React.FC = () => {
   const { user, activeRole, switchRole, logout } = useAuth();
@@ -38,25 +37,26 @@ export const UserMenu: React.FC = () => {
 
   const handleSwitchRole = (role: UserRole) => {
     if (role === activeRole) return;
-    
+
     switchRole(role);
     const newRoute = getDefaultRoute(role);
-    
+
     toast({
       title: "Perfil alterado",
       description: `Você está agora como ${roleLabel(role, user.gender)}`,
     });
-    
+
     navigate(newRoute);
   };
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   // Pegar primeiro nome ou nome completo
-  const displayName = user.name?.split(' ')[0] || user.email?.split('@')[0] || 'Usuário';
+  const displayName =
+    user.name?.split(" ")[0] || user.email?.split("@")[0] || "Usuário";
 
   return (
     <DropdownMenu>
@@ -81,11 +81,15 @@ export const UserMenu: React.FC = () => {
                 disabled={role === activeRole}
                 className="cursor-pointer hover:bg-accent"
               >
-                <span className={role === activeRole ? 'text-muted-foreground' : ''}>
+                <span
+                  className={role === activeRole ? "text-muted-foreground" : ""}
+                >
                   {roleLabel(role, user.gender)}
                 </span>
                 {role === activeRole && (
-                  <span className="ml-auto text-xs text-muted-foreground">(Ativo)</span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    (Ativo)
+                  </span>
                 )}
               </DropdownMenuItem>
             ))}

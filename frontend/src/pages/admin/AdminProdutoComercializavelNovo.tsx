@@ -29,7 +29,7 @@ const AdminProdutoComercializavelNovo = () => {
     status: 'ativo' as 'ativo' | 'inativo',
   });
 
-  const unidadesComercializacao = ['Unidade', 'Dúzia', 'Litro', 'Kg'];
+  const _unidadesComercializacao = ['Unidade', 'Dúzia', 'Litro', 'Kg'];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +46,7 @@ const AdminProdutoComercializavelNovo = () => {
 
     // Converter preço para número antes de salvar
     const precoNumerico = parseBRLToNumber(formData.preco_base);
-    console.log('Salvando produto com preço:', precoNumerico);
+    console.warn('Salvando produto com preço:', precoNumerico);
 
     toast({
       title: "Sucesso",

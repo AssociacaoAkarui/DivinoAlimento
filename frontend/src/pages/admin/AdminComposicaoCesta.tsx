@@ -1,110 +1,144 @@
-import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { toast } from '@/hooks/use-toast';
-import { Search, ArrowLeft, AlertTriangle, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
-import { formatBRL } from '@/utils/currency';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ProductGroupItem } from '@/components/admin/ProductGroupItem';
-import { groupAndSortProducts, filterProducts, Oferta } from '@/utils/product-grouping';
-import { RoleTitle } from '@/components/layout/RoleTitle';
+import { useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
+import {
+  Search,
+  ArrowLeft,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+} from "lucide-react";
+import { formatBRL } from "@/utils/currency";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ProductGroupItem } from "@/components/admin/ProductGroupItem";
+import {
+  groupAndSortProducts,
+  filterProducts,
+  Oferta,
+} from "@/utils/product-grouping";
+import { RoleTitle } from "@/components/layout/RoleTitle";
 
 export default function AdminComposicaoCesta() {
-  const { id } = useParams();
+  const { id: _id } = useParams();
   const navigate = useNavigate();
-  const [busca, setBusca] = useState('');
+  const [busca, setBusca] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  
+
   // selectedByGroup: groupKey -> Set of variantIds
-  const [selectedByGroup, setSelectedByGroup] = useState<Map<string, Set<string>>>(new Map());
+  const [selectedByGroup, setSelectedByGroup] = useState<
+    Map<string, Set<string>>
+  >(new Map());
   // composicao: variantId -> quantidade
   const [composicao, setComposicao] = useState<Map<string, number>>(new Map());
 
   // Dados mock - agora com produto_base
   const [ofertas] = useState<Oferta[]>([
     {
-      id: '1',
-      produto_base: 'Tomate Orgânico',
-      nome: 'Tomate Orgânico (kg)',
-      unidade: 'kg',
-      valor: 4.50,
-      fornecedor: 'João Produtor',
+      id: "1",
+      produto_base: "Tomate Orgânico",
+      nome: "Tomate Orgânico (kg)",
+      unidade: "kg",
+      valor: 4.5,
+      fornecedor: "João Produtor",
       quantidadeOfertada: 50,
-      certificacao: 'organico',
-      tipo_agricultura: 'familiar',
+      certificacao: "organico",
+      tipo_agricultura: "familiar",
     },
     {
-      id: '2',
-      produto_base: 'Tomate Orgânico',
-      nome: 'Tomate Orgânico (cx)',
-      unidade: 'cx',
-      valor: 20.00,
-      fornecedor: 'Maria Horta',
+      id: "2",
+      produto_base: "Tomate Orgânico",
+      nome: "Tomate Orgânico (cx)",
+      unidade: "cx",
+      valor: 20.0,
+      fornecedor: "Maria Horta",
       quantidadeOfertada: 15,
-      certificacao: 'organico',
-      tipo_agricultura: 'familiar',
+      certificacao: "organico",
+      tipo_agricultura: "familiar",
     },
     {
-      id: '3',
-      produto_base: 'Tomate Orgânico',
-      nome: 'Tomate Orgânico (kg)',
-      unidade: 'kg',
-      valor: 4.20,
-      fornecedor: 'Sítio Verde',
+      id: "3",
+      produto_base: "Tomate Orgânico",
+      nome: "Tomate Orgânico (kg)",
+      unidade: "kg",
+      valor: 4.2,
+      fornecedor: "Sítio Verde",
       quantidadeOfertada: 30,
-      certificacao: 'transicao',
-      tipo_agricultura: 'familiar',
+      certificacao: "transicao",
+      tipo_agricultura: "familiar",
     },
     {
-      id: '4',
-      produto_base: 'Alface Crespa',
-      nome: 'Alface Crespa (kg)',
-      unidade: 'kg',
-      valor: 3.20,
-      fornecedor: 'Maria Horta',
+      id: "4",
+      produto_base: "Alface Crespa",
+      nome: "Alface Crespa (kg)",
+      unidade: "kg",
+      valor: 3.2,
+      fornecedor: "Maria Horta",
       quantidadeOfertada: 30,
-      certificacao: 'organico',
-      tipo_agricultura: 'familiar',
+      certificacao: "organico",
+      tipo_agricultura: "familiar",
     },
     {
-      id: '5',
-      produto_base: 'Alface Crespa',
-      nome: 'Alface Crespa (maço)',
-      unidade: 'maço',
-      valor: 2.00,
-      fornecedor: 'João Produtor',
+      id: "5",
+      produto_base: "Alface Crespa",
+      nome: "Alface Crespa (maço)",
+      unidade: "maço",
+      valor: 2.0,
+      fornecedor: "João Produtor",
       quantidadeOfertada: 50,
-      certificacao: 'convencional',
-      tipo_agricultura: 'nao_familiar',
+      certificacao: "convencional",
+      tipo_agricultura: "nao_familiar",
     },
     {
-      id: '6',
-      produto_base: 'Ovos Caipiras',
-      nome: 'Ovos Caipiras (dúzia)',
-      unidade: 'dúzia',
-      valor: 15.00,
-      fornecedor: 'Sítio Boa Vista',
+      id: "6",
+      produto_base: "Ovos Caipiras",
+      nome: "Ovos Caipiras (dúzia)",
+      unidade: "dúzia",
+      valor: 15.0,
+      fornecedor: "Sítio Boa Vista",
       quantidadeOfertada: 100,
-      certificacao: 'convencional',
-      tipo_agricultura: 'familiar',
+      certificacao: "convencional",
+      tipo_agricultura: "familiar",
     },
   ]);
 
   const ciclo = {
-    nome: '1º Ciclo de Novembro 2025',
+    nome: "1º Ciclo de Novembro 2025",
     quantidade: 50,
-    valorMaximo: 80.00,
-    tipo: 'Cesta'
+    valorMaximo: 80.0,
+    tipo: "Cesta",
   };
 
   // Agrupar e filtrar produtos
@@ -117,10 +151,10 @@ export default function AdminComposicaoCesta() {
   const selectedItems = useMemo(() => {
     const items: Array<{ id: string; valor: number; quantidade: number }> = [];
     selectedByGroup.forEach((variantIds) => {
-      variantIds.forEach(variantId => {
+      variantIds.forEach((variantId) => {
         const quantidade = composicao.get(variantId) || 0;
         if (quantidade > 0) {
-          const oferta = ofertas.find(o => o.id === variantId);
+          const oferta = ofertas.find((o) => o.id === variantId);
           if (oferta) {
             items.push({
               id: variantId,
@@ -136,21 +170,21 @@ export default function AdminComposicaoCesta() {
 
   // Cálculos reativos
   const valorAtual = selectedItems.reduce((acc, item) => {
-    return acc + (item.valor * item.quantidade);
+    return acc + item.valor * item.quantidade;
   }, 0);
-  
+
   const saldo = ciclo.valorMaximo - valorAtual;
 
   const handleToggleVariant = (groupKey: string, variantId: string) => {
-    setSelectedByGroup(prev => {
+    setSelectedByGroup((prev) => {
       const newMap = new Map(prev);
       const currentSet = newMap.get(groupKey) || new Set();
       const newSet = new Set(currentSet);
-      
+
       if (newSet.has(variantId)) {
         newSet.delete(variantId);
         // Remove quantidade também
-        setComposicao(prevComp => {
+        setComposicao((prevComp) => {
           const newComp = new Map(prevComp);
           newComp.delete(variantId);
           return newComp;
@@ -158,7 +192,7 @@ export default function AdminComposicaoCesta() {
       } else {
         newSet.add(variantId);
       }
-      
+
       if (newSet.size === 0) {
         newMap.delete(groupKey);
       } else {
@@ -171,26 +205,29 @@ export default function AdminComposicaoCesta() {
   const handleClearGroup = (groupKey: string) => {
     const variantIds = selectedByGroup.get(groupKey);
     if (variantIds) {
-      setSelectedByGroup(prev => {
+      setSelectedByGroup((prev) => {
         const newMap = new Map(prev);
         newMap.delete(groupKey);
         return newMap;
       });
-      setComposicao(prev => {
+      setComposicao((prev) => {
         const newMap = new Map(prev);
-        variantIds.forEach(id => newMap.delete(id));
+        variantIds.forEach((id) => newMap.delete(id));
         return newMap;
       });
     }
   };
 
   const handleQuantidadeChange = (variantId: string, quantidade: number) => {
-    const oferta = ofertas.find(o => o.id === variantId);
+    const oferta = ofertas.find((o) => o.id === variantId);
     if (!oferta) return;
-    
-    const validQuantity = Math.max(0, Math.min(quantidade, oferta.quantidadeOfertada));
-    
-    setComposicao(prev => {
+
+    const validQuantity = Math.max(
+      0,
+      Math.min(quantidade, oferta.quantidadeOfertada),
+    );
+
+    setComposicao((prev) => {
       const newMap = new Map(prev);
       if (validQuantity === 0) {
         newMap.delete(variantId);
@@ -202,7 +239,7 @@ export default function AdminComposicaoCesta() {
   };
 
   const toggleGroupExpansion = (groupKey: string) => {
-    setExpandedGroups(prev => {
+    setExpandedGroups((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(groupKey)) {
         newSet.delete(groupKey);
@@ -214,7 +251,7 @@ export default function AdminComposicaoCesta() {
   };
 
   const expandAll = () => {
-    setExpandedGroups(new Set(productGroups.map(g => g.produto_base)));
+    setExpandedGroups(new Set(productGroups.map((g) => g.produto_base)));
   };
 
   const collapseAll = () => {
@@ -232,7 +269,7 @@ export default function AdminComposicaoCesta() {
 
   const executarPublicacao = () => {
     // Preparar dados para envio
-    const payload = selectedItems.map(item => ({
+    const payload = selectedItems.map((item) => ({
       produto_id: item.id,
       valor_unit: item.valor,
       pedidos: item.quantidade,
@@ -240,7 +277,7 @@ export default function AdminComposicaoCesta() {
 
     setIsLoading(true);
     setShowConfirmModal(false);
-    
+
     // Simular chamada ao backend
     setTimeout(() => {
       setIsLoading(false);
@@ -248,12 +285,12 @@ export default function AdminComposicaoCesta() {
         title: "Cesta publicada com sucesso.",
         className: "bg-green-600 text-white border-green-700",
       });
-      
+
       // Telemetria: logar se publicou acima do limite
       if (excedeuValor) {
-        console.log('Evento: cesta_publicada_acima_do_limite', payload);
+        console.warn("Evento: cesta_publicada_acima_do_limite", payload);
       } else {
-        console.log('Dados enviados:', payload);
+        console.warn("Dados enviados:", payload);
       }
     }, 1000);
   };
@@ -268,7 +305,7 @@ export default function AdminComposicaoCesta() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate('/admin/ciclo-index')}
+          onClick={() => navigate("/admin/ciclo-index")}
           className="text-white hover:bg-white/20"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -282,7 +319,10 @@ export default function AdminComposicaoCesta() {
           <CardHeader>
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <RoleTitle page={`Composição de Cesta – ${ciclo.nome}`} className="text-2xl" />
+                <RoleTitle
+                  page={`Composição de Cesta – ${ciclo.nome}`}
+                  className="text-2xl"
+                />
                 <p className="text-sm text-muted-foreground mt-1">
                   Tipo: {ciclo.tipo}
                 </p>
@@ -294,16 +334,22 @@ export default function AdminComposicaoCesta() {
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Valor Máximo</p>
-                  <p className="text-2xl font-bold">R$ {ciclo.valorMaximo.toFixed(2).replace('.', ',')}</p>
+                  <p className="text-2xl font-bold">
+                    R$ {ciclo.valorMaximo.toFixed(2).replace(".", ",")}
+                  </p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Valor Atual</p>
-                  <p className="text-2xl font-bold">R$ {valorAtual.toFixed(2).replace('.', ',')}</p>
+                  <p className="text-2xl font-bold">
+                    R$ {valorAtual.toFixed(2).replace(".", ",")}
+                  </p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Saldo</p>
-                  <p className={`text-2xl font-bold ${saldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    R$ {saldo.toFixed(2).replace('.', ',')}
+                  <p
+                    className={`text-2xl font-bold ${saldo >= 0 ? "text-green-600" : "text-red-600"}`}
+                  >
+                    R$ {saldo.toFixed(2).replace(".", ",")}
                   </p>
                 </div>
               </div>
@@ -313,8 +359,8 @@ export default function AdminComposicaoCesta() {
 
         {/* Banner de alerta quando excede valor máximo */}
         {excedeuValor && (
-          <Alert 
-            variant="destructive" 
+          <Alert
+            variant="destructive"
             className="border-[#FEDF89] bg-[#FFFAEB] text-[#B54708] mb-3"
             role="alert"
           >
@@ -348,26 +394,42 @@ export default function AdminComposicaoCesta() {
                 </TableHeader>
                 <TableBody>
                   {selectedItems.map((item) => {
-                    const oferta = ofertas.find(o => o.id === item.id);
+                    const oferta = ofertas.find((o) => o.id === item.id);
                     if (!oferta) return null;
-                    
+
                     const valorAcumulado = item.valor * item.quantidade;
-                    const disponiveis = oferta.quantidadeOfertada - item.quantidade;
-                    
+                    const disponiveis =
+                      oferta.quantidadeOfertada - item.quantidade;
+
                     return (
                       <TableRow key={item.id}>
-                        <TableCell className="td-texto font-medium">{oferta.produto_base}</TableCell>
-                        <TableCell className="td-texto">{oferta.unidade}</TableCell>
-                        <TableCell className="td-valor">{formatBRL(oferta.valor)}</TableCell>
-                        <TableCell className="td-texto">{oferta.fornecedor}</TableCell>
-                        <TableCell className="td-numero">{oferta.quantidadeOfertada}</TableCell>
+                        <TableCell className="td-texto font-medium">
+                          {oferta.produto_base}
+                        </TableCell>
+                        <TableCell className="td-texto">
+                          {oferta.unidade}
+                        </TableCell>
+                        <TableCell className="td-valor">
+                          {formatBRL(oferta.valor)}
+                        </TableCell>
+                        <TableCell className="td-texto">
+                          {oferta.fornecedor}
+                        </TableCell>
+                        <TableCell className="td-numero">
+                          {oferta.quantidadeOfertada}
+                        </TableCell>
                         <TableCell className="td-numero">
                           <Input
                             type="number"
                             min={0}
                             max={oferta.quantidadeOfertada}
                             value={item.quantidade}
-                            onChange={(e) => handleQuantidadeChange(item.id, Number(e.target.value))}
+                            onChange={(e) =>
+                              handleQuantidadeChange(
+                                item.id,
+                                Number(e.target.value),
+                              )
+                            }
                             className="w-[60px] text-center tabular-nums mx-auto"
                           />
                         </TableCell>
@@ -375,7 +437,9 @@ export default function AdminComposicaoCesta() {
                           {formatBRL(valorAcumulado)}
                         </TableCell>
                         <TableCell className="td-numero">
-                          <span className={disponiveis < 0 ? 'text-red-600' : ''}>
+                          <span
+                            className={disponiveis < 0 ? "text-red-600" : ""}
+                          >
                             {disponiveis}
                           </span>
                         </TableCell>
@@ -406,7 +470,7 @@ export default function AdminComposicaoCesta() {
           <CardHeader>
             <div className="space-y-4">
               <CardTitle>Alimentos Ofertados</CardTitle>
-              
+
               {/* Action Bar */}
               <div className="flex items-center gap-2">
                 <div className="relative flex-1 max-w-md">
@@ -421,7 +485,11 @@ export default function AdminComposicaoCesta() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={expandedGroups.size === productGroups.length ? collapseAll : expandAll}
+                  onClick={
+                    expandedGroups.size === productGroups.length
+                      ? collapseAll
+                      : expandAll
+                  }
                   className="whitespace-nowrap h-9"
                 >
                   {expandedGroups.size === productGroups.length ? (
@@ -449,7 +517,8 @@ export default function AdminComposicaoCesta() {
             ) : (
               <div className="space-y-3">
                 {productGroups.map((group) => {
-                  const selectedVariantIds = selectedByGroup.get(group.produto_base) || new Set();
+                  const selectedVariantIds =
+                    selectedByGroup.get(group.produto_base) || new Set();
 
                   return (
                     <ProductGroupItem
@@ -457,11 +526,15 @@ export default function AdminComposicaoCesta() {
                       group={group}
                       selectedVariantIds={selectedVariantIds}
                       quantidades={composicao}
-                      onToggleVariant={(variantId) => handleToggleVariant(group.produto_base, variantId)}
+                      onToggleVariant={(variantId) =>
+                        handleToggleVariant(group.produto_base, variantId)
+                      }
                       onQuantidadeChange={handleQuantidadeChange}
                       onClear={() => handleClearGroup(group.produto_base)}
                       isExpanded={expandedGroups.has(group.produto_base)}
-                      onToggleExpand={() => toggleGroupExpansion(group.produto_base)}
+                      onToggleExpand={() =>
+                        toggleGroupExpansion(group.produto_base)
+                      }
                     />
                   );
                 })}
@@ -469,24 +542,30 @@ export default function AdminComposicaoCesta() {
             )}
 
             <div className="flex justify-end gap-4 mt-6">
-              <Button variant="outline" onClick={() => navigate('/admin/ciclo-index')}>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin/ciclo-index")}
+              >
                 Voltar
               </Button>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span>
-                      <Button 
+                      <Button
                         onClick={handlePublicarClick}
                         disabled={!podePublicar || isLoading}
                       >
-                        {isLoading ? 'Publicando...' : 'Publicar Cesta'}
+                        {isLoading ? "Publicando..." : "Publicar Cesta"}
                       </Button>
                     </span>
                   </TooltipTrigger>
                   {!podePublicar && (
                     <TooltipContent>
-                      <p>Selecione pelo menos um alimento com quantidade maior que zero.</p>
+                      <p>
+                        Selecione pelo menos um alimento com quantidade maior
+                        que zero.
+                      </p>
                     </TooltipContent>
                   )}
                   {podePublicar && excedeuValor && (
@@ -507,7 +586,8 @@ export default function AdminComposicaoCesta() {
           <AlertDialogHeader>
             <AlertDialogTitle>Valor acima do limite</AlertDialogTitle>
             <AlertDialogDescription>
-              O valor atual da cesta excede o valor máximo deste mercado. Deseja publicar assim mesmo?
+              O valor atual da cesta excede o valor máximo deste mercado. Deseja
+              publicar assim mesmo?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

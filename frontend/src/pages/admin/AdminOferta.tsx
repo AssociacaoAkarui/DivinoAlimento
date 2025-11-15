@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ArrowLeft, Pencil, Trash2, Search, Info, CheckCircle2 } from 'lucide-react';
@@ -18,7 +17,7 @@ import { formatBRL, formatBRLInput, parseBRLToNumber } from '@/utils/currency';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ProdutoComercializavel, OfertaProduto, criarDescricaoProduto, CertificacaoType, TipoAgriculturaType } from '@/types/produto-oferta';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 // Mock data - produtos comercializáveis
 const mockProdutosComercializaveis: ProdutoComercializavel[] = [
@@ -320,7 +319,7 @@ export default function AdminOferta() {
     localStorage.setItem(`ofertas-ciclo-${cicloId}`, JSON.stringify(ofertas));
 
     // Log de auditoria (em produção, enviar ao backend)
-    console.log('Auditoria - Oferta Registrada:', {
+    console.warn('Auditoria - Oferta Registrada:', {
       usuario: 'Admin',
       ciclo: mockCiclo.nome,
       ciclo_id: cicloId,

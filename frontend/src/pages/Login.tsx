@@ -10,12 +10,8 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  getDefaultRoute,
-  validateLoginCredentials,
-  mapPerfilToRole,
-} from "@/lib/login-helpers";
-import { formatLoginError, getWelcomeMessage } from "@/lib/login-formatters";
+import { getDefaultRoute, validateLoginCredentials } from "@/lib/login-helpers";
+import { formatLoginError } from "@/lib/login-formatters";
 
 const Login = () => {
   const [email, setEmail] = useState("");

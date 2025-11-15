@@ -1,76 +1,89 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { ArrowLeft, Package, Plus, Minus, CheckCircle, X, Users } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import {
+  ArrowLeft,
+  Package,
+  Plus,
+  Minus,
+  CheckCircle,
+  X,
+  Users,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock data
 const mockStock = [
   {
     id: 1,
-    name: 'Tomate Orgânico',
-    status: 'ativo',
+    name: "Tomate Orgânico",
+    status: "ativo",
     quantity: 150,
-    unit: 'kg',
-    suppliers: ['João da Silva', 'Maria Santos'],
+    unit: "kg",
+    suppliers: ["João da Silva", "Maria Santos"],
     reserved: 45,
-    available: 105
+    available: 105,
   },
   {
     id: 2,
-    name: 'Alface Hidropônica',
-    status: 'ativo',
+    name: "Alface Hidropônica",
+    status: "ativo",
     quantity: 200,
-    unit: 'unidades',
-    suppliers: ['Pedro Oliveira'],
+    unit: "unidades",
+    suppliers: ["Pedro Oliveira"],
     reserved: 80,
-    available: 120
+    available: 120,
   },
   {
     id: 3,
-    name: 'Cenoura Baby',
-    status: 'inativo',
+    name: "Cenoura Baby",
+    status: "inativo",
     quantity: 0,
-    unit: 'kg',
+    unit: "kg",
     suppliers: [],
     reserved: 0,
-    available: 0
+    available: 0,
   },
   {
     id: 4,
-    name: 'Brócolis',
-    status: 'aguardando',
+    name: "Brócolis",
+    status: "aguardando",
     quantity: 75,
-    unit: 'kg',
-    suppliers: ['Ana Costa'],
+    unit: "kg",
+    suppliers: ["Ana Costa"],
     reserved: 0,
-    available: 0
-  }
+    available: 0,
+  },
 ];
 
 const AdminEstoque = () => {
   const [stock, setStock] = useState(mockStock);
-  const [activeTab, setActiveTab] = useState('ativo');
+  const [activeTab, setActiveTab] = useState("ativo");
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const filterStock = (items: typeof mockStock) => {
-    if (activeTab === 'todos') return items;
-    return items.filter(item => item.status === activeTab);
+    if (activeTab === "todos") return items;
+    return items.filter((item) => item.status === activeTab);
   };
 
   const updateQuantity = (id: number, change: number) => {
-    setStock(prev => prev.map(item => 
-      item.id === id 
-        ? { ...item, quantity: Math.max(0, item.quantity + change), available: Math.max(0, item.available + change) }
-        : item
-    ));
-    
+    setStock((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              quantity: Math.max(0, item.quantity + change),
+              available: Math.max(0, item.available + change),
+            }
+          : item,
+      ),
+    );
+
     toast({
       title: "Estoque atualizado",
       description: "Quantidade ajustada com sucesso",
@@ -78,12 +91,14 @@ const AdminEstoque = () => {
   };
 
   const approveProduct = (id: number) => {
-    setStock(prev => prev.map(item =>
-      item.id === id
-        ? { ...item, status: 'ativo', available: item.quantity }
-        : item
-    ));
-    
+    setStock((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, status: "ativo", available: item.quantity }
+          : item,
+      ),
+    );
+
     toast({
       title: "Produto aprovado",
       description: "Alimento aprovado com sucesso!",
@@ -91,36 +106,43 @@ const AdminEstoque = () => {
   };
 
   const rejectProduct = (id: number) => {
-    setStock(prev => prev.filter(item => item.id !== id));
-    
+    setStock((prev) => prev.filter((item) => item.id !== id));
+
     toast({
       title: "Produto reprovado",
       description: "Alimento removido da lista",
-      variant: "destructive"
+      variant: "destructive",
     });
   };
 
   const getStatusBadge = (status: string) => {
     const config = {
-      ativo: { label: 'Ativo', variant: 'default' as const },
-      inativo: { label: 'Inativo', variant: 'secondary' as const },
-      aguardando: { label: 'Aguardando Aprovação', variant: 'outline' as const }
+      ativo: { label: "Ativo", variant: "default" as const },
+      inativo: { label: "Inativo", variant: "secondary" as const },
+      aguardando: {
+        label: "Aguardando Aprovação",
+        variant: "outline" as const,
+      },
     };
-    
-    return <Badge variant={config[status as keyof typeof config]?.variant || 'secondary'}>
-      {config[status as keyof typeof config]?.label || status}
-    </Badge>;
+
+    return (
+      <Badge
+        variant={config[status as keyof typeof config]?.variant || "secondary"}
+      >
+        {config[status as keyof typeof config]?.label || status}
+      </Badge>
+    );
   };
 
   const filteredStock = filterStock(stock);
 
   return (
-    <ResponsiveLayout 
+    <ResponsiveLayout
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon-sm"
-          onClick={() => navigate('/admin/dashboard')}
+          onClick={() => navigate("/admin/dashboard")}
           className="focus-ring text-primary-foreground hover:bg-primary-hover"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -130,7 +152,9 @@ const AdminEstoque = () => {
       <div className="flex-1 p-4 space-y-4">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gradient-primary">Controle de Estoque</h1>
+          <h1 className="text-2xl font-bold text-gradient-primary">
+            Controle de Estoque
+          </h1>
           <p className="text-sm text-muted-foreground">
             Gerencie disponibilidade e quantidades
           </p>
@@ -139,9 +163,15 @@ const AdminEstoque = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="ativo" className="text-xs">Ativos</TabsTrigger>
-            <TabsTrigger value="inativo" className="text-xs">Inativos</TabsTrigger>
-            <TabsTrigger value="aguardando" className="text-xs">Aguardando</TabsTrigger>
+            <TabsTrigger value="ativo" className="text-xs">
+              Ativos
+            </TabsTrigger>
+            <TabsTrigger value="inativo" className="text-xs">
+              Inativos
+            </TabsTrigger>
+            <TabsTrigger value="aguardando" className="text-xs">
+              Aguardando
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab} className="space-y-4 mt-4">
@@ -150,7 +180,9 @@ const AdminEstoque = () => {
                 <CardContent className="space-y-4">
                   <Package className="w-12 h-12 mx-auto text-muted-foreground" />
                   <div>
-                    <h3 className="font-medium text-foreground">Nenhum alimento encontrado</h3>
+                    <h3 className="font-medium text-foreground">
+                      Nenhum alimento encontrado
+                    </h3>
                     <p className="text-sm text-muted-foreground">
                       Não há alimentos {activeTab} no momento
                     </p>
@@ -174,34 +206,52 @@ const AdminEstoque = () => {
                         </div>
                       </div>
                     </CardHeader>
-                    
+
                     <CardContent className="space-y-4">
-                      {item.status === 'ativo' && (
+                      {item.status === "ativo" && (
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div className="text-center">
                             <span className="text-muted-foreground">Total</span>
                             <p className="font-bold text-lg">{item.quantity}</p>
-                            <p className="text-xs text-muted-foreground">{item.unit}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {item.unit}
+                            </p>
                           </div>
                           <div className="text-center">
-                            <span className="text-muted-foreground">Reservado</span>
-                            <p className="font-bold text-lg text-yellow-600">{item.reserved}</p>
-                            <p className="text-xs text-muted-foreground">{item.unit}</p>
+                            <span className="text-muted-foreground">
+                              Reservado
+                            </span>
+                            <p className="font-bold text-lg text-yellow-600">
+                              {item.reserved}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {item.unit}
+                            </p>
                           </div>
                           <div className="text-center">
-                            <span className="text-muted-foreground">Disponível</span>
-                            <p className="font-bold text-lg text-green-600">{item.available}</p>
-                            <p className="text-xs text-muted-foreground">{item.unit}</p>
+                            <span className="text-muted-foreground">
+                              Disponível
+                            </span>
+                            <p className="font-bold text-lg text-green-600">
+                              {item.available}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {item.unit}
+                            </p>
                           </div>
                         </div>
                       )}
 
-                      {item.status === 'aguardando' && (
+                      {item.status === "aguardando" && (
                         <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-yellow-800">Aguardando Aprovação</p>
-                              <p className="text-sm text-yellow-700">Quantidade: {item.quantity} {item.unit}</p>
+                              <p className="font-medium text-yellow-800">
+                                Aguardando Aprovação
+                              </p>
+                              <p className="text-sm text-yellow-700">
+                                Quantidade: {item.quantity} {item.unit}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -211,11 +261,17 @@ const AdminEstoque = () => {
                         <div>
                           <div className="flex items-center space-x-2 mb-2">
                             <Users className="w-4 h-4 text-accent" />
-                            <span className="text-sm font-medium">Fornecedores:</span>
+                            <span className="text-sm font-medium">
+                              Fornecedores:
+                            </span>
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {item.suppliers.map((supplier, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                className="text-xs"
+                              >
                                 {supplier}
                               </Badge>
                             ))}
@@ -223,22 +279,26 @@ const AdminEstoque = () => {
                         </div>
                       )}
 
-                      {item.status === 'ativo' && (
+                      {item.status === "ativo" && (
                         <div className="bg-muted/30 p-3 rounded-lg">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Ajustar Quantidade:</span>
+                            <span className="text-sm font-medium">
+                              Ajustar Quantidade:
+                            </span>
                             <div className="flex items-center space-x-2">
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 size="icon-sm"
                                 onClick={() => updateQuantity(item.id, -10)}
                                 disabled={item.quantity <= 0}
                               >
                                 <Minus className="w-4 h-4" />
                               </Button>
-                              <span className="w-12 text-center text-sm">{item.quantity}</span>
-                              <Button 
-                                variant="outline" 
+                              <span className="w-12 text-center text-sm">
+                                {item.quantity}
+                              </span>
+                              <Button
+                                variant="outline"
                                 size="icon-sm"
                                 onClick={() => updateQuantity(item.id, 10)}
                               >
@@ -249,7 +309,7 @@ const AdminEstoque = () => {
                         </div>
                       )}
 
-                      {item.status === 'aguardando' && (
+                      {item.status === "aguardando" && (
                         <div className="flex space-x-2">
                           <Button
                             variant="outline"
@@ -260,7 +320,7 @@ const AdminEstoque = () => {
                             <X className="w-4 h-4" />
                             <span>Reprovar</span>
                           </Button>
-                          
+
                           <Button
                             size="sm"
                             className="flex-1 flex items-center space-x-1"

@@ -1,12 +1,19 @@
-import React, { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ShoppingBasket, Store, Shield, Building2, LogOut, X } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import { roleLabel, type AppRole, type Gender } from '@/utils/labels';
+import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useAuth, UserRole } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  ShoppingBasket,
+  Store,
+  Shield,
+  Building2,
+  LogOut,
+  X,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { roleLabel, type AppRole, type Gender } from "@/utils/labels";
 
 interface UserRoleModalProps {
   isOpen: boolean;
@@ -15,31 +22,34 @@ interface UserRoleModalProps {
 
 const getDefaultRoute = (role: UserRole): string => {
   switch (role) {
-    case 'consumidor':
-      return '/dashboard';
-    case 'fornecedor':
-      return '/fornecedor/loja';
-    case 'admin':
-      return '/admin/dashboard';
-    case 'admin_mercado':
-      return '/adminmercado/dashboard';
+    case "consumidor":
+      return "/dashboard";
+    case "fornecedor":
+      return "/fornecedor/loja";
+    case "admin":
+      return "/admin/dashboard";
+    case "admin_mercado":
+      return "/adminmercado/dashboard";
   }
 };
 
 const getRoleIcon = (role: UserRole) => {
   switch (role) {
-    case 'consumidor':
+    case "consumidor":
       return ShoppingBasket;
-    case 'fornecedor':
+    case "fornecedor":
       return Store;
-    case 'admin':
+    case "admin":
       return Shield;
-    case 'admin_mercado':
+    case "admin_mercado":
       return Building2;
   }
 };
 
-export const UserRoleModal: React.FC<UserRoleModalProps> = ({ isOpen, onClose }) => {
+export const UserRoleModal: React.FC<UserRoleModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const { user, activeRole, switchRole, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -47,20 +57,20 @@ export const UserRoleModal: React.FC<UserRoleModalProps> = ({ isOpen, onClose })
   useEffect(() => {
     if (isOpen) {
       // Lock scroll
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
 
       // Handle Escape key
       const handleEscape = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
+        if (e.key === "Escape") {
           onClose();
         }
       };
 
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener("keydown", handleEscape);
 
       return () => {
-        document.body.style.overflow = '';
-        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = "";
+        document.removeEventListener("keydown", handleEscape);
       };
     }
   }, [isOpen, onClose]);
@@ -69,20 +79,20 @@ export const UserRoleModal: React.FC<UserRoleModalProps> = ({ isOpen, onClose })
     return null;
   }
 
-  // @ts-ignore - gender pode não existir ainda no tipo User
-  const userGender: Gender = user.gender || 'unspecified';
+  // @ts-expect-error - gender pode não existir ainda no tipo User
+  const userGender: Gender = user.gender || "unspecified";
 
   const handleSwitchRole = (role: UserRole) => {
     if (role === activeRole) return;
-    
+
     switchRole(role);
     const newRoute = getDefaultRoute(role);
-    
+
     toast({
       title: "Perfil alterado",
       description: `Você está agora como ${roleLabel(role as AppRole, userGender)}`,
     });
-    
+
     onClose();
     navigate(newRoute);
   };
@@ -90,23 +100,27 @@ export const UserRoleModal: React.FC<UserRoleModalProps> = ({ isOpen, onClose })
   const handleLogout = () => {
     logout();
     onClose();
-    navigate('/login');
+    navigate("/login");
   };
 
   const getDisplayName = () => {
     if (user.name) {
-      const nameParts = user.name.trim().split(' ');
-      return nameParts.slice(0, 2).join(' ');
+      const nameParts = user.name.trim().split(" ");
+      return nameParts.slice(0, 2).join(" ");
     }
-    return user.email?.split('@')[0] || 'Usuário';
+    return user.email?.split("@")[0] || "Usuário";
   };
 
   const getInitials = () => {
     if (user.name) {
-      const nameParts = user.name.trim().split(' ');
-      return nameParts.slice(0, 2).map(n => n[0]).join('').toUpperCase();
+      const nameParts = user.name.trim().split(" ");
+      return nameParts
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase();
     }
-    return user.email?.[0]?.toUpperCase() || 'U';
+    return user.email?.[0]?.toUpperCase() || "U";
   };
 
   const displayName = getDisplayName();
@@ -114,7 +128,7 @@ export const UserRoleModal: React.FC<UserRoleModalProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   return createPortal(
-    <div 
+    <div
       id="user-role-modal"
       role="dialog"
       aria-modal="true"
@@ -123,7 +137,7 @@ export const UserRoleModal: React.FC<UserRoleModalProps> = ({ isOpen, onClose })
       style={{ zIndex: 9999 }}
       onClick={onClose}
     >
-      <div 
+      <div
         className="user-role-card bg-white w-[92%] max-w-[420px] rounded-[14px] p-6 text-center shadow-2xl animate-in slide-in-from-top-4 duration-300 relative"
         onClick={(e) => e.stopPropagation()}
       >
@@ -145,16 +159,14 @@ export const UserRoleModal: React.FC<UserRoleModalProps> = ({ isOpen, onClose })
         </Avatar>
 
         {/* User Info */}
-        <h3 
-          id="user-role-modal-title" 
+        <h3
+          id="user-role-modal-title"
           className="text-lg font-semibold text-primary mb-1"
           tabIndex={0}
         >
           Olá, {displayName}!
         </h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          {user.email}
-        </p>
+        <p className="text-sm text-muted-foreground mb-4">{user.email}</p>
 
         {/* Roles List */}
         {user.roles && user.roles.length > 0 && (
@@ -163,7 +175,7 @@ export const UserRoleModal: React.FC<UserRoleModalProps> = ({ isOpen, onClose })
               const Icon = getRoleIcon(role);
               const isActive = role === activeRole;
               return (
-                <li 
+                <li
                   key={role}
                   onClick={(e) => {
                     e.preventDefault();
@@ -174,19 +186,33 @@ export const UserRoleModal: React.FC<UserRoleModalProps> = ({ isOpen, onClose })
                   }}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 border-b border-gray-100 transition-colors",
-                    isActive ? "bg-primary/5 font-medium cursor-default" : "hover:bg-gray-50 cursor-pointer focus:bg-gray-50 focus:outline-none",
-                    "min-h-[44px]"
+                    isActive
+                      ? "bg-primary/5 font-medium cursor-default"
+                      : "hover:bg-gray-50 cursor-pointer focus:bg-gray-50 focus:outline-none",
+                    "min-h-[44px]",
                   )}
                   tabIndex={isActive ? -1 : 0}
                   role="button"
                   aria-pressed={isActive}
                 >
-                  <Icon className={cn("h-5 w-5", isActive ? "text-primary" : "text-gray-600")} />
-                  <span className={cn("text-sm text-left flex-1", isActive ? "text-primary" : "text-gray-700")}>
+                  <Icon
+                    className={cn(
+                      "h-5 w-5",
+                      isActive ? "text-primary" : "text-gray-600",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-sm text-left flex-1",
+                      isActive ? "text-primary" : "text-gray-700",
+                    )}
+                  >
                     {roleLabel(role as AppRole, userGender)}
                   </span>
                   {isActive && (
-                    <span className="text-xs text-primary font-semibold">Ativo</span>
+                    <span className="text-xs text-primary font-semibold">
+                      Ativo
+                    </span>
                   )}
                 </li>
               );
@@ -204,6 +230,6 @@ export const UserRoleModal: React.FC<UserRoleModalProps> = ({ isOpen, onClose })
         </button>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

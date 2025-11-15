@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -28,11 +29,11 @@ import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
 import { FiltersBar } from "@/components/admin/FiltersBar";
 import { FiltersPanel } from "@/components/admin/FiltersPanel";
 import { useFilters } from "@/hooks/useFilters";
-import { Search, Plus, Edit2, Trash2, ArrowLeft } from "lucide-react";
+import { Plus, Edit2, Trash2, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { StatusToggle } from "@/components/ui/status-toggle";
-import { useAuth } from "@/contexts/AuthContext";
+
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
 import { RoleTitle } from "@/components/layout/RoleTitle";
 import { useListarUsuarios, useAtualizarUsuario } from "@/hooks/graphql";
@@ -53,7 +54,6 @@ interface Usuario {
 const UsuarioIndex = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { activeRole } = useAuth();
   const { data: usuariosBackend = [], isLoading, error } = useListarUsuarios();
   const atualizarUsuario = useAtualizarUsuario();
   const {
@@ -69,57 +69,7 @@ const UsuarioIndex = () => {
     setIsOpen,
   } = useFilters("/usuario-index");
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminAuth");
-    navigate("/");
-  };
-
   const usuarios: Usuario[] = normalizeUsuarios(usuariosBackend);
-
-  const usuariosMock = [
-    {
-      id: "1",
-      nomeCompleto: "João Silva",
-      email: "joao@email.com",
-      status: "Ativo",
-      perfis: ["Fornecedor", "Administrador"],
-    },
-    {
-      id: "2",
-      nomeCompleto: "Maria Santos",
-      email: "maria@email.com",
-      status: "Ativo",
-      perfis: ["Consumidora"],
-    },
-    {
-      id: "3",
-      nomeCompleto: "Pedro Costa",
-      email: "pedro@email.com",
-      status: "Inativo",
-      perfis: ["Fornecedor(a)"],
-    },
-    {
-      id: "4",
-      nomeCompleto: "Ana Oliveira",
-      email: "ana@email.com",
-      status: "Ativo",
-      perfis: ["Consumidora", "Fornecedora"],
-    },
-    {
-      id: "5",
-      nomeCompleto: "Carlos Pereira",
-      email: "carlos@email.com",
-      status: "Ativo",
-      perfis: ["Administrador(a)"],
-    },
-    {
-      id: "6",
-      nomeCompleto: "Fernanda Lima",
-      email: "fernanda@email.com",
-      status: "Ativo",
-      perfis: ["Administradora de Mercado"],
-    },
-  ];
 
   const perfisDisponiveis = [
     "Administrador(a)",
@@ -136,7 +86,7 @@ const UsuarioIndex = () => {
     navigate(`/usuario/${id}`);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (_id: string) => {
     toast({
       title: "Usuário excluído",
       description: "O usuário foi removido com sucesso.",

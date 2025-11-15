@@ -1,27 +1,26 @@
-import React, { useState, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
-import { FiltersBar } from '@/components/admin/FiltersBar';
-import { FiltersPanel } from '@/components/admin/FiltersPanel';
-import { useFilters } from '@/hooks/useFilters';
-import { 
-  Search, 
-  Plus, 
-  Edit2, 
-  Trash2,
-  ArrowLeft
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { StatusToggle } from '@/components/ui/status-toggle';
-import { RoleTitle } from '@/components/layout/RoleTitle';
+import React, { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { FiltersBar } from "@/components/admin/FiltersBar";
+import { FiltersPanel } from "@/components/admin/FiltersPanel";
+import { useFilters } from "@/hooks/useFilters";
+import { Plus, Edit2, Trash2, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { StatusToggle } from "@/components/ui/status-toggle";
+import { RoleTitle } from "@/components/layout/RoleTitle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,48 +35,50 @@ import {
 interface Categoria {
   id: number;
   nome: string;
-  situacao: 'Ativo' | 'Inativo';
+  situacao: "Ativo" | "Inativo";
 }
 
 const AdminCategorias = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { 
+  const {
     filters,
     debouncedSearch,
-    updateFilter, 
-    toggleArrayValue, 
-    clearFilters, 
+    updateFilter,
+    toggleArrayValue,
+    clearFilters,
     clearFilterGroup,
-    getActiveChips, 
+    getActiveChips,
     hasActiveFilters,
     isOpen,
-    setIsOpen 
-  } = useFilters('/admin/categorias');
-  
+    setIsOpen,
+  } = useFilters("/admin/categorias");
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [categoriaToDelete, setCategoriaToDelete] = useState<Categoria | null>(null);
+  const [categoriaToDelete, setCategoriaToDelete] = useState<Categoria | null>(
+    null,
+  );
 
   const [categorias, setCategorias] = useState<Categoria[]>([
-    { id: 1, nome: 'Frutas', situacao: 'Ativo' },
-    { id: 2, nome: 'Verduras', situacao: 'Ativo' },
-    { id: 3, nome: 'Legumes', situacao: 'Ativo' },
-    { id: 4, nome: 'Cereais', situacao: 'Ativo' },
-    { id: 5, nome: 'Laticínios', situacao: 'Inativo' },
+    { id: 1, nome: "Frutas", situacao: "Ativo" },
+    { id: 2, nome: "Verduras", situacao: "Ativo" },
+    { id: 3, nome: "Legumes", situacao: "Ativo" },
+    { id: 4, nome: "Cereais", situacao: "Ativo" },
+    { id: 5, nome: "Laticínios", situacao: "Inativo" },
   ]);
 
   const filteredCategorias = useMemo(() => {
     let result = [...categorias];
 
     if (debouncedSearch) {
-      result = result.filter(categoria =>
-        categoria.nome.toLowerCase().includes(debouncedSearch.toLowerCase())
+      result = result.filter((categoria) =>
+        categoria.nome.toLowerCase().includes(debouncedSearch.toLowerCase()),
       );
     }
 
     if (filters.status.length > 0) {
-      result = result.filter(categoria => 
-        filters.status.includes(categoria.situacao)
+      result = result.filter((categoria) =>
+        filters.status.includes(categoria.situacao),
       );
     }
 
@@ -95,7 +96,9 @@ const AdminCategorias = () => {
 
   const confirmDelete = () => {
     if (categoriaToDelete) {
-      setCategorias(prev => prev.filter(c => c.id !== categoriaToDelete.id));
+      setCategorias((prev) =>
+        prev.filter((c) => c.id !== categoriaToDelete.id),
+      );
       toast({
         title: "Sucesso",
         description: `Categoria "${categoriaToDelete.nome}" excluída com sucesso`,
@@ -105,14 +108,19 @@ const AdminCategorias = () => {
     setCategoriaToDelete(null);
   };
 
-  const handleStatusChange = async (id: number, newStatus: 'Ativo' | 'Inativo') => {
+  const handleStatusChange = async (
+    id: number,
+    newStatus: "Ativo" | "Inativo",
+  ) => {
     // Aqui você faria a chamada PATCH /categorias/{id} body { status: "ativo"|"inativo" }
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    setCategorias(prev => 
-      prev.map(cat => cat.id === id ? { ...cat, situacao: newStatus } : cat)
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    setCategorias((prev) =>
+      prev.map((cat) =>
+        cat.id === id ? { ...cat, situacao: newStatus } : cat,
+      ),
     );
-    
+
     toast({
       title: "Status atualizado",
       description: `Status da categoria alterado para ${newStatus}.`,
@@ -122,10 +130,10 @@ const AdminCategorias = () => {
   return (
     <ResponsiveLayout
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon-sm"
-          onClick={() => navigate('/admin/dashboard')}
+          onClick={() => navigate("/admin/dashboard")}
           className="text-primary-foreground hover:bg-primary-hover"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -136,7 +144,10 @@ const AdminCategorias = () => {
       <div className="space-y-6 md:space-y-8">
         <div className="md:flex md:items-center md:justify-between">
           <div>
-            <RoleTitle page="Categorias de Alimentos" className="text-2xl md:text-3xl" />
+            <RoleTitle
+              page="Categorias de Alimentos"
+              className="text-2xl md:text-3xl"
+            />
             <p className="text-sm md:text-base text-muted-foreground">
               Gerenciar categorias dos alimentos comercializados
             </p>
@@ -147,7 +158,7 @@ const AdminCategorias = () => {
           <div className="flex-1">
             <FiltersBar
               searchValue={filters.search}
-              onSearchChange={(value) => updateFilter('search', value)}
+              onSearchChange={(value) => updateFilter("search", value)}
               onFiltersClick={() => setIsOpen(true)}
               activeChips={getActiveChips()}
               onRemoveChip={clearFilterGroup}
@@ -156,7 +167,10 @@ const AdminCategorias = () => {
               filtersOpen={isOpen}
             />
           </div>
-          <Button onClick={() => navigate('/admin/categorias/novo')} className="whitespace-nowrap">
+          <Button
+            onClick={() => navigate("/admin/categorias/novo")}
+            className="whitespace-nowrap"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Categoria
           </Button>
@@ -172,9 +186,9 @@ const AdminCategorias = () => {
             {filteredCategorias.length === 0 ? (
               <div className="p-6 text-center space-y-4">
                 <p className="text-muted-foreground">
-                  {hasActiveFilters() 
-                    ? 'Sem resultados para os filtros selecionados.' 
-                    : 'Nenhuma categoria cadastrada.'}
+                  {hasActiveFilters()
+                    ? "Sem resultados para os filtros selecionados."
+                    : "Nenhuma categoria cadastrada."}
                 </p>
                 {hasActiveFilters() && (
                   <Button variant="outline" onClick={clearFilters}>
@@ -201,7 +215,9 @@ const AdminCategorias = () => {
                         <TableCell>
                           <StatusToggle
                             currentStatus={categoria.situacao}
-                            onStatusChange={(newStatus) => handleStatusChange(categoria.id, newStatus)}
+                            onStatusChange={(newStatus) =>
+                              handleStatusChange(categoria.id, newStatus)
+                            }
                           />
                         </TableCell>
                         <TableCell className="text-right">
@@ -245,14 +261,17 @@ const AdminCategorias = () => {
         <div className="space-y-4">
           <Label>Status</Label>
           <div className="space-y-2">
-            {['Ativo', 'Inativo'].map((status) => (
+            {["Ativo", "Inativo"].map((status) => (
               <div key={status} className="flex items-center space-x-2">
                 <Checkbox
                   id={`status-${status}`}
                   checked={filters.status.includes(status)}
-                  onCheckedChange={() => toggleArrayValue('status', status)}
+                  onCheckedChange={() => toggleArrayValue("status", status)}
                 />
-                <label htmlFor={`status-${status}`} className="text-sm font-medium cursor-pointer">
+                <label
+                  htmlFor={`status-${status}`}
+                  className="text-sm font-medium cursor-pointer"
+                >
                   {status}
                 </label>
               </div>
@@ -266,13 +285,13 @@ const AdminCategorias = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a categoria "{categoriaToDelete?.nome}"?
-              Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir a categoria "
+              {categoriaToDelete?.nome}"? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive hover:bg-destructive/90"
             >

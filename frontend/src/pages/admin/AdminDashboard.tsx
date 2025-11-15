@@ -1,86 +1,79 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { 
-  Store, 
-  Package, 
-  Warehouse, 
-  ShoppingCart, 
-  FileText, 
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import {
+  Store,
+  Package,
+
+  ShoppingCart,
+  FileText,
   Settings,
   Users,
-  TrendingUp,
-  Calendar,
   DollarSign,
   FolderTree,
   RefreshCcw,
   Truck,
   ShoppingBag,
   ReceiptText,
-  Wallet
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
+  Wallet,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
-
   const gestaoAlimentos = [
     {
-      title: 'Cadastro de Alimentos',
-      description: 'Gerencie seu portfólio de alimentos',
+      title: "Cadastro de Alimentos",
+      description: "Gerencie seu portfólio de alimentos",
       icon: Package,
-      route: '/admin/alimentos'
+      route: "/admin/alimentos",
     },
     {
-      title: 'Cadastro de Mercados',
-      description: 'Gerenciar mercados e pontos de venda',
+      title: "Cadastro de Mercados",
+      description: "Gerenciar mercados e pontos de venda",
       icon: Store,
-      route: '/admin/mercados'
+      route: "/admin/mercados",
     },
     {
-      title: 'Gestão Preço por Mercado',
-      description: 'Definir preços específicos por mercado',
+      title: "Gestão Preço por Mercado",
+      description: "Definir preços específicos por mercado",
       icon: DollarSign,
-      route: '/admin/precos'
+      route: "/admin/precos",
     },
     {
-      title: 'Gestão de Preço e Peso dos Alimentos',
-      description: 'Gerenciar variações comerciais por unidade, peso e preço',
+      title: "Gestão de Preço e Peso dos Alimentos",
+      description: "Gerenciar variações comerciais por unidade, peso e preço",
       icon: ShoppingCart,
-      route: '/admin/produtos-comercializaveis'
+      route: "/admin/produtos-comercializaveis",
     },
     {
-      title: 'Categorias de Alimentos',
-      description: 'Gerenciar categorias dos alimentos comercializados',
+      title: "Categorias de Alimentos",
+      description: "Gerenciar categorias dos alimentos comercializados",
       icon: FolderTree,
-      route: '/admin/categorias'
-    }
+      route: "/admin/categorias",
+    },
   ];
 
   const administracaoGeral = [
     {
-      title: 'Usuários',
-      description: 'Gerenciar perfis e acessos',
+      title: "Usuários",
+      description: "Gerenciar perfis e acessos",
       icon: Users,
-      route: '/usuario-index'
+      route: "/usuario-index",
     },
     {
-      title: 'Dados Pessoais',
-      description: 'Atualize seus dados pessoais',
+      title: "Dados Pessoais",
+      description: "Atualize seus dados pessoais",
       icon: Users,
-      route: '/usuario/1'
-    }
+      route: "/usuario/1",
+    },
   ];
 
   return (
-    <ResponsiveLayout 
-      headerContent={<UserMenuLarge />}
-    >
+    <ResponsiveLayout headerContent={<UserMenuLarge />}>
       {/* Desktop Layout */}
       <div className="space-y-6 md:space-y-8">
         {/* Header */}
@@ -106,10 +99,10 @@ const AdminDashboard = () => {
             <RefreshCcw className="w-5 h-5 mr-2 text-primary" />
             Gestão de Ciclo
           </h2>
-          
-          <Card 
+
+          <Card
             className="shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-            onClick={() => navigate('/admin/ciclo-index')}
+            onClick={() => navigate("/admin/ciclo-index")}
           >
             <CardHeader className="pb-3 md:pb-4">
               <div className="flex items-center space-x-3">
@@ -135,10 +128,10 @@ const AdminDashboard = () => {
             <Package className="w-5 h-5 mr-2 text-primary" />
             Gestão de Alimentos
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {gestaoAlimentos.map((item, index) => (
-              <Card 
+              <Card
                 key={index}
                 className="shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] md:hover:scale-105"
                 onClick={() => navigate(item.route)}
@@ -169,12 +162,12 @@ const AdminDashboard = () => {
             <FileText className="w-5 h-5 mr-2 text-primary" />
             Relatórios
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             {/* Card - Relatório Fornecedores */}
-            <Card 
+            <Card
               className="shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-              onClick={() => navigate('/admin/relatorio-fornecedores')}
+              onClick={() => navigate("/admin/relatorio-fornecedores")}
             >
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
@@ -186,7 +179,9 @@ const AdminDashboard = () => {
                       Relatório Fornecedores
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Escolha os ciclos e gere o relatório com todas as movimentações dos fornecedores (entregas, valores e quantidades).
+                      Escolha os ciclos e gere o relatório com todas as
+                      movimentações dos fornecedores (entregas, valores e
+                      quantidades).
                     </p>
                   </div>
                 </div>
@@ -194,9 +189,9 @@ const AdminDashboard = () => {
             </Card>
 
             {/* Card - Relatório Consumidores */}
-            <Card 
+            <Card
               className="shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-              onClick={() => navigate('/admin/relatorio-consumidores')}
+              onClick={() => navigate("/admin/relatorio-consumidores")}
             >
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
@@ -208,7 +203,9 @@ const AdminDashboard = () => {
                       Relatório Consumidores
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Escolha os ciclos e gere o relatório com todas as movimentações dos consumidores (por produto ou por cliente).
+                      Escolha os ciclos e gere o relatório com todas as
+                      movimentações dos consumidores (por produto ou por
+                      cliente).
                     </p>
                   </div>
                 </div>
@@ -223,12 +220,12 @@ const AdminDashboard = () => {
             <Wallet className="w-5 h-5 mr-2 text-primary" />
             Pagamentos
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             {/* Card - Lista de Pagamentos */}
-            <Card 
+            <Card
               className="shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-              onClick={() => navigate('/admin/pagamentos-gerar')}
+              onClick={() => navigate("/admin/pagamentos-gerar")}
             >
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
@@ -240,7 +237,8 @@ const AdminDashboard = () => {
                       Gerar Registros de Pagamento
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Gerar registros de pagamentos de consumidores e fornecedores
+                      Gerar registros de pagamentos de consumidores e
+                      fornecedores
                     </p>
                   </div>
                 </div>
@@ -248,9 +246,9 @@ const AdminDashboard = () => {
             </Card>
 
             {/* Card - Editar Lista de Pagamentos */}
-            <Card 
+            <Card
               className="shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-              onClick={() => navigate('/admin/pagamentos-gerir')}
+              onClick={() => navigate("/admin/pagamentos-gerir")}
             >
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
@@ -262,7 +260,8 @@ const AdminDashboard = () => {
                       Administrar Pagamentos
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Acompanhe, edite e registre os pagamentos pendentes e realizados
+                      Acompanhe, edite e registre os pagamentos pendentes e
+                      realizados
                     </p>
                   </div>
                 </div>
@@ -277,10 +276,10 @@ const AdminDashboard = () => {
             <Settings className="w-5 h-5 mr-2 text-primary" />
             Administração Geral
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {administracaoGeral.map((item, index) => (
-              <Card 
+              <Card
                 key={index}
                 className="shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] md:hover:scale-105"
                 onClick={() => navigate(item.route)}
@@ -311,10 +310,12 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <p className="font-medium text-sm md:text-base">Sistema Operacional</p>
+                <p className="font-medium text-sm md:text-base">
+                  Sistema Operacional
+                </p>
               </div>
               <p className="text-xs md:text-sm text-muted-foreground">
-                Última sincronização: {new Date().toLocaleString('pt-BR')}
+                Última sincronização: {new Date().toLocaleString("pt-BR")}
               </p>
             </div>
           </CardContent>

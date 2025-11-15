@@ -169,7 +169,7 @@ const AdminMercadoCiclo = () => {
     }
   };
 
-  const handleUpdateMercado = (id: string, field: string, value: any) => {
+  const handleUpdateMercado = (id: string, field: string, value: Record<string, unknown>) => {
     setMercados(mercados.map(m => {
       if (m.id === id) {
         // Se mudou o mercado, aplicar regras e resetar tipo de venda se necessário

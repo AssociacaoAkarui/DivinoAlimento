@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -23,13 +23,6 @@ interface ProductSubmission {
   unit: string;
 }
 
-interface AnalysisModalProps {
-  open: boolean;
-  onClose: () => void;
-  submission: ProductSubmission | null;
-  onApprove: (id: string, description: string, price: number) => void;
-  onReject: (id: string, reason: string) => void;
-}
 
 const AdminProdutosSubmissoes = () => {
   const navigate = useNavigate();
@@ -75,7 +68,7 @@ const AdminProdutosSubmissoes = () => {
     setIsModalOpen(true);
   };
 
-  const handleApprove = (id: string, description: string, price: number) => {
+  const handleApprove = (id: string, _description: string, _price: number) => {
     setSubmissions(prev => 
       prev.map(sub => 
         sub.id === id ? { ...sub, status: 'Aprovado' as const } : sub

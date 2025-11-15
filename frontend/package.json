@@ -7,10 +7,11 @@
     "build": "npm run codegen && vite build",
     "build:dev": "npm run codegen && vite build --mode development",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "test": "mocha",
     "typecheck": "tsc --noEmit --skipLibCheck",
-    "check": "npm run typecheck && npm test",
+    "check": "npm run typecheck && npm run lint && npm test",
     "codegen": "graphql-codegen --config codegen.yml",
     "codegen:watch": "graphql-codegen --config codegen.yml --watch"
   },

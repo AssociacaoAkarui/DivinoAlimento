@@ -88,7 +88,7 @@ export default function ConsumidorRelatorioPedidosResultado() {
 
   // Filtros e ordenação
   const pedidosFiltrados = useMemo(() => {
-    let resultado = pedidos.filter(pedido =>
+    const resultado = pedidos.filter(pedido =>
       pedido.alimento.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pedido.fornecedor.toLowerCase().includes(searchTerm.toLowerCase())
     );

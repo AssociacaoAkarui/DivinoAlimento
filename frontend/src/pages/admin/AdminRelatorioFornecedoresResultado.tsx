@@ -149,7 +149,7 @@ export default function AdminRelatorioFornecedoresResultado() {
       const { exportFornecedoresCSV } = await import('@/utils/export');
       exportFornecedoresCSV(filteredEntregas, ciclosData);
       toast.success('Download do CSV concluído');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao exportar CSV');
     }
   };
@@ -169,7 +169,7 @@ export default function AdminRelatorioFornecedoresResultado() {
       const { exportFornecedoresPDF } = await import('@/utils/export');
       exportFornecedoresPDF(filteredEntregas, ciclosData, resumo);
       toast.success('Download do PDF concluído');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao exportar PDF');
     }
   };

@@ -1,18 +1,14 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
 import { 
   ArrowLeft,
   ShoppingBag,
   Truck,
-  Wallet,
   UserCircle,
-  Calendar,
   Package,
-  DollarSign,
-  AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
@@ -49,7 +45,7 @@ const mockFornecedorData = {
 const LojaProdutor = () => {
   const navigate = useNavigate();
   const { activeRole, user } = useAuth();
-  const { nomeFornecedor, ciclos } = mockFornecedorData;
+  const { nomeFornecedor: _nomeFornecedor, ciclos: _ciclos } = mockFornecedorData;
 
   const roleText = activeRole ? roleLabel(activeRole, user?.gender) : '';
   const pageTitle = `Painel ${roleText}`;

@@ -111,7 +111,7 @@ export default function FornecedorEntregas() {
         title: "Exportação concluída",
         description: "O relatório CSV foi gerado com sucesso!"
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Erro na exportação",
         description: "Não foi possível gerar o arquivo CSV.",
@@ -145,7 +145,7 @@ export default function FornecedorEntregas() {
         title: "Exportação concluída",
         description: "O relatório PDF foi gerado com sucesso!"
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Erro na exportação",
         description: "Não foi possível gerar o arquivo PDF.",

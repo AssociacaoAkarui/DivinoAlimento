@@ -1,5 +1,4 @@
-import { ReactNode } from 'react';
-import { X } from 'lucide-react';
+import { ReactNode } from "react";
 import {
   Sheet,
   SheetContent,
@@ -7,9 +6,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetFooter,
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface FiltersPanelProps {
   open: boolean;
@@ -26,7 +25,7 @@ export function FiltersPanel({
   onApply,
   onClear,
   children,
-  title = 'Filtros',
+  title = "Filtros",
 }: FiltersPanelProps) {
   const handleApply = () => {
     onApply();
@@ -35,18 +34,20 @@ export function FiltersPanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:w-[400px] flex flex-col p-0">
+      <SheetContent
+        side="right"
+        className="w-full sm:w-[400px] flex flex-col p-0"
+      >
         <SheetHeader className="px-6 py-4 border-b">
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>
-            Configure os filtros e clique em "Aplicar filtros" para atualizar os resultados.
+            Configure os filtros e clique em "Aplicar filtros" para atualizar os
+            resultados.
           </SheetDescription>
         </SheetHeader>
 
         <ScrollArea className="flex-1 px-6 py-4">
-          <div className="space-y-6">
-            {children}
-          </div>
+          <div className="space-y-6">{children}</div>
         </ScrollArea>
 
         <SheetFooter className="px-6 py-4 border-t flex-row gap-2">
