@@ -35,6 +35,7 @@ module.exports = tseslint.config(
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "no-debugger": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
+      "no-duplicate-imports": "error",
     },
   },
 );

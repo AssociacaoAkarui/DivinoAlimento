@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -14,7 +14,6 @@ import { useNavigate } from 'react-router-dom';
 import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
 import { useAuth } from '@/contexts/AuthContext';
 import { roleLabel } from '@/utils/labels';
-import { useEffect } from 'react';
 import leafTitleIcon from '@/assets/leaf-title-icon.png';
 
 // Mock data - in real app would come from API/context

@@ -11,7 +11,6 @@ import {
   Settings,
   Home,
 } from "lucide-react";
-import { useLocation, NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
