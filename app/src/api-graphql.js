@@ -66,6 +66,28 @@ const rootValue = {
       success: session.success,
     };
   },
+  criarUsuario: async (args, context) => {
+    try {
+      const { input } = args;
+      const usuario = await context.usuarioService.create(
+        {
+          email: input.email,
+          senha: input.senha,
+          phoneNumber: input.celular || "",
+        },
+        {
+          nome: input.nome,
+          perfis: input.perfis,
+          status: input.status || "ativo",
+        },
+      );
+      return usuario;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw new Error(`Failed to create user: ${error.message}`);
+    }
+  },
+
   atualizarUsuario: async (args, context) => {
     await requiredAuthenticated(context);
     await setupSession(context);
