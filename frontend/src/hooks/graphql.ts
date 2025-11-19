@@ -17,6 +17,9 @@ import {
   SystemInformationDocument,
   ListarUsuariosQuery,
   ListarUsuariosDocument,
+  CriarUsuarioMutation,
+  CriarUsuarioMutationVariables,
+  CriarUsuarioDocument,
   AtualizarUsuarioMutation,
   AtualizarUsuarioMutationVariables,
   AtualizarUsuarioDocument,
@@ -67,6 +70,21 @@ export function useListarUsuarios() {
         token,
       ).request<ListarUsuariosQuery>(ListarUsuariosDocument);
       return response.listarUsuarios;
+    },
+  });
+}
+
+export function useCriarUsuario() {
+  return useMutation<
+    CriarUsuarioMutation,
+    Error,
+    CriarUsuarioMutationVariables
+  >({
+    mutationFn: async (variables: CriarUsuarioMutationVariables) => {
+      return await graphqlClient.request<CriarUsuarioMutation>(
+        CriarUsuarioDocument,
+        variables,
+      );
     },
   });
 }
