@@ -144,3 +144,85 @@ export const DELETAR_CATEGORIA_MUTATION = gql`
     }
   }
 `;
+
+export const LISTAR_PRODUTOS_QUERY = gql`
+  query ListarProdutos {
+    listarProdutos {
+      id
+      nome
+      medida
+      pesoGrama
+      valorReferencia
+      status
+      descritivo
+      categoriaId
+      categoria {
+        id
+        nome
+      }
+    }
+  }
+`;
+
+export const BUSCAR_PRODUTO_QUERY = gql`
+  query BuscarProduto($id: ID!) {
+    buscarProduto(id: $id) {
+      id
+      nome
+      medida
+      pesoGrama
+      valorReferencia
+      status
+      descritivo
+      categoriaId
+      categoria {
+        id
+        nome
+      }
+    }
+  }
+`;
+
+export const CRIAR_PRODUTO_MUTATION = gql`
+  mutation CriarProduto($input: CriarProdutoInput!) {
+    criarProduto(input: $input) {
+      id
+      nome
+      medida
+      pesoGrama
+      valorReferencia
+      status
+      descritivo
+      categoriaId
+      categoria {
+        id
+        nome
+      }
+    }
+  }
+`;
+
+export const ATUALIZAR_PRODUTO_MUTATION = gql`
+  mutation AtualizarProduto($id: ID!, $input: AtualizarProdutoInput!) {
+    atualizarProduto(id: $id, input: $input) {
+      id
+      nome
+      medida
+      pesoGrama
+      valorReferencia
+      status
+      descritivo
+      categoriaId
+      categoria {
+        id
+        nome
+      }
+    }
+  }
+`;
+
+export const DELETAR_PRODUTO_MUTATION = gql`
+  mutation DeletarProduto($id: ID!) {
+    deletarProduto(id: $id)
+  }
+`;

@@ -38,6 +38,16 @@ import {
   DeletarCategoriaMutation,
   DeletarCategoriaMutationVariables,
   CategoriaProdutos,
+  ListarProdutosQuery,
+  BuscarProdutoQuery,
+  BuscarProdutoQueryVariables,
+  CriarProdutoMutation,
+  CriarProdutoMutationVariables,
+  AtualizarProdutoMutation,
+  AtualizarProdutoMutationVariables,
+  DeletarProdutoMutation,
+  DeletarProdutoMutationVariables,
+  Produto,
 } from "../types/graphql";
 
 import {
@@ -46,6 +56,11 @@ import {
   CRIAR_CATEGORIA_MUTATION,
   ATUALIZAR_CATEGORIA_MUTATION,
   DELETAR_CATEGORIA_MUTATION,
+  LISTAR_PRODUTOS_QUERY,
+  BUSCAR_PRODUTO_QUERY,
+  CRIAR_PRODUTO_MUTATION,
+  ATUALIZAR_PRODUTO_MUTATION,
+  DELETAR_PRODUTO_MUTATION,
 } from "../graphql/operations";
 
 export function useLoginUsuario(
@@ -253,6 +268,109 @@ export function useDeletarCategoria() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listar_categorias"] });
+    },
+  });
+}
+
+export function useListarProdutos() {
+  return useQuery<Produto[], Error>({
+    queryKey: ["listar_produtos"],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(
+        token,
+      ).request<ListarProdutosQuery>(LISTAR_PRODUTOS_QUERY);
+      return response.listarProdutos;
+    },
+  });
+}
+
+export function useBuscarProduto(id: string) {
+  return useQuery<Produto, Error>({
+    queryKey: ["buscar_produto", id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request<
+        BuscarProdutoQuery,
+        BuscarProdutoQueryVariables
+      >(BUSCAR_PRODUTO_QUERY, { id });
+      return response.buscarProduto;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCriarProduto() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    CriarProdutoMutation,
+    Error,
+    CriarProdutoMutationVariables
+  >({
+    mutationFn: async (variables: CriarProdutoMutationVariables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request<CriarProdutoMutation>(
+        CRIAR_PRODUTO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_produtos"] });
+    },
+  });
+}
+
+export function useAtualizarProduto() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    AtualizarProdutoMutation,
+    Error,
+    AtualizarProdutoMutationVariables
+  >({
+    mutationFn: async (variables: AtualizarProdutoMutationVariables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request<AtualizarProdutoMutation>(
+        ATUALIZAR_PRODUTO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_produtos"] });
+    },
+  });
+}
+
+export function useDeletarProduto() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    DeletarProdutoMutation,
+    Error,
+    DeletarProdutoMutationVariables
+  >({
+    mutationFn: async (variables: DeletarProdutoMutationVariables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request<DeletarProdutoMutation>(
+        DELETAR_PRODUTO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_produtos"] });
     },
   });
 }
