@@ -40,9 +40,19 @@ input AtualizarUsuarioInput {
     status: String
 }
 
+input CriarUsuarioInput {
+    nome: String!
+    email: String!
+    senha: String!
+    celular: String
+    perfis: [String!]!
+    status: String
+}
+
 type Mutation {
     sessionLogin(input: LoginInput!): ActiveSession!
     sessionLogout: LogoutResponse!
+    criarUsuario(input: CriarUsuarioInput!): Usuario!
     atualizarUsuario(id: ID!, input: AtualizarUsuarioInput!): Usuario!
 }
 
