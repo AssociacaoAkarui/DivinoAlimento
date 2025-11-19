@@ -1,8 +1,6 @@
 import { describe, it } from "mocha";
 import { expect } from "chai";
 import {
-  createDescritivo,
-  parseDescritivo,
   mapPerfisToBackend,
   mapPerfisToFrontend,
   mapSituacaoToStatus,
@@ -18,75 +16,6 @@ import {
 } from "../../src/lib/usuario-dados-helpers";
 
 describe("usuario-dados-helpers", () => {
-  describe("createDescritivo", () => {
-    context("Dado dados bancários válidos", () => {
-      context("Quando criar descritivo", () => {
-        it("Então deve retornar JSON com campos corretos", () => {
-          const result = createDescritivo(
-            "Itaú",
-            "1234",
-            "56789-0",
-            "email@test.com",
-          );
-          const parsed = JSON.parse(result);
-
-          expect(parsed).to.have.property("banco", "Itaú");
-          expect(parsed).to.have.property("agencia", "1234");
-          expect(parsed).to.have.property("conta", "56789-0");
-          expect(parsed).to.have.property("pix", "email@test.com");
-        });
-      });
-    });
-  });
-
-  describe("parseDescritivo", () => {
-    context("Dado um descritivo JSON válido", () => {
-      context("Quando parsear descritivo", () => {
-        it("Então deve extrair dados bancários corretamente", () => {
-          const json = JSON.stringify({
-            banco: "Bradesco",
-            agencia: "5678",
-            conta: "12345-6",
-            pix: "123.456.789-00",
-          });
-
-          const result = parseDescritivo(json);
-
-          expect(result.banco).to.equal("Bradesco");
-          expect(result.agencia).to.equal("5678");
-          expect(result.conta).to.equal("12345-6");
-          expect(result.chavePix).to.equal("123.456.789-00");
-        });
-      });
-    });
-
-    context("Dado descritivo null", () => {
-      context("Quando parsear descritivo", () => {
-        it("Então deve retornar valores padrão vazios", () => {
-          const result = parseDescritivo(null);
-
-          expect(result.banco).to.equal("");
-          expect(result.agencia).to.equal("");
-          expect(result.conta).to.equal("");
-          expect(result.chavePix).to.equal("");
-        });
-      });
-    });
-
-    context("Dado JSON inválido", () => {
-      context("Quando parsear descritivo", () => {
-        it("Então deve retornar valores padrão vazios", () => {
-          const result = parseDescritivo("invalid json");
-
-          expect(result.banco).to.equal("");
-          expect(result.agencia).to.equal("");
-          expect(result.conta).to.equal("");
-          expect(result.chavePix).to.equal("");
-        });
-      });
-    });
-  });
-
   describe("mapPerfisToBackend", () => {
     context("Dado checkboxes de perfis selecionados", () => {
       context("Quando mapear para backend", () => {
@@ -369,7 +298,10 @@ describe("usuario-dados-helpers", () => {
           expect(result.input).to.have.property("nome", "João Silva");
           expect(result.input).to.have.property("nomeoficial", "João");
           expect(result.input).to.have.property("celular", "11987654321");
-          expect(result.input).to.have.property("descritivo");
+          expect(result.input).to.have.property("banco", "Itaú");
+          expect(result.input).to.have.property("agencia", "1234");
+          expect(result.input).to.have.property("conta", "56789-0");
+          expect(result.input).to.have.property("chavePix", "joao@email.com");
           expect(result.input).to.have.property("cientepolitica", "sim");
           expect(result.input).to.have.property("perfis");
           expect(result.input.perfis).to.include("admin");
