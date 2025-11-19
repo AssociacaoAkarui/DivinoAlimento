@@ -15,61 +15,71 @@ Before(function () {
 });
 
 Given("que eu quero criar um novo usuário", function () {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+  this.novoUsuarioData = {};
 });
 
-When("eu preencho o nome do usuário com {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When("eu preencho o nome do usuário com {string}", function (nome) {
+  this.novoUsuarioData.nome = nome;
 });
 
-When("o nome fantasia do usuário com {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When("o nome fantasia do usuário com {string}", function (nomeFantasia) {
+  this.novoUsuarioData.nomeoficial = nomeFantasia;
 });
 
-When("o celular do usuário com {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When("o celular do usuário com {string}", function (celular) {
+  this.novoUsuarioData.celular = celular;
 });
 
 When(
   "as informações para pagamento do usuário com {string}",
-  function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return "pending";
+  function (descritivo) {
+    this.novoUsuarioData.descritivo = descritivo;
   },
 );
 
-When("o email do usuário com {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When("o email do usuário com {string}", function (email) {
+  this.novoUsuarioData.email = email;
 });
 
-When("a política de privacidade do usuário com {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When(
+  "a política de privacidade do usuário com {string}",
+  function (cientepolitica) {
+    this.novoUsuarioData.cientepolitica = cientepolitica;
+  },
+);
+
+When("o perfil do usuário como {string}", function (perfisString) {
+  const perfis = perfisString
+    .replace(/[{}]/g, "")
+    .split(",")
+    .map((p) => p.trim());
+  this.novoUsuarioData.perfis = perfis;
 });
 
-When("o perfil do usuário como {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When("o status do usuário como {string}", function (status) {
+  this.novoUsuarioData.status = status;
 });
 
-When("o status do usuário como {string}", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+When("eu salvo o novo usuário", async function () {
+  this.currentUsuario = await usuarioService.create(
+    {
+      email: this.novoUsuarioData.email,
+      senha: "password123",
+      phoneNumber: this.novoUsuarioData.celular,
+    },
+    {
+      nome: this.novoUsuarioData.nome,
+      perfis: this.novoUsuarioData.perfis,
+      status: this.novoUsuarioData.status,
+    },
+  );
 });
 
-When("eu salvo o novo usuário", function () {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
-});
-
-Then("o usuário {string} deve ser criado com sucesso", function (string) {
-  // Write code here that turns the phrase above into concrete actions
-  return "pending";
+Then("o usuário {string} deve ser criado com sucesso", function (nome) {
+  expect(this.currentUsuario).to.exist;
+  expect(this.currentUsuario.nome).to.equal(nome);
+  expect(this.currentUsuario.email).to.equal(this.novoUsuarioData.email);
+  expect(this.currentUsuario.status).to.equal(this.novoUsuarioData.status);
 });
 
 Given("que existe um usuário {string} cadastrado", function (string) {

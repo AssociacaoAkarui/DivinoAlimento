@@ -1,7 +1,7 @@
 # language: pt
 Funcionalidade: Gestão de Usuários
 
-  @usuario @USR-01 @pending
+  @usuario @USR-01
   Cenário: Criar um novo usuário com sucesso
     Dado que eu quero criar um novo usuário
     Quando eu preencho o nome do usuário com "João da Silva Santos"
