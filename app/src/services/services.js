@@ -384,6 +384,18 @@ class ProdutoService {
       throw new ServiceError("Falha ao deletar produto.", { cause: error });
     }
   }
+
+  async listarProdutos() {
+    try {
+      const produtos = await Produto.findAll({
+        include: [{ model: CategoriaProdutos, as: "categoria" }],
+        order: [["nome", "ASC"]],
+      });
+      return produtos;
+    } catch (error) {
+      throw new ServiceError("Falha ao listar produtos.", { cause: error });
+    }
+  }
 }
 
 class CestaService {
