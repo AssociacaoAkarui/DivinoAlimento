@@ -30,6 +30,16 @@ export type AtualizarCategoriaProdutosInput = {
   status?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type AtualizarProdutoInput = {
+  categoriaId?: InputMaybe<Scalars['Int']['input']>;
+  descritivo?: InputMaybe<Scalars['String']['input']>;
+  medida?: InputMaybe<Scalars['String']['input']>;
+  nome?: InputMaybe<Scalars['String']['input']>;
+  pesoGrama?: InputMaybe<Scalars['Float']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  valorReferencia?: InputMaybe<Scalars['Float']['input']>;
+};
+
 export type AtualizarUsuarioInput = {
   agencia?: InputMaybe<Scalars['String']['input']>;
   banco?: InputMaybe<Scalars['String']['input']>;
@@ -56,6 +66,16 @@ export type CriarCategoriaProdutosInput = {
   nome: Scalars['String']['input'];
   observacao?: InputMaybe<Scalars['String']['input']>;
   status: Scalars['String']['input'];
+};
+
+export type CriarProdutoInput = {
+  categoriaId?: InputMaybe<Scalars['Int']['input']>;
+  descritivo?: InputMaybe<Scalars['String']['input']>;
+  medida?: InputMaybe<Scalars['String']['input']>;
+  nome: Scalars['String']['input'];
+  pesoGrama?: InputMaybe<Scalars['Float']['input']>;
+  status: Scalars['String']['input'];
+  valorReferencia?: InputMaybe<Scalars['Float']['input']>;
 };
 
 export type CriarUsuarioInput = {
@@ -91,10 +111,13 @@ export type LogoutResponse = {
 export type Mutation = {
   __typename?: 'Mutation';
   atualizarCategoria: CategoriaProdutos;
+  atualizarProduto: Produto;
   atualizarUsuario: Usuario;
   criarCategoria: CategoriaProdutos;
+  criarProduto: Produto;
   criarUsuario: Usuario;
   deletarCategoria: DeletarCategoriaResponse;
+  deletarProduto: Scalars['Boolean']['output'];
   sessionLogin: ActiveSession;
   sessionLogout: LogoutResponse;
 };
@@ -103,6 +126,12 @@ export type Mutation = {
 export type MutationAtualizarCategoriaArgs = {
   id: Scalars['ID']['input'];
   input: AtualizarCategoriaProdutosInput;
+};
+
+
+export type MutationAtualizarProdutoArgs = {
+  id: Scalars['ID']['input'];
+  input: AtualizarProdutoInput;
 };
 
 
@@ -117,6 +146,11 @@ export type MutationCriarCategoriaArgs = {
 };
 
 
+export type MutationCriarProdutoArgs = {
+  input: CriarProdutoInput;
+};
+
+
 export type MutationCriarUsuarioArgs = {
   input: CriarUsuarioInput;
 };
@@ -127,22 +161,47 @@ export type MutationDeletarCategoriaArgs = {
 };
 
 
+export type MutationDeletarProdutoArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationSessionLoginArgs = {
   input: LoginInput;
+};
+
+export type Produto = {
+  __typename?: 'Produto';
+  categoria?: Maybe<CategoriaProdutos>;
+  categoriaId?: Maybe<Scalars['Int']['output']>;
+  descritivo?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  medida?: Maybe<Scalars['String']['output']>;
+  nome: Scalars['String']['output'];
+  pesoGrama?: Maybe<Scalars['Float']['output']>;
+  status: Scalars['String']['output'];
+  valorReferencia?: Maybe<Scalars['Float']['output']>;
 };
 
 export type Query = {
   __typename?: 'Query';
   buscarCategoria: CategoriaProdutos;
+  buscarProduto: Produto;
   buscarUsuario: Usuario;
   healthcheck: HealthCheck;
   listarCategorias: Array<CategoriaProdutos>;
+  listarProdutos: Array<Produto>;
   listarUsuarios: Array<Usuario>;
   systemInformation: SystemInformation;
 };
 
 
 export type QueryBuscarCategoriaArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryBuscarProdutoArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -254,6 +313,40 @@ export type DeletarCategoriaMutationVariables = Exact<{
 
 
 export type DeletarCategoriaMutation = { __typename?: 'Mutation', deletarCategoria: { __typename?: 'DeletarCategoriaResponse', success: boolean, message: string } };
+
+export type ListarProdutosQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListarProdutosQuery = { __typename?: 'Query', listarProdutos: Array<{ __typename?: 'Produto', id: string, nome: string, medida?: string | null, pesoGrama?: number | null, valorReferencia?: number | null, status: string, descritivo?: string | null, categoriaId?: number | null, categoria?: { __typename?: 'CategoriaProdutos', id: string, nome: string } | null }> };
+
+export type BuscarProdutoQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarProdutoQuery = { __typename?: 'Query', buscarProduto: { __typename?: 'Produto', id: string, nome: string, medida?: string | null, pesoGrama?: number | null, valorReferencia?: number | null, status: string, descritivo?: string | null, categoriaId?: number | null, categoria?: { __typename?: 'CategoriaProdutos', id: string, nome: string } | null } };
+
+export type CriarProdutoMutationVariables = Exact<{
+  input: CriarProdutoInput;
+}>;
+
+
+export type CriarProdutoMutation = { __typename?: 'Mutation', criarProduto: { __typename?: 'Produto', id: string, nome: string, medida?: string | null, pesoGrama?: number | null, valorReferencia?: number | null, status: string, descritivo?: string | null, categoriaId?: number | null, categoria?: { __typename?: 'CategoriaProdutos', id: string, nome: string } | null } };
+
+export type AtualizarProdutoMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: AtualizarProdutoInput;
+}>;
+
+
+export type AtualizarProdutoMutation = { __typename?: 'Mutation', atualizarProduto: { __typename?: 'Produto', id: string, nome: string, medida?: string | null, pesoGrama?: number | null, valorReferencia?: number | null, status: string, descritivo?: string | null, categoriaId?: number | null, categoria?: { __typename?: 'CategoriaProdutos', id: string, nome: string } | null } };
+
+export type DeletarProdutoMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeletarProdutoMutation = { __typename?: 'Mutation', deletarProduto: boolean };
 
 
 export const LoginDocument = gql`
@@ -385,6 +478,83 @@ export const DeletarCategoriaDocument = gql`
   }
 }
     `;
+export const ListarProdutosDocument = gql`
+    query ListarProdutos {
+  listarProdutos {
+    id
+    nome
+    medida
+    pesoGrama
+    valorReferencia
+    status
+    descritivo
+    categoriaId
+    categoria {
+      id
+      nome
+    }
+  }
+}
+    `;
+export const BuscarProdutoDocument = gql`
+    query BuscarProduto($id: ID!) {
+  buscarProduto(id: $id) {
+    id
+    nome
+    medida
+    pesoGrama
+    valorReferencia
+    status
+    descritivo
+    categoriaId
+    categoria {
+      id
+      nome
+    }
+  }
+}
+    `;
+export const CriarProdutoDocument = gql`
+    mutation CriarProduto($input: CriarProdutoInput!) {
+  criarProduto(input: $input) {
+    id
+    nome
+    medida
+    pesoGrama
+    valorReferencia
+    status
+    descritivo
+    categoriaId
+    categoria {
+      id
+      nome
+    }
+  }
+}
+    `;
+export const AtualizarProdutoDocument = gql`
+    mutation AtualizarProduto($id: ID!, $input: AtualizarProdutoInput!) {
+  atualizarProduto(id: $id, input: $input) {
+    id
+    nome
+    medida
+    pesoGrama
+    valorReferencia
+    status
+    descritivo
+    categoriaId
+    categoria {
+      id
+      nome
+    }
+  }
+}
+    `;
+export const DeletarProdutoDocument = gql`
+    mutation DeletarProduto($id: ID!) {
+  deletarProduto(id: $id)
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
@@ -431,6 +601,21 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     DeletarCategoria(variables: DeletarCategoriaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarCategoriaMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeletarCategoriaMutation>({ document: DeletarCategoriaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarCategoria', 'mutation', variables);
+    },
+    ListarProdutos(variables?: ListarProdutosQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarProdutosQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarProdutosQuery>({ document: ListarProdutosDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarProdutos', 'query', variables);
+    },
+    BuscarProduto(variables: BuscarProdutoQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarProdutoQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarProdutoQuery>({ document: BuscarProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarProduto', 'query', variables);
+    },
+    CriarProduto(variables: CriarProdutoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarProdutoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarProdutoMutation>({ document: CriarProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarProduto', 'mutation', variables);
+    },
+    AtualizarProduto(variables: AtualizarProdutoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AtualizarProdutoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AtualizarProdutoMutation>({ document: AtualizarProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AtualizarProduto', 'mutation', variables);
+    },
+    DeletarProduto(variables: DeletarProdutoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarProdutoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeletarProdutoMutation>({ document: DeletarProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarProduto', 'mutation', variables);
     }
   };
 }
