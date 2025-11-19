@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,7 @@ import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
 import { ArrowLeft, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAtualizarUsuario } from "@/hooks/graphql";
+import { useAtualizarUsuario, useBuscarUsuario } from "@/hooks/graphql";
 import InputMask from "react-input-mask";
 import {
   validarCelular,
@@ -34,6 +34,8 @@ import {
   validateUsuarioDadosForm,
   prepareUsuarioDadosForBackend,
   getRedirectRoute,
+  parseDescritivo,
+  isFormValid,
   type UsuarioDadosFormData,
 } from "@/lib/usuario-dados-helpers";
 import {
@@ -51,6 +53,7 @@ const UsuarioDados = () => {
   const { mutate: atualizarUsuario, isPending } = useAtualizarUsuario();
 
   const usuarioId = id || user?.id || "";
+  const { data: usuario, isLoading, error } = useBuscarUsuario(usuarioId);
 
   const [formData, setFormData] = useState({
     nomeCompleto: "João da Silva",
@@ -70,6 +73,33 @@ const UsuarioDados = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (usuario) {
+      const descritivo = usuario.descritivo
+        ? parseDescritivo(usuario.descritivo)
+        : { banco: "", agencia: "", conta: "", pix: "" };
+      const perfis = usuario.perfis || [];
+
+      setFormData({
+        nomeCompleto: usuario.nome || "",
+        nomeFantasia: usuario.nomeoficial || "",
+        celular: usuario.celular || "",
+        banco: descritivo.banco,
+        agencia: descritivo.agencia,
+        conta: descritivo.conta,
+        chavePix: descritivo.pix,
+        email: usuario.email || "",
+        aceitePolitica:
+          usuario.cientepolitica === "true" || usuario.cientepolitica === true,
+        perfilFornecedor: perfis.includes("fornecedor"),
+        perfilConsumidor: perfis.includes("consumidor"),
+        perfilAdministrador: perfis.includes("admin"),
+        perfilAdministradorMercado: perfis.includes("adminmercado"),
+        situacao: usuario.status || "Ativo",
+      });
+    }
+  }, [usuario]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -132,6 +162,44 @@ const UsuarioDados = () => {
   const handleCancel = () => {
     navigate(getRedirectRoute(activeRole));
   };
+
+  if (isLoading) {
+    return (
+      <ResponsiveLayout
+        headerContent={<UserMenuLarge />}
+        leftHeaderContent={
+          <Button variant="ghost" size="icon-sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        }
+      >
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">
+            Carregando dados do usuário...
+          </p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ResponsiveLayout
+        headerContent={<UserMenuLarge />}
+        leftHeaderContent={
+          <Button variant="ghost" size="icon-sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        }
+      >
+        <div className="flex items-center justify-center h-64">
+          <p className="text-destructive">
+            Erro ao carregar usuário: {error.message}
+          </p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
 
   return (
     <ResponsiveLayout
@@ -504,18 +572,9 @@ const UsuarioDados = () => {
           <Button
             onClick={handleSave}
             className="bg-primary hover:bg-primary/90"
-            disabled={
-              isPending ||
-              !formData.nomeCompleto.trim() ||
-              !validarCelular(formData.celular) ||
-              !formData.banco ||
-              !validarAgencia(formData.agencia) ||
-              !validarConta(formData.conta) ||
-              !validarChavePix(formData.chavePix).valido ||
-              !formData.aceitePolitica
-            }
+            disabled={isLoading || isPending || !isFormValid(formData)}
           >
-            {isPending ? "Salvando..." : "Salvar"}
+            {isLoading ? "Carregando..." : isPending ? "Salvando..." : "Salvar"}
           </Button>
         </div>
       </div>

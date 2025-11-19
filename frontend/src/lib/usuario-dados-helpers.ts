@@ -30,7 +30,7 @@ export function createDescritivo(
   banco: string,
   agencia: string,
   conta: string,
-  chavePix: string
+  chavePix: string,
 ): string {
   const descritivo = {
     banco,
@@ -113,7 +113,7 @@ export function mapStatusToSituacao(status: string): string {
 }
 
 export function validateUsuarioDadosForm(
-  formData: UsuarioDadosFormData
+  formData: UsuarioDadosFormData,
 ): UsuarioDadosErrors {
   const errors: UsuarioDadosErrors = {};
 
@@ -165,6 +165,12 @@ export function hasErrors(errors: UsuarioDadosErrors): boolean {
 }
 
 export function isFormValid(formData: UsuarioDadosFormData): boolean {
+  const hasAtLeastOnePerfil =
+    formData.perfilFornecedor ||
+    formData.perfilConsumidor ||
+    formData.perfilAdministrador ||
+    formData.perfilAdministradorMercado;
+
   return (
     formData.nomeCompleto.trim() !== "" &&
     validarCelular(formData.celular) &&
@@ -172,13 +178,14 @@ export function isFormValid(formData: UsuarioDadosFormData): boolean {
     validarAgencia(formData.agencia) &&
     validarConta(formData.conta) &&
     validarChavePix(formData.chavePix).valido &&
-    formData.aceitePolitica
+    formData.aceitePolitica &&
+    hasAtLeastOnePerfil
   );
 }
 
 export function prepareUsuarioDadosForBackend(
   usuarioId: string,
-  formData: UsuarioDadosFormData
+  formData: UsuarioDadosFormData,
 ): {
   id: string;
   input: {
@@ -195,7 +202,7 @@ export function prepareUsuarioDadosForBackend(
     formData.banco,
     formData.agencia,
     formData.conta,
-    formData.chavePix
+    formData.chavePix,
   );
 
   return {
