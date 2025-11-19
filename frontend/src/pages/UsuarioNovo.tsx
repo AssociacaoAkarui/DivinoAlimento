@@ -16,6 +16,7 @@ import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCriarUsuario } from "@/hooks/graphql";
 import InputMask from "react-input-mask";
 import { roleLabel } from "@/utils/labels";
 import {
@@ -29,6 +30,7 @@ const UsuarioNovo = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { activeRole, user } = useAuth();
+  const criarUsuarioMutation = useCriarUsuario();
 
   const roleText = activeRole ? roleLabel(activeRole, user?.gender) : "";
   const pageTitle = `${roleText} - Novo Usuário`;
@@ -140,14 +142,41 @@ const UsuarioNovo = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (validateForm()) {
-      // Simular criação de usuário
-      toast({
-        title: "Sucesso",
-        description: "Usuário criado com sucesso",
-      });
-      navigate("/usuario-index");
+      try {
+        // Mapear perfis selecionados
+        const perfis: string[] = [];
+        if (formData.perfilFornecedor) perfis.push("fornecedor");
+        if (formData.perfilConsumidor) perfis.push("consumidor");
+        if (formData.perfilAdministradorMercado) perfis.push("adminmercado");
+
+        // Criar informações de pagamento
+        const descritivo = `banco: ${formData.banco}, agencia: ${formData.agencia}, conta: ${formData.conta}, pix: ${formData.chavePix}`;
+
+        await criarUsuarioMutation.mutateAsync({
+          input: {
+            nome: formData.nomeCompleto,
+            email: formData.email,
+            senha: formData.senha,
+            celular: formData.celular,
+            perfis,
+            status: "ativo",
+          },
+        });
+
+        toast({
+          title: "Sucesso",
+          description: "Usuário criado com sucesso",
+        });
+        navigate("/usuario-index");
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Não foi possível criar o usuário. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Erro",
