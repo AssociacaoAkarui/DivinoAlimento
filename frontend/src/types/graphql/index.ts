@@ -85,9 +85,15 @@ export type MutationSessionLoginArgs = {
 
 export type Query = {
   __typename?: 'Query';
+  buscarUsuario: Usuario;
   healthcheck: HealthCheck;
   listarUsuarios: Array<Usuario>;
   systemInformation: SystemInformation;
+};
+
+
+export type QueryBuscarUsuarioArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type SystemInformation = {
@@ -97,9 +103,13 @@ export type SystemInformation = {
 
 export type Usuario = {
   __typename?: 'Usuario';
+  celular?: Maybe<Scalars['String']['output']>;
+  cientepolitica?: Maybe<Scalars['String']['output']>;
+  descritivo?: Maybe<Scalars['String']['output']>;
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   nome: Scalars['String']['output'];
+  nomeoficial?: Maybe<Scalars['String']['output']>;
   perfis: Array<Scalars['String']['output']>;
   status: Scalars['String']['output'];
 };
@@ -145,6 +155,13 @@ export type HealthcheckQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type HealthcheckQuery = { __typename?: 'Query', healthcheck: { __typename?: 'HealthCheck', status: string } };
+
+export type BuscarUsuarioQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarUsuarioQuery = { __typename?: 'Query', buscarUsuario: { __typename?: 'Usuario', id: string, nome: string, nomeoficial?: string | null, email: string, celular?: string | null, descritivo?: string | null, cientepolitica?: string | null, status: string, perfis: Array<string> } };
 
 
 export const LoginDocument = gql`
@@ -210,6 +227,21 @@ export const HealthcheckDocument = gql`
   }
 }
     `;
+export const BuscarUsuarioDocument = gql`
+    query BuscarUsuario($id: ID!) {
+  buscarUsuario(id: $id) {
+    id
+    nome
+    nomeoficial
+    email
+    celular
+    descritivo
+    cientepolitica
+    status
+    perfis
+  }
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
@@ -238,6 +270,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     Healthcheck(variables?: HealthcheckQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<HealthcheckQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<HealthcheckQuery>({ document: HealthcheckDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'Healthcheck', 'query', variables);
+    },
+    BuscarUsuario(variables: BuscarUsuarioQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarUsuarioQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarUsuarioQuery>({ document: BuscarUsuarioDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarUsuario', 'query', variables);
     }
   };
 }

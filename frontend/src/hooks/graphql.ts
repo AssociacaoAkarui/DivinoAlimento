@@ -17,6 +17,9 @@ import {
   SystemInformationDocument,
   ListarUsuariosQuery,
   ListarUsuariosDocument,
+  BuscarUsuarioQuery,
+  BuscarUsuarioQueryVariables,
+  BuscarUsuarioDocument,
   CriarUsuarioMutation,
   CriarUsuarioMutationVariables,
   CriarUsuarioDocument,
@@ -71,6 +74,24 @@ export function useListarUsuarios() {
       ).request<ListarUsuariosQuery>(ListarUsuariosDocument);
       return response.listarUsuarios;
     },
+  });
+}
+
+export function useBuscarUsuario(id: string) {
+  return useQuery<Usuario, Error>({
+    queryKey: ["buscar_usuario", id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request<
+        BuscarUsuarioQuery,
+        BuscarUsuarioQueryVariables
+      >(BuscarUsuarioDocument, { id });
+      return response.buscarUsuario;
+    },
+    enabled: !!id,
   });
 }
 

@@ -69,3 +69,19 @@ export const HEALTHCHECK_QUERY = gql`
     }
   }
 `;
+
+export const BUSCAR_USUARIO_QUERY = gql`
+  query BuscarUsuario($id: ID!) {
+    buscarUsuario(id: $id) {
+      id
+      nome
+      nomeoficial
+      email
+      celular
+      descritivo
+      cientepolitica
+      status
+      perfis
+    }
+  }
+`;
