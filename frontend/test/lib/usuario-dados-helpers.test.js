@@ -22,7 +22,12 @@ describe("usuario-dados-helpers", () => {
     context("Dado dados bancários válidos", () => {
       context("Quando criar descritivo", () => {
         it("Então deve retornar JSON com campos corretos", () => {
-          const result = createDescritivo("Itaú", "1234", "56789-0", "email@test.com");
+          const result = createDescritivo(
+            "Itaú",
+            "1234",
+            "56789-0",
+            "email@test.com",
+          );
           const parsed = JSON.parse(result);
 
           expect(parsed).to.have.property("banco", "Itaú");
@@ -42,7 +47,7 @@ describe("usuario-dados-helpers", () => {
             banco: "Bradesco",
             agencia: "5678",
             conta: "12345-6",
-            pix: "123.456.789-00"
+            pix: "123.456.789-00",
           });
 
           const result = parseDescritivo(json);
@@ -116,7 +121,12 @@ describe("usuario-dados-helpers", () => {
           const result = mapPerfisToBackend(formData);
 
           expect(result).to.have.lengthOf(4);
-          expect(result).to.include.members(["admin", "adminmercado", "fornecedor", "consumidor"]);
+          expect(result).to.include.members([
+            "admin",
+            "adminmercado",
+            "fornecedor",
+            "consumidor",
+          ]);
         });
       });
     });
@@ -276,6 +286,10 @@ describe("usuario-dados-helpers", () => {
             conta: "56789-0",
             chavePix: "joao@email.com",
             aceitePolitica: true,
+            perfilFornecedor: true,
+            perfilConsumidor: false,
+            perfilAdministrador: false,
+            perfilAdministradorMercado: false,
           };
 
           expect(isFormValid(formData)).to.be.true;
@@ -294,6 +308,32 @@ describe("usuario-dados-helpers", () => {
             conta: "56789-0",
             chavePix: "joao@email.com",
             aceitePolitica: true,
+            perfilFornecedor: true,
+            perfilConsumidor: false,
+            perfilAdministrador: false,
+            perfilAdministradorMercado: false,
+          };
+
+          expect(isFormValid(formData)).to.be.false;
+        });
+      });
+    });
+
+    context("Dado formulário sem perfis selecionados", () => {
+      context("Quando verificar validade", () => {
+        it("Então deve retornar false", () => {
+          const formData = {
+            nomeCompleto: "João Silva",
+            celular: "11987654321",
+            banco: "Itaú",
+            agencia: "1234",
+            conta: "56789-0",
+            chavePix: "joao@email.com",
+            aceitePolitica: true,
+            perfilFornecedor: false,
+            perfilConsumidor: false,
+            perfilAdministrador: false,
+            perfilAdministradorMercado: false,
           };
 
           expect(isFormValid(formData)).to.be.false;
@@ -343,7 +383,9 @@ describe("usuario-dados-helpers", () => {
     context("Dado celular formatado", () => {
       context("Quando formatar para backend", () => {
         it("Então deve remover formatação", () => {
-          expect(formatPhoneForBackend("(11) 98765-4321")).to.equal("11987654321");
+          expect(formatPhoneForBackend("(11) 98765-4321")).to.equal(
+            "11987654321",
+          );
         });
       });
     });
@@ -353,7 +395,9 @@ describe("usuario-dados-helpers", () => {
     context("Dado celular com 11 dígitos", () => {
       context("Quando formatar para exibição", () => {
         it("Então deve aplicar máscara (XX) XXXXX-XXXX", () => {
-          expect(formatPhoneForDisplay("11987654321")).to.equal("(11) 98765-4321");
+          expect(formatPhoneForDisplay("11987654321")).to.equal(
+            "(11) 98765-4321",
+          );
         });
       });
     });
@@ -383,7 +427,9 @@ describe("usuario-dados-helpers", () => {
       context("Quando obter rota de redirecionamento", () => {
         it("Então deve retornar rotas corretas", () => {
           expect(getRedirectRoute("admin")).to.equal("/admin/dashboard");
-          expect(getRedirectRoute("adminmercado")).to.equal("/adminmercado/dashboard");
+          expect(getRedirectRoute("adminmercado")).to.equal(
+            "/adminmercado/dashboard",
+          );
           expect(getRedirectRoute("fornecedor")).to.equal("/fornecedor/loja");
           expect(getRedirectRoute("consumidor")).to.equal("/dashboard");
           expect(getRedirectRoute("unknown")).to.equal("/dashboard");
