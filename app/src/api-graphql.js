@@ -7,6 +7,7 @@ const {
   UsuarioService,
   CryptoUUIDService,
   CategoriaProdutosService,
+  ProdutoService,
 } = require("../src/services/services.js");
 
 async function requiredAuthenticated(context) {
@@ -173,6 +174,43 @@ const rootValue = {
     );
     return result;
   },
+  listarProdutos: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const produtos = await context.produtoService.listarProdutos();
+    return produtos;
+  },
+  buscarProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const produto = await context.produtoService.buscarProdutoPorId(args.id);
+    return produto;
+  },
+  criarProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { input } = args;
+    const produto = await context.produtoService.criarProduto(input);
+    return produto;
+  },
+  atualizarProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { id, input } = args;
+    const produto = await context.produtoService.atualizarProduto(id, input);
+    return produto;
+  },
+  deletarProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const result = await context.produtoService.deletarProduto(args.id);
+    return result;
+  },
 };
 
 const schemaSDL = fs.readFileSync(path.join(__dirname, "api.graphql"), "utf8");
@@ -182,6 +220,7 @@ const schema = buildSchema(schemaSDL);
 const uuid4Service = new CryptoUUIDService();
 const usuarioService = new UsuarioService(uuid4Service);
 const categoriaProdutosService = new CategoriaProdutosService();
+const produtoService = new ProdutoService();
 
 const API = {
   rootValue,
@@ -189,11 +228,13 @@ const API = {
   context: {
     usuarioService,
     categoriaProdutosService,
+    produtoService,
   },
   buildContext(sessionToken) {
     return {
       usuarioService,
       categoriaProdutosService,
+      produtoService,
       sessionToken,
     };
   },
