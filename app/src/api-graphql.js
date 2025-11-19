@@ -6,6 +6,7 @@ const { Session, Usuario } = require("../models");
 const {
   UsuarioService,
   CryptoUUIDService,
+  CategoriaProdutosService,
 } = require("../src/services/services.js");
 
 async function requiredAuthenticated(context) {
@@ -121,6 +122,57 @@ const rootValue = {
     const usuario = await context.usuarioService.buscarPorId(args.id);
     return usuario;
   },
+
+  listarCategorias: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const categorias =
+      await context.categoriaProdutosService.listarCategorias();
+    return categorias;
+  },
+
+  buscarCategoria: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const categoria = await context.categoriaProdutosService.buscarPorId(
+      args.id,
+    );
+    return categoria;
+  },
+
+  criarCategoria: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { input } = args;
+    const categoria =
+      await context.categoriaProdutosService.criarCategoria(input);
+    return categoria;
+  },
+
+  atualizarCategoria: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { id, input } = args;
+    const categoria = await context.categoriaProdutosService.atualizarCategoria(
+      id,
+      input,
+    );
+    return categoria;
+  },
+
+  deletarCategoria: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const result = await context.categoriaProdutosService.deletarCategoria(
+      args.id,
+    );
+    return result;
+  },
 };
 
 const schemaSDL = fs.readFileSync(path.join(__dirname, "api.graphql"), "utf8");
@@ -129,16 +181,19 @@ const schema = buildSchema(schemaSDL);
 
 const uuid4Service = new CryptoUUIDService();
 const usuarioService = new UsuarioService(uuid4Service);
+const categoriaProdutosService = new CategoriaProdutosService();
 
 const API = {
   rootValue,
   schema,
   context: {
     usuarioService,
+    categoriaProdutosService,
   },
   buildContext(sessionToken) {
     return {
       usuarioService,
+      categoriaProdutosService,
       sessionToken,
     };
   },

@@ -50,6 +50,30 @@ input AtualizarUsuarioInput {
     status: String
 }
 
+type CategoriaProdutos {
+    id: ID!
+    nome: String!
+    status: String!
+    observacao: String
+}
+
+input CriarCategoriaProdutosInput {
+    nome: String!
+    status: String!
+    observacao: String
+}
+
+input AtualizarCategoriaProdutosInput {
+    nome: String
+    status: String
+    observacao: String
+}
+
+type DeletarCategoriaResponse {
+    success: Boolean!
+    message: String!
+}
+
 input CriarUsuarioInput {
     nome: String!
     email: String!
@@ -64,6 +88,12 @@ type Mutation {
     sessionLogout: LogoutResponse!
     criarUsuario(input: CriarUsuarioInput!): Usuario!
     atualizarUsuario(id: ID!, input: AtualizarUsuarioInput!): Usuario!
+    criarCategoria(input: CriarCategoriaProdutosInput!): CategoriaProdutos!
+    atualizarCategoria(
+        id: ID!
+        input: AtualizarCategoriaProdutosInput!
+    ): CategoriaProdutos!
+    deletarCategoria(id: ID!): DeletarCategoriaResponse!
 }
 
 type Query {
@@ -71,4 +101,6 @@ type Query {
     systemInformation: SystemInformation!
     listarUsuarios: [Usuario!]!
     buscarUsuario(id: ID!): Usuario!
+    listarCategorias: [CategoriaProdutos!]!
+    buscarCategoria(id: ID!): CategoriaProdutos!
 }
