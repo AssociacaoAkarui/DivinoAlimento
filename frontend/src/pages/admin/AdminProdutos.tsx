@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -32,13 +32,12 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { StatusToggle } from "@/components/ui/status-toggle";
 import { RoleTitle } from "@/components/layout/RoleTitle";
-
-interface Produto {
-  id: string;
-  nome: string;
-  categoria: string;
-  status: "Ativo" | "Inativo";
-}
+import {
+  useListarProdutos,
+  useAtualizarProduto,
+  useDeletarProduto,
+} from "@/hooks/graphql";
+import { Produto } from "@/types/graphql";
 
 const AdminProdutos = () => {
   const navigate = useNavigate();
@@ -56,31 +55,21 @@ const AdminProdutos = () => {
     setIsOpen,
   } = useFilters("/admin/alimentos");
 
-  const [produtos, setProdutos] = useState<Produto[]>([
-    {
-      id: "1",
-      nome: "Tomate Orgânico",
-      categoria: "Hortaliças",
-      status: "Ativo",
-    },
-    { id: "2", nome: "Ovos Caipiras", categoria: "Derivados", status: "Ativo" },
-    {
-      id: "3",
-      nome: "Mel Orgânico",
-      categoria: "Derivados",
-      status: "Inativo",
-    },
-    {
-      id: "4",
-      nome: "Alface Crespa",
-      categoria: "Hortaliças",
-      status: "Ativo",
-    },
-    { id: "5", nome: "Banana Prata", categoria: "Frutas", status: "Ativo" },
-  ]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [produtoToDelete, setProdutoToDelete] = useState<Produto | null>(null);
+
+  const { data: produtos = [], isLoading, error } = useListarProdutos();
+  const { mutate: atualizarProduto } = useAtualizarProduto();
+  const { mutate: deletarProduto } = useDeletarProduto();
 
   const categorias = useMemo(() => {
-    return Array.from(new Set(produtos.map((p) => p.categoria)));
+    return Array.from(
+      new Set(
+        produtos
+          .map((p) => p.categoria?.nome)
+          .filter((nome): nome is string => !!nome),
+      ),
+    );
   }, [produtos]);
 
   const filteredProdutos = useMemo(() => {
@@ -93,23 +82,25 @@ const AdminProdutos = () => {
     }
 
     if (filters.status.length > 0) {
-      result = result.filter((produto) =>
-        filters.status.includes(produto.status),
-      );
+      result = result.filter((produto) => {
+        const statusDisplay = produto.status === "ativo" ? "Ativo" : "Inativo";
+        return filters.status.includes(statusDisplay);
+      });
     }
 
     if (filters.categoria.length > 0) {
       result = result.filter((produto) =>
-        filters.categoria.includes(produto.categoria),
+        filters.categoria.includes(produto.categoria?.nome || ""),
       );
     }
 
-    // Sort: Ativos first (alphabetically), then Inativos (alphabetically)
     result.sort((a, b) => {
-      if (a.status === b.status) {
-        return a.nome.localeCompare(b.nome);
+      const statusA = a.status === "ativo" ? 0 : 1;
+      const statusB = b.status === "ativo" ? 0 : 1;
+      if (statusA !== statusB) {
+        return statusA - statusB;
       }
-      return a.status === "Ativo" ? -1 : 1;
+      return a.nome.localeCompare(b.nome);
     });
 
     return result;
@@ -119,36 +110,109 @@ const AdminProdutos = () => {
     navigate(`/admin/alimento/${id}`);
   };
 
-  const handleDelete = (id: string) => {
-    setProdutos((prev) => prev.filter((p) => p.id !== id));
-    toast({
-      title: "Alimento excluído",
-      description: "O alimento foi removido com sucesso.",
-    });
+  const handleDelete = (produto: Produto) => {
+    setProdutoToDelete(produto);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!produtoToDelete) return;
+
+    deletarProduto(
+      { id: produtoToDelete.id },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Alimento excluído",
+            description: "O alimento foi removido com sucesso.",
+          });
+          setDeleteDialogOpen(false);
+          setProdutoToDelete(null);
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "Erro ao excluir",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      },
+    );
   };
 
   const handleAddProduto = () => {
     navigate("/admin/alimento");
   };
 
-  const handleStatusChange = async (
-    id: string,
-    newStatus: "Ativo" | "Inativo",
-  ) => {
-    // Aqui você faria a chamada PATCH /produtos/{id} body { status: "ativo"|"inativo" }
-    await new Promise((resolve) => setTimeout(resolve, 500));
+  const handleStatusChange = (id: string, newStatus: "Ativo" | "Inativo") => {
+    const statusBackend = newStatus === "Ativo" ? "ativo" : "inativo";
 
-    setProdutos((prev) =>
-      prev.map((prod) =>
-        prod.id === id ? { ...prod, status: newStatus } : prod,
-      ),
+    atualizarProduto(
+      {
+        id,
+        input: { status: statusBackend },
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Status atualizado",
+            description: `Status do alimento alterado para ${newStatus}.`,
+          });
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "Erro ao atualizar",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      },
     );
-
-    toast({
-      title: "Status atualizado",
-      description: `Status do alimento alterado para ${newStatus}.`,
-    });
   };
+
+  if (isLoading) {
+    return (
+      <ResponsiveLayout
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate("/admin/dashboard")}
+            className="text-primary-foreground hover:bg-primary-hover"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        }
+        headerContent={<UserMenuLarge />}
+      >
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Carregando alimentos...</p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ResponsiveLayout
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate("/admin/dashboard")}
+            className="text-primary-foreground hover:bg-primary-hover"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        }
+        headerContent={<UserMenuLarge />}
+      >
+        <div className="flex items-center justify-center h-64">
+          <p className="text-destructive">Erro ao carregar alimentos.</p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
 
   return (
     <ResponsiveLayout
@@ -225,71 +289,52 @@ const AdminProdutos = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredProdutos.map((produto) => (
-                      <TableRow key={produto.id}>
-                        <TableCell className="font-medium">
-                          {produto.nome}
-                        </TableCell>
-                        <TableCell>{produto.categoria}</TableCell>
-                        <TableCell>
-                          <StatusToggle
-                            currentStatus={produto.status}
-                            onStatusChange={(newStatus) =>
-                              handleStatusChange(produto.id, newStatus)
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(produto.id)}
-                              className="flex items-center gap-2"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                              <span className="hidden md:inline">Editar</span>
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="flex items-center gap-2 text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                  <span className="hidden md:inline">
-                                    Excluir
-                                  </span>
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    Confirmar exclusão
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Deseja realmente excluir este alimento? Esta
-                                    ação não pode ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>
-                                    Cancelar
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDelete(produto.id)}
-                                    className="bg-destructive hover:bg-destructive/90"
-                                  >
-                                    Excluir
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {filteredProdutos.map((produto) => {
+                      const statusDisplay =
+                        produto.status === "ativo" ? "Ativo" : "Inativo";
+                      return (
+                        <TableRow key={produto.id}>
+                          <TableCell className="font-medium">
+                            {produto.nome}
+                          </TableCell>
+                          <TableCell>
+                            {produto.categoria?.nome || "-"}
+                          </TableCell>
+                          <TableCell>
+                            <StatusToggle
+                              currentStatus={statusDisplay}
+                              onStatusChange={(newStatus) =>
+                                handleStatusChange(produto.id, newStatus)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(produto.id)}
+                                className="flex items-center gap-2"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                                <span className="hidden md:inline">Editar</span>
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDelete(produto)}
+                                className="flex items-center gap-2 text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span className="hidden md:inline">
+                                  Excluir
+                                </span>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
@@ -348,6 +393,26 @@ const AdminProdutos = () => {
           </div>
         </div>
       </FiltersPanel>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja realmente excluir o alimento "{produtoToDelete?.nome}"?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ResponsiveLayout>
   );
 };
