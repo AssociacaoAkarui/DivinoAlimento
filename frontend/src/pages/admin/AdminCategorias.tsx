@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,11 +31,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  useListarCategorias,
+  useAtualizarCategoria,
+  useDeletarCategoria,
+} from "@/hooks/graphql";
 
 interface Categoria {
-  id: number;
+  id: string;
   nome: string;
-  situacao: "Ativo" | "Inativo";
+  status: string;
+  observacao?: string | null;
 }
 
 const AdminCategorias = () => {
@@ -59,13 +65,9 @@ const AdminCategorias = () => {
     null,
   );
 
-  const [categorias, setCategorias] = useState<Categoria[]>([
-    { id: 1, nome: "Frutas", situacao: "Ativo" },
-    { id: 2, nome: "Verduras", situacao: "Ativo" },
-    { id: 3, nome: "Legumes", situacao: "Ativo" },
-    { id: 4, nome: "Cereais", situacao: "Ativo" },
-    { id: 5, nome: "Laticínios", situacao: "Inativo" },
-  ]);
+  const { data: categorias = [], isLoading, error } = useListarCategorias();
+  const { mutate: atualizarCategoria } = useAtualizarCategoria();
+  const { mutate: deletarCategoria } = useDeletarCategoria();
 
   const filteredCategorias = useMemo(() => {
     let result = [...categorias];
@@ -77,15 +79,63 @@ const AdminCategorias = () => {
     }
 
     if (filters.status.length > 0) {
-      result = result.filter((categoria) =>
-        filters.status.includes(categoria.situacao),
-      );
+      result = result.filter((categoria) => {
+        const statusDisplay =
+          categoria.status === "ativo" ? "Ativo" : "Inativo";
+        return filters.status.includes(statusDisplay);
+      });
     }
 
     return result;
   }, [categorias, filters, debouncedSearch]);
 
-  const handleEdit = (id: number) => {
+  if (isLoading) {
+    return (
+      <ResponsiveLayout
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate("/admin/dashboard")}
+            className="text-primary-foreground hover:bg-primary-hover"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        }
+        headerContent={<UserMenuLarge />}
+      >
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Carregando categorias...</p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ResponsiveLayout
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate("/admin/dashboard")}
+            className="text-primary-foreground hover:bg-primary-hover"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        }
+        headerContent={<UserMenuLarge />}
+      >
+        <div className="flex items-center justify-center h-64">
+          <p className="text-destructive">
+            Erro ao carregar categorias: {error.message}
+          </p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  const handleEdit = (id: string) => {
     navigate(`/admin/categorias/${id}`);
   };
 
@@ -96,35 +146,52 @@ const AdminCategorias = () => {
 
   const confirmDelete = () => {
     if (categoriaToDelete) {
-      setCategorias((prev) =>
-        prev.filter((c) => c.id !== categoriaToDelete.id),
+      deletarCategoria(
+        { id: categoriaToDelete.id },
+        {
+          onSuccess: () => {
+            toast({
+              title: "Sucesso",
+              description: `Categoria "${categoriaToDelete.nome}" excluída com sucesso`,
+            });
+            setDeleteDialogOpen(false);
+            setCategoriaToDelete(null);
+          },
+          onError: (error) => {
+            toast({
+              title: "Erro",
+              description: error.message,
+              variant: "destructive",
+            });
+          },
+        },
       );
-      toast({
-        title: "Sucesso",
-        description: `Categoria "${categoriaToDelete.nome}" excluída com sucesso`,
-      });
     }
-    setDeleteDialogOpen(false);
-    setCategoriaToDelete(null);
   };
 
   const handleStatusChange = async (
-    id: number,
+    id: string,
     newStatus: "Ativo" | "Inativo",
   ) => {
-    // Aqui você faria a chamada PATCH /categorias/{id} body { status: "ativo"|"inativo" }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setCategorias((prev) =>
-      prev.map((cat) =>
-        cat.id === id ? { ...cat, situacao: newStatus } : cat,
-      ),
+    const statusBackend = newStatus === "Ativo" ? "ativo" : "inativo";
+    atualizarCategoria(
+      { id, input: { status: statusBackend } },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Status atualizado",
+            description: `Status da categoria alterado para ${newStatus}.`,
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Erro",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      },
     );
-
-    toast({
-      title: "Status atualizado",
-      description: `Status da categoria alterado para ${newStatus}.`,
-    });
   };
 
   return (
@@ -214,7 +281,9 @@ const AdminCategorias = () => {
                         </TableCell>
                         <TableCell>
                           <StatusToggle
-                            currentStatus={categoria.situacao}
+                            currentStatus={
+                              categoria.status === "ativo" ? "Ativo" : "Inativo"
+                            }
                             onStatusChange={(newStatus) =>
                               handleStatusChange(categoria.id, newStatus)
                             }

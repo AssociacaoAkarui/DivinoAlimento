@@ -1,30 +1,32 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { RoleTitle } from '@/components/layout/RoleTitle';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { ArrowLeft } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { RoleTitle } from "@/components/layout/RoleTitle";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useCriarCategoria } from "@/hooks/graphql";
 
 const AdminCategoriaNovo = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    nome: '',
-    situacao: 'Ativo'
+    nome: "",
+    status: "ativo",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { mutate: criarCategoria, isPending } = useCriarCategoria();
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -32,7 +34,7 @@ const AdminCategoriaNovo = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.nome.trim()) {
-      newErrors.nome = 'Nome da categoria é obrigatório';
+      newErrors.nome = "Nome da categoria é obrigatório";
     }
 
     setErrors(newErrors);
@@ -41,11 +43,25 @@ const AdminCategoriaNovo = () => {
 
   const handleSave = () => {
     if (validateForm()) {
-      toast({
-        title: "Sucesso",
-        description: "Categoria criada com sucesso",
-      });
-      navigate('/admin/categorias');
+      criarCategoria(
+        { input: { nome: formData.nome, status: formData.status } },
+        {
+          onSuccess: () => {
+            toast({
+              title: "Sucesso",
+              description: "Categoria criada com sucesso",
+            });
+            navigate("/admin/categorias");
+          },
+          onError: (error) => {
+            toast({
+              title: "Erro",
+              description: error.message,
+              variant: "destructive",
+            });
+          },
+        },
+      );
     } else {
       toast({
         title: "Erro",
@@ -56,16 +72,16 @@ const AdminCategoriaNovo = () => {
   };
 
   const handleCancel = () => {
-    navigate('/admin/categorias');
+    navigate("/admin/categorias");
   };
 
   return (
     <ResponsiveLayout
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon-sm"
-          onClick={() => navigate('/admin/categorias')}
+          onClick={() => navigate("/admin/categorias")}
           className="text-primary-foreground hover:bg-primary-hover"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -74,7 +90,10 @@ const AdminCategoriaNovo = () => {
     >
       <div className="max-w-4xl mx-auto space-y-6 pb-20">
         <div>
-          <RoleTitle page="Nova Categoria de Alimento" className="text-2xl md:text-3xl" />
+          <RoleTitle
+            page="Nova Categoria de Alimento"
+            className="text-2xl md:text-3xl"
+          />
           <p className="text-sm md:text-base text-muted-foreground">
             Cadastre uma nova categoria para organizar seus alimentos
           </p>
@@ -87,14 +106,15 @@ const AdminCategoriaNovo = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="nome">
-                Nome da Categoria de Alimento <span className="text-destructive">*</span>
+                Nome da Categoria de Alimento{" "}
+                <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="nome"
                 value={formData.nome}
-                onChange={(e) => handleInputChange('nome', e.target.value)}
+                onChange={(e) => handleInputChange("nome", e.target.value)}
                 placeholder="Ex: Frutas, Verduras, Legumes..."
-                className={errors.nome ? 'border-destructive' : ''}
+                className={errors.nome ? "border-destructive" : ""}
               />
               {errors.nome && (
                 <p className="text-sm text-destructive">{errors.nome}</p>
@@ -102,18 +122,24 @@ const AdminCategoriaNovo = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Situação <span className="text-destructive">*</span></Label>
-              <RadioGroup 
-                value={formData.situacao} 
-                onValueChange={(value) => handleInputChange('situacao', value)}
+              <Label>
+                Situação <span className="text-destructive">*</span>
+              </Label>
+              <RadioGroup
+                value={formData.status}
+                onValueChange={(value) => handleInputChange("status", value)}
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Ativo" id="ativo" />
-                  <Label htmlFor="ativo" className="cursor-pointer">Ativo</Label>
+                  <RadioGroupItem value="ativo" id="ativo" />
+                  <Label htmlFor="ativo" className="cursor-pointer">
+                    Ativo
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Inativo" id="inativo" />
-                  <Label htmlFor="inativo" className="cursor-pointer">Inativo</Label>
+                  <RadioGroupItem value="inativo" id="inativo" />
+                  <Label htmlFor="inativo" className="cursor-pointer">
+                    Inativo
+                  </Label>
                 </div>
               </RadioGroup>
             </div>
@@ -121,18 +147,15 @@ const AdminCategoriaNovo = () => {
         </Card>
 
         <div className="flex justify-end space-x-4">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-          >
+          <Button variant="outline" onClick={handleCancel}>
             Cancelar
           </Button>
           <Button
             onClick={handleSave}
             className="bg-primary hover:bg-primary/90"
-            disabled={!formData.nome.trim()}
+            disabled={!formData.nome.trim() || isPending}
           >
-            Salvar
+            {isPending ? "Salvando..." : "Salvar"}
           </Button>
         </div>
       </div>

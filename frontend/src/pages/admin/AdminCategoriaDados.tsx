@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { RoleTitle } from "@/components/layout/RoleTitle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,19 +20,38 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  useBuscarCategoria,
+  useAtualizarCategoria,
+  useDeletarCategoria,
+} from "@/hooks/graphql";
 
 const AdminCategoriaDados = () => {
-  const { id: _id } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Mock data - em produção viria do backend
   const [formData, setFormData] = useState({
-    nome: "Frutas",
-    situacao: "Ativo",
+    nome: "",
+    status: "ativo",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { data: categoria, isLoading, error } = useBuscarCategoria(id || "");
+  const { mutate: atualizarCategoria, isPending: isUpdating } =
+    useAtualizarCategoria();
+  const { mutate: deletarCategoria, isPending: isDeleting } =
+    useDeletarCategoria();
+
+  useEffect(() => {
+    if (categoria) {
+      setFormData({
+        nome: categoria.nome,
+        status: categoria.status,
+      });
+    }
+  }, [categoria]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -53,12 +72,26 @@ const AdminCategoriaDados = () => {
   };
 
   const handleSave = () => {
-    if (validateForm()) {
-      toast({
-        title: "Sucesso",
-        description: "Categoria atualizada com sucesso",
-      });
-      navigate("/admin/categorias");
+    if (validateForm() && id) {
+      atualizarCategoria(
+        { id, input: { nome: formData.nome, status: formData.status } },
+        {
+          onSuccess: () => {
+            toast({
+              title: "Sucesso",
+              description: "Categoria atualizada com sucesso",
+            });
+            navigate("/admin/categorias");
+          },
+          onError: (error) => {
+            toast({
+              title: "Erro",
+              description: error.message,
+              variant: "destructive",
+            });
+          },
+        },
+      );
     } else {
       toast({
         title: "Erro",
@@ -69,16 +102,76 @@ const AdminCategoriaDados = () => {
   };
 
   const handleDelete = () => {
-    toast({
-      title: "Sucesso",
-      description: "Categoria excluída com sucesso",
-    });
-    navigate("/admin/categorias");
+    if (id) {
+      deletarCategoria(
+        { id },
+        {
+          onSuccess: () => {
+            toast({
+              title: "Sucesso",
+              description: "Categoria excluída com sucesso",
+            });
+            navigate("/admin/categorias");
+          },
+          onError: (error) => {
+            toast({
+              title: "Erro",
+              description: error.message,
+              variant: "destructive",
+            });
+          },
+        },
+      );
+    }
   };
 
   const handleCancel = () => {
     navigate("/admin/categorias");
   };
+
+  if (isLoading) {
+    return (
+      <ResponsiveLayout
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate("/admin/categorias")}
+            className="text-primary-foreground hover:bg-primary-hover"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        }
+      >
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Carregando categoria...</p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ResponsiveLayout
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate("/admin/categorias")}
+            className="text-primary-foreground hover:bg-primary-hover"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        }
+      >
+        <div className="flex items-center justify-center h-64">
+          <p className="text-destructive">
+            Erro ao carregar categoria: {error.message}
+          </p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
 
   return (
     <ResponsiveLayout
@@ -131,17 +224,17 @@ const AdminCategoriaDados = () => {
                 Situação <span className="text-destructive">*</span>
               </Label>
               <RadioGroup
-                value={formData.situacao}
-                onValueChange={(value) => handleInputChange("situacao", value)}
+                value={formData.status}
+                onValueChange={(value) => handleInputChange("status", value)}
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Ativo" id="ativo" />
+                  <RadioGroupItem value="ativo" id="ativo" />
                   <Label htmlFor="ativo" className="cursor-pointer">
                     Ativo
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Inativo" id="inativo" />
+                  <RadioGroupItem value="inativo" id="inativo" />
                   <Label htmlFor="inativo" className="cursor-pointer">
                     Inativo
                   </Label>
@@ -183,9 +276,9 @@ const AdminCategoriaDados = () => {
             <Button
               onClick={handleSave}
               className="bg-primary hover:bg-primary/90"
-              disabled={!formData.nome.trim()}
+              disabled={!formData.nome.trim() || isUpdating}
             >
-              Salvar alterações
+              {isUpdating ? "Salvando..." : "Salvar alterações"}
             </Button>
           </div>
         </div>
