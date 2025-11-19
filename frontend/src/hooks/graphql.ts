@@ -28,7 +28,25 @@ import {
   AtualizarUsuarioDocument,
   Usuario,
   ActiveSession,
+  ListarCategoriasQuery,
+  BuscarCategoriaQuery,
+  BuscarCategoriaQueryVariables,
+  CriarCategoriaMutation,
+  CriarCategoriaMutationVariables,
+  AtualizarCategoriaMutation,
+  AtualizarCategoriaMutationVariables,
+  DeletarCategoriaMutation,
+  DeletarCategoriaMutationVariables,
+  CategoriaProdutos,
 } from "../types/graphql";
+
+import {
+  LISTAR_CATEGORIAS_QUERY,
+  BUSCAR_CATEGORIA_QUERY,
+  CRIAR_CATEGORIA_MUTATION,
+  ATUALIZAR_CATEGORIA_MUTATION,
+  DELETAR_CATEGORIA_MUTATION,
+} from "../graphql/operations";
 
 export function useLoginUsuario(
   options?: UseMutationOptions<LoginMutation, Error, LoginMutationVariables>,
@@ -130,6 +148,111 @@ export function useAtualizarUsuario() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listar_usuarios"] });
+    },
+  });
+}
+
+export function useListarCategorias() {
+  return useQuery<CategoriaProdutos[], Error>({
+    queryKey: ["listar_categorias"],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(
+        token,
+      ).request<ListarCategoriasQuery>(LISTAR_CATEGORIAS_QUERY);
+      return response.listarCategorias;
+    },
+  });
+}
+
+export function useBuscarCategoria(id: string) {
+  return useQuery<CategoriaProdutos, Error>({
+    queryKey: ["buscar_categoria", id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request<
+        BuscarCategoriaQuery,
+        BuscarCategoriaQueryVariables
+      >(BUSCAR_CATEGORIA_QUERY, { id });
+      return response.buscarCategoria;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCriarCategoria() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    CriarCategoriaMutation,
+    Error,
+    CriarCategoriaMutationVariables
+  >({
+    mutationFn: async (variables: CriarCategoriaMutationVariables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request<CriarCategoriaMutation>(
+        CRIAR_CATEGORIA_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_categorias"] });
+    },
+  });
+}
+
+export function useAtualizarCategoria() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    AtualizarCategoriaMutation,
+    Error,
+    AtualizarCategoriaMutationVariables
+  >({
+    mutationFn: async (variables: AtualizarCategoriaMutationVariables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(
+        token,
+      ).request<AtualizarCategoriaMutation>(
+        ATUALIZAR_CATEGORIA_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_categorias"] });
+    },
+  });
+}
+
+export function useDeletarCategoria() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    DeletarCategoriaMutation,
+    Error,
+    DeletarCategoriaMutationVariables
+  >({
+    mutationFn: async (variables: DeletarCategoriaMutationVariables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request<DeletarCategoriaMutation>(
+        DELETAR_CATEGORIA_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_categorias"] });
     },
   });
 }

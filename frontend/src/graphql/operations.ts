@@ -88,3 +88,59 @@ export const BUSCAR_USUARIO_QUERY = gql`
     }
   }
 `;
+
+export const LISTAR_CATEGORIAS_QUERY = gql`
+  query ListarCategorias {
+    listarCategorias {
+      id
+      nome
+      status
+      observacao
+    }
+  }
+`;
+
+export const BUSCAR_CATEGORIA_QUERY = gql`
+  query BuscarCategoria($id: ID!) {
+    buscarCategoria(id: $id) {
+      id
+      nome
+      status
+      observacao
+    }
+  }
+`;
+
+export const CRIAR_CATEGORIA_MUTATION = gql`
+  mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+    criarCategoria(input: $input) {
+      id
+      nome
+      status
+      observacao
+    }
+  }
+`;
+
+export const ATUALIZAR_CATEGORIA_MUTATION = gql`
+  mutation AtualizarCategoria(
+    $id: ID!
+    $input: AtualizarCategoriaProdutosInput!
+  ) {
+    atualizarCategoria(id: $id, input: $input) {
+      id
+      nome
+      status
+      observacao
+    }
+  }
+`;
+
+export const DELETAR_CATEGORIA_MUTATION = gql`
+  mutation DeletarCategoria($id: ID!) {
+    deletarCategoria(id: $id) {
+      success
+      message
+    }
+  }
+`;
