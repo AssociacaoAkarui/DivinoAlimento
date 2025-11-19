@@ -784,4 +784,80 @@ describe("Graphql", async function () {
       expect(error.message).to.include("Falha ao atualizar usuario");
     }
   });
+
+  it("can create new usuario with required fields", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const newUser = await usuarioService.create(
+      {
+        email: "newuser@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "New User",
+        perfis: ["consumidor"],
+        status: "ativo",
+      },
+    );
+
+    expect(newUser.email).to.equal("newuser@example.com");
+    expect(newUser.nome).to.equal("New User");
+    expect(newUser.celular).to.equal("11999887766");
+    expect(newUser.perfis).to.deep.equal(["consumidor"]);
+    expect(newUser.status).to.equal("ativo");
+  });
+
+  it("can create usuario with multiple perfis", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const newUser = await usuarioService.create(
+      {
+        email: "multi@example.com",
+        senha: "password123",
+        phoneNumber: "11988776655",
+      },
+      {
+        nome: "Multi Perfil User",
+        perfis: ["admin", "fornecedor", "consumidor"],
+        status: "ativo",
+      },
+    );
+
+    expect(newUser.perfis).to.deep.equal(["admin", "fornecedor", "consumidor"]);
+    expect(newUser.perfis).to.have.lengthOf(3);
+  });
+
+  it("creates usuario with default values when optional params omitted", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const newUser = await usuarioService.create({
+      email: "simple@example.com",
+      senha: "password123",
+      phoneNumber: "11977665544",
+    });
+
+    expect(newUser.email).to.equal("simple@example.com");
+    expect(newUser.nome).to.equal("simple");
+    expect(newUser.perfis).to.deep.equal(["admin"]);
+    expect(newUser.status).to.equal("ativo");
+  });
 });
