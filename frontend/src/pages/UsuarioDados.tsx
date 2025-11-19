@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
 import { ArrowLeft, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAtualizarUsuario } from "@/hooks/graphql";
 import InputMask from "react-input-mask";
 import {
   validarCelular,
@@ -29,14 +30,27 @@ import {
   validarAgencia,
   validarConta,
 } from "@/utils/validation";
+import {
+  validateUsuarioDadosForm,
+  prepareUsuarioDadosForBackend,
+  getRedirectRoute,
+  type UsuarioDadosFormData,
+} from "@/lib/usuario-dados-helpers";
+import {
+  formatUpdateError,
+  getUpdateSuccessMessage,
+} from "@/lib/usuario-dados-formatters";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
 import { RoleTitle } from "@/components/layout/RoleTitle";
 
 const UsuarioDados = () => {
-  const { id: _id } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { activeRole } = useAuth();
+  const { activeRole, user } = useAuth();
+  const { mutate: atualizarUsuario, isPending } = useAtualizarUsuario();
+
+  const usuarioId = id || user?.id || "";
 
   const [formData, setFormData] = useState({
     nomeCompleto: "João da Silva",
@@ -66,105 +80,57 @@ const UsuarioDados = () => {
   };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.nomeCompleto.trim()) {
-      newErrors.nomeCompleto = "Nome completo é obrigatório";
-    }
-
-    if (!formData.celular.trim()) {
-      newErrors.celular = "Celular é obrigatório";
-    } else if (!validarCelular(formData.celular)) {
-      newErrors.celular =
-        "Informe um celular válido no formato (11) 95555-9999.";
-    }
-
-    if (!formData.banco) {
-      newErrors.banco = "Banco é obrigatório";
-    }
-
-    if (!formData.agencia.trim()) {
-      newErrors.agencia = "Agência é obrigatória";
-    } else if (!validarAgencia(formData.agencia)) {
-      newErrors.agencia = "Agência deve ter 4 ou 5 dígitos.";
-    }
-
-    if (!formData.conta.trim()) {
-      newErrors.conta = "Conta é obrigatória";
-    } else if (!validarConta(formData.conta)) {
-      newErrors.conta = "Conta deve estar no formato 123456-7.";
-    }
-
-    if (!formData.chavePix.trim()) {
-      newErrors.chavePix = "Chave PIX é obrigatória";
-    } else {
-      const validacao = validarChavePix(formData.chavePix);
-      if (!validacao.valido) {
-        newErrors.chavePix = validacao.mensagem || "Chave PIX inválida";
-      }
-    }
-
-    if (!formData.aceitePolitica) {
-      newErrors.aceitePolitica =
-        "É obrigatório aceitar a Política de Privacidade e Termos de Uso";
-    }
-
+    const newErrors = validateUsuarioDadosForm(
+      formData as UsuarioDadosFormData,
+    );
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = () => {
-    if (validateForm()) {
-      // Simular salvamento
-      toast({
-        title: "Sucesso",
-        description: "Dados atualizados com sucesso",
-      });
-
-      // Redirecionar baseado no perfil ativo
-      switch (activeRole) {
-        case "consumidor":
-          navigate("/dashboard");
-          break;
-        case "fornecedor":
-          navigate("/fornecedor/loja");
-          break;
-        case "admin_mercado":
-          navigate("/adminmercado/dashboard");
-          break;
-        case "admin":
-          navigate("/admin/dashboard");
-          break;
-        default:
-          navigate("/dashboard");
-      }
-    } else {
+    if (!validateForm()) {
       toast({
         title: "Erro",
         description: "Corrija os dados antes de prosseguir",
         variant: "destructive",
       });
+      return;
     }
+
+    if (!usuarioId) {
+      toast({
+        title: "Erro",
+        description: "ID do usuário não encontrado",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const preparedData = prepareUsuarioDadosForBackend(
+      usuarioId,
+      formData as UsuarioDadosFormData,
+    );
+
+    atualizarUsuario(preparedData, {
+      onSuccess: (data) => {
+        toast({
+          title: "Sucesso",
+          description: getUpdateSuccessMessage(data.atualizarUsuario.nome),
+        });
+        navigate(getRedirectRoute(activeRole));
+      },
+      onError: (error) => {
+        toast({
+          title: "Erro ao atualizar",
+          description: formatUpdateError(error),
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const handleCancel = () => {
-    // Redirecionar baseado no perfil ativo
-    switch (activeRole) {
-      case "consumidor":
-        navigate("/dashboard");
-        break;
-      case "fornecedor":
-        navigate("/fornecedor/loja");
-        break;
-      case "admin_mercado":
-        navigate("/adminmercado/dashboard");
-        break;
-      case "admin":
-        navigate("/admin/dashboard");
-        break;
-      default:
-        navigate("/dashboard");
-    }
+    navigate(getRedirectRoute(activeRole));
   };
 
   return (
@@ -539,6 +505,7 @@ const UsuarioDados = () => {
             onClick={handleSave}
             className="bg-primary hover:bg-primary/90"
             disabled={
+              isPending ||
               !formData.nomeCompleto.trim() ||
               !validarCelular(formData.celular) ||
               !formData.banco ||
@@ -548,7 +515,7 @@ const UsuarioDados = () => {
               !formData.aceitePolitica
             }
           >
-            Salvar
+            {isPending ? "Salvando..." : "Salvar"}
           </Button>
         </div>
       </div>
