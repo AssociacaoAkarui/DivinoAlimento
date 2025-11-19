@@ -24,7 +24,11 @@ type SystemInformation {
 type Usuario {
     id: ID!
     nome: String!
+    nomeoficial: String
     email: String!
+    celular: String
+    descritivo: String
+    cientepolitica: String
     status: String!
     perfis: [String!]!
 }
@@ -60,4 +64,5 @@ type Query {
     healthcheck: HealthCheck!
     systemInformation: SystemInformation!
     listarUsuarios: [Usuario!]!
+    buscarUsuario(id: ID!): Usuario!
 }
