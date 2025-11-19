@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,54 +7,46 @@ import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
 import { Search, Plus, Edit2, Trash2, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useListarUsuarios } from "@/hooks/graphql";
 import { RoleTitle } from "@/components/layout/RoleTitle";
-
-interface Usuario {
-  id: string;
-  nome: string;
-  email: string;
-  status: "ativo" | "inativo";
-}
+import {
+  filterUsuariosBySearch,
+  sortUsuariosByName,
+  type Usuario,
+} from "@/lib/usuarios-helpers";
+import {
+  formatStatus,
+  getStatusBadgeColor,
+  formatListError,
+  getEmptyListMessage,
+  getLoadingMessage,
+  getUsersCountMessage,
+} from "@/lib/usuarios-formatters";
+import { useToast } from "@/hooks/use-toast";
 
 const Usuarios = () => {
   const navigate = useNavigate();
   const { activeRole: _activeRole } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+
+  const { data: usuarios = [], isLoading, error } = useListarUsuarios();
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
     navigate("/");
   };
 
-  // Mock data for users
-  const usuarios: Usuario[] = [
-    { id: "1", nome: "João Silva", email: "joao@email.com", status: "ativo" },
-    {
-      id: "2",
-      nome: "Maria Santos",
-      email: "maria@email.com",
-      status: "ativo",
-    },
-    {
-      id: "3",
-      nome: "Pedro Costa",
-      email: "pedro@email.com",
-      status: "inativo",
-    },
-    { id: "4", nome: "Ana Oliveira", email: "ana@email.com", status: "ativo" },
-    {
-      id: "5",
-      nome: "Carlos Pereira",
-      email: "carlos@email.com",
-      status: "ativo",
-    },
-  ];
+  if (error) {
+    toast({
+      title: "Erro ao carregar",
+      description: formatListError(error),
+      variant: "destructive",
+    });
+  }
 
-  const filteredUsers = usuarios.filter(
-    (usuario) =>
-      usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      usuario.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const sortedUsuarios = sortUsuariosByName(usuarios);
+  const filteredUsers = filterUsuariosBySearch(sortedUsuarios, searchTerm);
 
   const handleEdit = (id: string) => {
     console.warn("Editar usuário:", id);
@@ -121,68 +113,67 @@ const Usuarios = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg md:text-xl">
-              Lista de Usuários ({filteredUsers.length})
+              {isLoading
+                ? getLoadingMessage()
+                : `Lista de Usuários (${getUsersCountMessage(filteredUsers.length)})`}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y">
-              {filteredUsers.length === 0 ? (
-                <div className="p-6 text-center text-muted-foreground">
-                  {searchTerm
-                    ? "Nenhum usuário encontrado."
-                    : "Nenhum usuário cadastrado."}
-                </div>
-              ) : (
-                filteredUsers.map((usuario) => (
-                  <div key={usuario.id} className="p-4 md:p-6">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-medium text-sm md:text-base">
-                            {usuario.nome}
-                          </h3>
-                          <Badge
-                            variant={
-                              usuario.status === "ativo"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className={
-                              usuario.status === "ativo" ? "bg-green-500" : ""
-                            }
-                          >
-                            {usuario.status === "ativo" ? "Ativo" : "Inativo"}
-                          </Badge>
+            {isLoading ? (
+              <div className="p-6 text-center text-muted-foreground">
+                {getLoadingMessage()}
+              </div>
+            ) : (
+              <div className="divide-y">
+                {filteredUsers.length === 0 ? (
+                  <div className="p-6 text-center text-muted-foreground">
+                    {getEmptyListMessage(searchTerm)}
+                  </div>
+                ) : (
+                  filteredUsers.map((usuario) => (
+                    <div key={usuario.id} className="p-4 md:p-6">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-medium text-sm md:text-base">
+                              {usuario.nome}
+                            </h3>
+                            <Badge
+                              className={getStatusBadgeColor(usuario.status)}
+                            >
+                              {formatStatus(usuario.status)}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {usuario.email}
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {usuario.email}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(usuario.id)}
-                          className="flex items-center gap-2"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                          <span className="hidden md:inline">Editar</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(usuario.id)}
-                          className="flex items-center gap-2 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          <span className="hidden md:inline">Excluir</span>
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(usuario.id)}
+                            className="flex items-center gap-2"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            <span className="hidden md:inline">Editar</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(usuario.id)}
+                            className="flex items-center gap-2 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="hidden md:inline">Excluir</span>
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
