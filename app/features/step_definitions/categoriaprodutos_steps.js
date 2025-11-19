@@ -1,113 +1,156 @@
-const { Given, When, Then } = require("@cucumber/cucumber");
+const { Given, When, Then, Before } = require("@cucumber/cucumber");
+const { CategoriaProdutosService } = require("../../src/services/services");
 const { expect } = require("chai");
 
-Given('que eu quero criar uma nova categoria de produtos', function () {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+let categoriaProdutosService;
 
-When('eu preencho o nome da categoria com {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Before(function () {
+  categoriaProdutosService = new CategoriaProdutosService();
+  this.categoriaData = {};
+  this.currentCategoria = null;
+  this.categoriasList = [];
+});
 
-When('o status da categoria como {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Given("que eu quero criar uma nova categoria de produtos", function () {
+  this.novaCategoriaData = {};
+});
 
-When('eu salvo a nova categoria', function () {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+When("eu preencho o nome da categoria com {string}", function (nome) {
+  this.novaCategoriaData.nome = nome;
+});
 
-Then('a categoria {string} deve ser criada com sucesso', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
-      
-Given('que existe uma categoria {string} cadastrada', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+When("o status da categoria como {string}", function (status) {
+  this.novaCategoriaData.status = status;
+});
 
-When('eu solicito os detalhes da categoria {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+When("eu salvo a nova categoria", async function () {
+  this.currentCategoria = await categoriaProdutosService.criarCategoria(
+    this.novaCategoriaData,
+  );
+});
 
-Then('eu devo ver os detalhes da categoria {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Then("a categoria {string} deve ser criada com sucesso", function (nome) {
+  expect(this.currentCategoria).to.exist;
+  expect(this.currentCategoria.nome).to.equal(nome);
+  expect(this.currentCategoria.id).to.exist;
+});
 
-When('eu edito o nome da categoria para {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Given("que existe uma categoria {string} cadastrada", async function (nome) {
+  this.currentCategoria = await categoriaProdutosService.criarCategoria({
+    nome: nome,
+    status: "ativo",
+  });
+});
 
-Then('o nome da categoria deve ser {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+When("eu solicito os detalhes da categoria {string}", async function (nome) {
+  const categoria = await categoriaProdutosService.buscarPorId(
+    this.currentCategoria.id,
+  );
+  this.categoriaData = categoria;
+});
 
-Given('que existe uma categoria com status {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Then("eu devo ver os detalhes da categoria {string}", function (nome) {
+  expect(this.categoriaData).to.exist;
+  expect(this.categoriaData.nome).to.equal(nome);
+});
 
-When('eu edito o status da categoria para {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Given("que existe uma categoria {string}", async function (nome) {
+  this.currentCategoria = await categoriaProdutosService.criarCategoria({
+    nome: nome,
+    status: "ativo",
+  });
+});
 
-When('salvo as alterações da categoria', function () {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+When("eu edito o nome da categoria para {string}", function (novoNome) {
+  this.categoriaData.nome = novoNome;
+});
 
-Then('o status da categoria deve ser {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+When("salvo as alterações da categoria", async function () {
+  this.currentCategoria = await categoriaProdutosService.atualizarCategoria(
+    this.currentCategoria.id,
+    this.categoriaData,
+  );
+});
 
+Then("o nome da categoria deve ser {string}", function (nomeEsperado) {
+  expect(this.currentCategoria.nome).to.equal(nomeEsperado);
+});
 
-Given('que existe uma categoria {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Given("que existe uma categoria com status {string}", async function (status) {
+  this.currentCategoria = await categoriaProdutosService.criarCategoria({
+    nome: "Categoria Teste",
+    status: status,
+  });
+});
 
-Given('que não existam produtos associados à categoria {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+When("eu edito o status da categoria para {string}", function (novoStatus) {
+  this.categoriaData.status = novoStatus;
+});
 
-When('eu deleto a categoria {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Then("o status da categoria deve ser {string}", function (statusEsperado) {
+  expect(this.currentCategoria.status).to.equal(statusEsperado);
+});
 
-Then('a categoria {string} não deve mais existir no sistema', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Given(
+  "que não existam produtos associados à categoria {string}",
+  function (nome) {
+    return true;
+  },
+);
 
-Given('que existem categorias {string}, {string} e {string} cadastradas', function (string, string2, string3) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+When("eu deleto a categoria {string}", async function (nome) {
+  await categoriaProdutosService.deletarCategoria(this.currentCategoria.id);
+});
 
- Given('todas as categorias estão com status {string}', function (string) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Then(
+  "a categoria {string} não deve mais existir no sistema",
+  async function (nome) {
+    try {
+      await categoriaProdutosService.buscarPorId(this.currentCategoria.id);
+      throw new Error("A categoria ainda existe");
+    } catch (error) {
+      expect(error.message).to.include("Categoria not found");
+    }
+  },
+);
 
-When('eu solicito a lista de categorias ativas', function () {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Given(
+  "que existem categorias {string}, {string} e {string} cadastradas",
+  async function (nome1, nome2, nome3) {
+    const cat1 = await categoriaProdutosService.criarCategoria({
+      nome: nome1,
+      status: "ativo",
+    });
+    const cat2 = await categoriaProdutosService.criarCategoria({
+      nome: nome2,
+      status: "ativo",
+    });
+    const cat3 = await categoriaProdutosService.criarCategoria({
+      nome: nome3,
+      status: "ativo",
+    });
+    this.categoriasList = [cat1, cat2, cat3];
+  },
+);
 
-Then('eu devo ver as categorias {string}, {string} e {string}', function (string, string2, string3) {
-           // Write code here that turns the phrase above into concrete actions
-           return 'pending';
-         });
+Given("todas as categorias estão com status {string}", function (status) {
+  this.categoriasList.forEach((cat) => {
+    expect(cat.status).to.equal(status);
+  });
+});
+
+When("eu solicito a lista de categorias ativas", async function () {
+  const todasCategorias = await categoriaProdutosService.listarCategorias();
+  this.categoriasList = todasCategorias.filter((cat) => cat.status === "ativo");
+});
+
+Then(
+  "eu devo ver as categorias {string}, {string} e {string}",
+  function (nome1, nome2, nome3) {
+    expect(this.categoriasList).to.have.lengthOf.at.least(3);
+    const nomes = this.categoriasList.map((cat) => cat.nome);
+    expect(nomes).to.include(nome1);
+    expect(nomes).to.include(nome2);
+    expect(nomes).to.include(nome3);
+  },
+);
