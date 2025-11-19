@@ -6,7 +6,7 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import { useLoginUsuario } from "@/hooks/graphql";
+import { useLoginUsuario, useCriarUsuario } from "@/hooks/graphql";
 import { setSessionToken, clearSessionToken } from "@/lib/graphql-client";
 
 export type UserRole = "consumidor" | "fornecedor" | "admin" | "adminmercado";
@@ -54,6 +54,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const loginMutation = useLoginUsuario();
+  const criarUsuarioMutation = useCriarUsuario();
   const [user, setUser] = useState<User | null>(() => {
     const storedUser = localStorage.getItem("da.user");
     return storedUser ? JSON.parse(storedUser) : null;
@@ -79,22 +80,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     roles: UserRole[],
     gender: Gender = "unspecified",
   ) => {
-    // Definir defaultRole como o primeiro role selecionado
-    const defaultRole = roles[0];
-
-    const newUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      email,
-      name,
-      roles,
-      defaultRole,
-      gender,
+    const mapRoleToPerfil = (role: UserRole): string => {
+      switch (role) {
+        case "admin":
+          return "admin";
+        case "adminmercado":
+          return "adminmercado";
+        case "fornecedor":
+          return "fornecedor";
+        case "consumidor":
+          return "consumidor";
+      }
     };
 
-    setUser(newUser);
-    setActiveRole(defaultRole);
-    localStorage.setItem("da.user", JSON.stringify(newUser));
-    localStorage.setItem("da.activeRole", defaultRole);
+    const perfis = roles.map(mapRoleToPerfil);
+
+    await criarUsuarioMutation.mutateAsync({
+      input: {
+        nome: name,
+        email,
+        senha: password,
+        perfis,
+        status: "ativo",
+      },
+    });
+
+    await login(email, password);
   };
 
   const login = async (email: string, password: string) => {
