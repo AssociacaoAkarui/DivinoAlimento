@@ -74,6 +74,38 @@ type DeletarCategoriaResponse {
     message: String!
 }
 
+type Produto {
+    id: ID!
+    nome: String!
+    medida: String
+    pesoGrama: Float
+    valorReferencia: Float
+    status: String!
+    descritivo: String
+    categoriaId: Int
+    categoria: CategoriaProdutos
+}
+
+input CriarProdutoInput {
+    nome: String!
+    medida: String
+    pesoGrama: Float
+    valorReferencia: Float
+    status: String!
+    descritivo: String
+    categoriaId: Int
+}
+
+input AtualizarProdutoInput {
+    nome: String
+    medida: String
+    pesoGrama: Float
+    valorReferencia: Float
+    status: String
+    descritivo: String
+    categoriaId: Int
+}
+
 input CriarUsuarioInput {
     nome: String!
     email: String!
@@ -94,6 +126,9 @@ type Mutation {
         input: AtualizarCategoriaProdutosInput!
     ): CategoriaProdutos!
     deletarCategoria(id: ID!): DeletarCategoriaResponse!
+    criarProduto(input: CriarProdutoInput!): Produto!
+    atualizarProduto(id: ID!, input: AtualizarProdutoInput!): Produto!
+    deletarProduto(id: ID!): Boolean!
 }
 
 type Query {
@@ -103,4 +138,6 @@ type Query {
     buscarUsuario(id: ID!): Usuario!
     listarCategorias: [CategoriaProdutos!]!
     buscarCategoria(id: ID!): CategoriaProdutos!
+    listarProdutos: [Produto!]!
+    buscarProduto(id: ID!): Produto!
 }
