@@ -27,7 +27,10 @@ type Usuario {
     nomeoficial: String
     email: String!
     celular: String
-    descritivo: String
+    banco: String
+    agencia: String
+    conta: String
+    chavePix: String
     cientepolitica: String
     status: String!
     perfis: [String!]!
@@ -38,7 +41,10 @@ input AtualizarUsuarioInput {
     nomeoficial: String
     celular: String
     email: String
-    descritivo: String
+    banco: String
+    agencia: String
+    conta: String
+    chavePix: String
     cientepolitica: String
     perfis: [String!]
     status: String
