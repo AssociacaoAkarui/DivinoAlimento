@@ -685,6 +685,55 @@ describe("Graphql", async function () {
     expect(resultListarUsuarios.errors[0].message).to.equal("Unauthorized");
   });
 
+  it("admin user can find usuario by id", async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+    const user = await usuarioService.create(
+      {
+        email: "user@example.com",
+        senha: "password",
+      },
+      {
+        nome: "João Silva",
+        nomeoficial: "João da Silva Oficial",
+        celular: "11987654321",
+        perfis: ["fornecedor"],
+        status: "ativo",
+        descritivo:
+          '{"banco":"Itaú","agencia":"1234","conta":"56789-0","pix":"joao@email.com"}',
+        cientepolitica: "true",
+      },
+    );
+    const foundUser = await usuarioService.buscarPorId(user.id);
+    expect(foundUser.id).to.equal(user.id);
+    expect(foundUser.nome).to.equal("João Silva");
+    expect(foundUser.nomeoficial).to.equal("João da Silva Oficial");
+    expect(foundUser.celular).to.equal("11987654321");
+    expect(foundUser.email).to.equal("user@example.com");
+    expect(foundUser.perfis).to.deep.equal(["fornecedor"]);
+    expect(foundUser.status).to.equal("ativo");
+    expect(foundUser.cientepolitica).to.equal("true");
+  });
+
+  it("error finding non-existent usuario", async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+    try {
+      await usuarioService.buscarPorId("non-existent-id");
+      expect.fail("Should have thrown error");
+    } catch (error) {
+      expect(error.message).to.equal("Usuario not found");
+    }
+  });
+
   it("admin user can update usuario", async function () {
     await sequelize.sync({ force: true });
 
