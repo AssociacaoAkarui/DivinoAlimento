@@ -78,7 +78,10 @@ export const BUSCAR_USUARIO_QUERY = gql`
       nomeoficial
       email
       celular
-      descritivo
+      banco
+      agencia
+      conta
+      chavePix
       cientepolitica
       status
       perfis
