@@ -995,16 +995,23 @@ class UsuarioService {
 
     const {
       nome = email.split("@")[0],
+      nomeoficial,
+      celular,
       perfis = ["admin"],
       status = "ativo",
+      descritivo,
+      cientepolitica,
     } = optionalParams;
 
     const user = await Usuario.create({
       nome: nome,
-      celular: phoneNumber,
+      nomeoficial: nomeoficial,
+      celular: celular || phoneNumber,
       email: email,
       perfis: perfis,
       status: status,
+      descritivo: descritivo,
+      cientepolitica: cientepolitica,
       senha: senha,
     });
     return user.toJSON();
@@ -1068,6 +1075,26 @@ class UsuarioService {
       order: [["nome", "ASC"]],
     });
     return usuarios.map((u) => u.toJSON());
+  }
+
+  async buscarPorId(id) {
+    const usuario = await Usuario.findByPk(id, {
+      attributes: [
+        "id",
+        "nome",
+        "nomeoficial",
+        "email",
+        "celular",
+        "descritivo",
+        "cientepolitica",
+        "status",
+        "perfis",
+      ],
+    });
+    if (!usuario) {
+      throw new ServiceError("Usuario not found");
+    }
+    return usuario.toJSON();
   }
 
   async atualizarUsuario(id, dadosParaAtualizar) {
