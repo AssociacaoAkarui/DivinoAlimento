@@ -916,3 +916,413 @@ describe("Graphql", async function () {
     expect(newUser.status).to.equal("ativo");
   });
 });
+
+describe("CategoriaProdutos GraphQL", function () {
+  it("admin user can create categoria", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+
+    const mutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+          nome
+          status
+          observacao
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(session.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        input: {
+          nome: "Frutas",
+          status: "ativo",
+          observacao: "Categoria de frutas",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarCategoria.nome).to.equal("Frutas");
+    expect(result.data.criarCategoria.status).to.equal("ativo");
+    expect(result.data.criarCategoria.observacao).to.equal(
+      "Categoria de frutas",
+    );
+  });
+
+  it("admin user can list categorias", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create some categorias first
+    const createMutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+          nome
+        }
+      }
+    `;
+
+    await graphql({
+      schema: APIGraphql.schema,
+      source: createMutation,
+      variableValues: { input: { nome: "Frutas", status: "ativo" } },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    await graphql({
+      schema: APIGraphql.schema,
+      source: createMutation,
+      variableValues: { input: { nome: "Verduras", status: "ativo" } },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    // Now list them
+    const query = `
+      query ListarCategorias {
+        listarCategorias {
+          id
+          nome
+          status
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarCategorias).to.have.lengthOf(2);
+    expect(result.data.listarCategorias[0].nome).to.equal("Frutas");
+    expect(result.data.listarCategorias[1].nome).to.equal("Verduras");
+  });
+
+  it("admin user can find categoria by id", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create a categoria first
+    const createMutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+          nome
+        }
+      }
+    `;
+
+    const createResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createMutation,
+      variableValues: {
+        input: { nome: "Legumes", status: "ativo", observacao: "Vegetais" },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const categoriaId = createResult.data.criarCategoria.id;
+
+    // Now find it
+    const query = `
+      query BuscarCategoria($id: ID!) {
+        buscarCategoria(id: $id) {
+          id
+          nome
+          status
+          observacao
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      variableValues: { id: categoriaId },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.buscarCategoria.nome).to.equal("Legumes");
+    expect(result.data.buscarCategoria.observacao).to.equal("Vegetais");
+  });
+
+  it("admin user can update categoria", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create a categoria first
+    const createMutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const createResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createMutation,
+      variableValues: { input: { nome: "Original", status: "ativo" } },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const categoriaId = createResult.data.criarCategoria.id;
+
+    // Now update it
+    const updateMutation = `
+      mutation AtualizarCategoria($id: ID!, $input: AtualizarCategoriaProdutosInput!) {
+        atualizarCategoria(id: $id, input: $input) {
+          id
+          nome
+          status
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: updateMutation,
+      variableValues: {
+        id: categoriaId,
+        input: { nome: "Atualizado", status: "inativo" },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.atualizarCategoria.nome).to.equal("Atualizado");
+    expect(result.data.atualizarCategoria.status).to.equal("inativo");
+  });
+
+  it("admin user can delete categoria", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create a categoria first
+    const createMutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const createResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createMutation,
+      variableValues: { input: { nome: "Para Deletar", status: "ativo" } },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const categoriaId = createResult.data.criarCategoria.id;
+
+    // Now delete it
+    const deleteMutation = `
+      mutation DeletarCategoria($id: ID!) {
+        deletarCategoria(id: $id) {
+          success
+          message
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: deleteMutation,
+      variableValues: { id: categoriaId },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.deletarCategoria.success).to.be.true;
+  });
+
+  it("non-admin user cannot create categoria", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "user@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Regular User",
+        perfis: ["consumidor"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "user@example.com",
+      "password123",
+    );
+
+    const mutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+          nome
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(session.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        input: { nome: "Test", status: "ativo" },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.not.be.undefined;
+    expect(result.errors[0].message).to.equal("Admin required");
+  });
+});
