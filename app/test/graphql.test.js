@@ -703,8 +703,10 @@ describe("Graphql", async function () {
         celular: "11987654321",
         perfis: ["fornecedor"],
         status: "ativo",
-        descritivo:
-          '{"banco":"Itaú","agencia":"1234","conta":"56789-0","pix":"joao@email.com"}',
+        banco: "Itaú",
+        agencia: "1234",
+        conta: "56789-0",
+        chavePix: "joao@email.com",
         cientepolitica: "true",
       },
     );
@@ -716,6 +718,10 @@ describe("Graphql", async function () {
     expect(foundUser.email).to.equal("user@example.com");
     expect(foundUser.perfis).to.deep.equal(["fornecedor"]);
     expect(foundUser.status).to.equal("ativo");
+    expect(foundUser.banco).to.equal("Itaú");
+    expect(foundUser.agencia).to.equal("1234");
+    expect(foundUser.conta).to.equal("56789-0");
+    expect(foundUser.chavePix).to.equal("joao@email.com");
     expect(foundUser.cientepolitica).to.equal("true");
   });
 

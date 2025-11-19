@@ -30,12 +30,21 @@ When("o celular do usuário com {string}", function (celular) {
   this.novoUsuarioData.celular = celular;
 });
 
-When(
-  "as informações para pagamento do usuário com {string}",
-  function (descritivo) {
-    this.novoUsuarioData.descritivo = descritivo;
-  },
-);
+When("o banco do usuário com {string}", function (banco) {
+  this.novoUsuarioData.banco = banco;
+});
+
+When("a agência do usuário com {string}", function (agencia) {
+  this.novoUsuarioData.agencia = agencia;
+});
+
+When("a conta do usuário com {string}", function (conta) {
+  this.novoUsuarioData.conta = conta;
+});
+
+When("a chave PIX do usuário com {string}", function (chavePix) {
+  this.novoUsuarioData.chavePix = chavePix;
+});
 
 When("o email do usuário com {string}", function (email) {
   this.novoUsuarioData.email = email;
@@ -126,12 +135,21 @@ When("eu edito o celular para {string}", function (celular) {
   this.usuarioData.celular = celular;
 });
 
-When(
-  "eu edito as informações para pagamento para {string}",
-  function (descritivo) {
-    this.usuarioData.descritivo = descritivo;
-  },
-);
+When("eu edito o banco para {string}", function (banco) {
+  this.usuarioData.banco = banco;
+});
+
+When("eu edito a agência para {string}", function (agencia) {
+  this.usuarioData.agencia = agencia;
+});
+
+When("eu edito a conta para {string}", function (conta) {
+  this.usuarioData.conta = conta;
+});
+
+When("eu edito a chave PIX para {string}", function (chavePix) {
+  this.usuarioData.chavePix = chavePix;
+});
 
 When("eu edito o email para {string}", function (email) {
   this.usuarioData.email = email;
@@ -173,12 +191,21 @@ Then("o celular do usuário deve ser {string}", function (celular) {
   expect(this.currentUsuario.celular).to.equal(celular);
 });
 
-Then(
-  "as informações para pagamento do usuário deve ser {string}",
-  function (descritivo) {
-    expect(this.currentUsuario.descritivo).to.equal(descritivo);
-  },
-);
+Then("o banco do usuário deve ser {string}", function (banco) {
+  expect(this.currentUsuario.banco).to.equal(banco);
+});
+
+Then("a agência do usuário deve ser {string}", function (agencia) {
+  expect(this.currentUsuario.agencia).to.equal(agencia);
+});
+
+Then("a conta do usuário deve ser {string}", function (conta) {
+  expect(this.currentUsuario.conta).to.equal(conta);
+});
+
+Then("a chave PIX do usuário deve ser {string}", function (chavePix) {
+  expect(this.currentUsuario.chavePix).to.equal(chavePix);
+});
 
 Then("o email do usuário deve ser {string}", function (email) {
   expect(this.currentUsuario.email).to.equal(email);
