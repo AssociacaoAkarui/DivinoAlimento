@@ -35,6 +35,15 @@ export type AtualizarUsuarioInput = {
   status?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CriarUsuarioInput = {
+  celular?: InputMaybe<Scalars['String']['input']>;
+  email: Scalars['String']['input'];
+  nome: Scalars['String']['input'];
+  perfis: Array<Scalars['String']['input']>;
+  senha: Scalars['String']['input'];
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type HealthCheck = {
   __typename?: 'HealthCheck';
   status: Scalars['String']['output'];
@@ -53,6 +62,7 @@ export type LogoutResponse = {
 export type Mutation = {
   __typename?: 'Mutation';
   atualizarUsuario: Usuario;
+  criarUsuario: Usuario;
   sessionLogin: ActiveSession;
   sessionLogout: LogoutResponse;
 };
@@ -61,6 +71,11 @@ export type Mutation = {
 export type MutationAtualizarUsuarioArgs = {
   id: Scalars['ID']['input'];
   input: AtualizarUsuarioInput;
+};
+
+
+export type MutationCriarUsuarioArgs = {
+  input: CriarUsuarioInput;
 };
 
 
@@ -111,6 +126,13 @@ export type ListarUsuariosQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ListarUsuariosQuery = { __typename?: 'Query', listarUsuarios: Array<{ __typename?: 'Usuario', id: string, nome: string, email: string, status: string, perfis: Array<string> }> };
 
+export type CriarUsuarioMutationVariables = Exact<{
+  input: CriarUsuarioInput;
+}>;
+
+
+export type CriarUsuarioMutation = { __typename?: 'Mutation', criarUsuario: { __typename?: 'Usuario', id: string, nome: string, email: string, status: string, perfis: Array<string> } };
+
 export type AtualizarUsuarioMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   input: AtualizarUsuarioInput;
@@ -159,6 +181,17 @@ export const ListarUsuariosDocument = gql`
   }
 }
     `;
+export const CriarUsuarioDocument = gql`
+    mutation CriarUsuario($input: CriarUsuarioInput!) {
+  criarUsuario(input: $input) {
+    id
+    nome
+    email
+    status
+    perfis
+  }
+}
+    `;
 export const AtualizarUsuarioDocument = gql`
     mutation AtualizarUsuario($id: ID!, $input: AtualizarUsuarioInput!) {
   atualizarUsuario(id: $id, input: $input) {
@@ -196,6 +229,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     ListarUsuarios(variables?: ListarUsuariosQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarUsuariosQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<ListarUsuariosQuery>({ document: ListarUsuariosDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarUsuarios', 'query', variables);
+    },
+    CriarUsuario(variables: CriarUsuarioMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarUsuarioMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarUsuarioMutation>({ document: CriarUsuarioDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarUsuario', 'mutation', variables);
     },
     AtualizarUsuario(variables: AtualizarUsuarioMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AtualizarUsuarioMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<AtualizarUsuarioMutation>({ document: AtualizarUsuarioDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AtualizarUsuario', 'mutation', variables);
