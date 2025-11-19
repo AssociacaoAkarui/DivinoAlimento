@@ -34,7 +34,6 @@ import {
   validateUsuarioDadosForm,
   prepareUsuarioDadosForBackend,
   getRedirectRoute,
-  parseDescritivo,
   isFormValid,
   type UsuarioDadosFormData,
 } from "@/lib/usuario-dados-helpers";
@@ -56,42 +55,39 @@ const UsuarioDados = () => {
   const { data: usuario, isLoading, error } = useBuscarUsuario(usuarioId);
 
   const [formData, setFormData] = useState({
-    nomeCompleto: "João da Silva",
-    nomeFantasia: "João Silva",
-    celular: "11987654321",
-    banco: "Itaú",
-    agencia: "1234",
-    conta: "56789-0",
-    chavePix: "joao@email.com",
-    email: "joao.silva@email.com",
-    aceitePolitica: true,
-    perfilFornecedor: true,
+    nomeCompleto: "",
+    nomeFantasia: "",
+    celular: "",
+    banco: "",
+    agencia: "",
+    conta: "",
+    chavePix: "",
+    email: "",
+    aceitePolitica: false,
+    perfilFornecedor: false,
     perfilConsumidor: false,
-    perfilAdministrador: true,
+    perfilAdministrador: false,
     perfilAdministradorMercado: false,
-    situacao: "Ativo",
+    situacao: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (usuario) {
-      const descritivo = usuario.descritivo
-        ? parseDescritivo(usuario.descritivo)
-        : { banco: "", agencia: "", conta: "", pix: "" };
       const perfis = usuario.perfis || [];
 
       setFormData({
         nomeCompleto: usuario.nome || "",
         nomeFantasia: usuario.nomeoficial || "",
         celular: usuario.celular || "",
-        banco: descritivo.banco,
-        agencia: descritivo.agencia,
-        conta: descritivo.conta,
-        chavePix: descritivo.pix,
+        banco: usuario.banco || "",
+        agencia: usuario.agencia || "",
+        conta: usuario.conta || "",
+        chavePix: usuario.chavePix || "",
         email: usuario.email || "",
         aceitePolitica:
-          usuario.cientepolitica === "true" || usuario.cientepolitica === true,
+          usuario.cientepolitica === "sim" || usuario.cientepolitica === "true",
         perfilFornecedor: perfis.includes("fornecedor"),
         perfilConsumidor: perfis.includes("consumidor"),
         perfilAdministrador: perfis.includes("admin"),
@@ -147,7 +143,11 @@ const UsuarioDados = () => {
           title: "Sucesso",
           description: getUpdateSuccessMessage(data.atualizarUsuario.nome),
         });
-        navigate(getRedirectRoute(activeRole));
+        if (id && activeRole === "admin") {
+          navigate("/usuario-index");
+        } else {
+          navigate(getRedirectRoute(activeRole));
+        }
       },
       onError: (error) => {
         toast({
@@ -160,7 +160,11 @@ const UsuarioDados = () => {
   };
 
   const handleCancel = () => {
-    navigate(getRedirectRoute(activeRole));
+    if (id && activeRole === "admin") {
+      navigate("/usuario-index");
+    } else {
+      navigate(getRedirectRoute(activeRole));
+    }
   };
 
   if (isLoading) {

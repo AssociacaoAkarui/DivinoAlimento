@@ -26,49 +26,6 @@ export interface UsuarioDadosErrors {
   [key: string]: string;
 }
 
-export function createDescritivo(
-  banco: string,
-  agencia: string,
-  conta: string,
-  chavePix: string,
-): string {
-  const descritivo = {
-    banco,
-    agencia,
-    conta,
-    pix: chavePix,
-  };
-  return JSON.stringify(descritivo);
-}
-
-export function parseDescritivo(descritivo: string | null): {
-  banco: string;
-  agencia: string;
-  conta: string;
-  chavePix: string;
-} {
-  const defaultValues = {
-    banco: "",
-    agencia: "",
-    conta: "",
-    chavePix: "",
-  };
-
-  if (!descritivo) return defaultValues;
-
-  try {
-    const parsed = JSON.parse(descritivo);
-    return {
-      banco: parsed.banco || "",
-      agencia: parsed.agencia || "",
-      conta: parsed.conta || "",
-      chavePix: parsed.pix || "",
-    };
-  } catch {
-    return defaultValues;
-  }
-}
-
 export function mapPerfisToBackend(formData: UsuarioDadosFormData): string[] {
   const perfis: string[] = [];
 
@@ -172,12 +129,12 @@ export function isFormValid(formData: UsuarioDadosFormData): boolean {
     formData.perfilAdministradorMercado;
 
   return (
-    formData.nomeCompleto.trim() !== "" &&
-    validarCelular(formData.celular) &&
+    formData.nomeCompleto?.trim() !== "" &&
+    validarCelular(formData.celular || "") &&
     formData.banco !== "" &&
-    validarAgencia(formData.agencia) &&
-    validarConta(formData.conta) &&
-    validarChavePix(formData.chavePix).valido &&
+    validarAgencia(formData.agencia || "") &&
+    validarConta(formData.conta || "") &&
+    validarChavePix(formData.chavePix || "").valido &&
     formData.aceitePolitica &&
     hasAtLeastOnePerfil
   );
@@ -192,26 +149,25 @@ export function prepareUsuarioDadosForBackend(
     nome: string;
     nomeoficial: string;
     celular: string;
-    descritivo: string;
+    banco: string;
+    agencia: string;
+    conta: string;
+    chavePix: string;
     cientepolitica: string;
     perfis: string[];
     status: string;
   };
 } {
-  const descritivo = createDescritivo(
-    formData.banco,
-    formData.agencia,
-    formData.conta,
-    formData.chavePix,
-  );
-
   return {
     id: usuarioId,
     input: {
       nome: formData.nomeCompleto.trim(),
       nomeoficial: formData.nomeFantasia.trim(),
       celular: formData.celular.replace(/\D/g, ""),
-      descritivo,
+      banco: formData.banco,
+      agencia: formData.agencia,
+      conta: formData.conta,
+      chavePix: formData.chavePix,
       cientepolitica: formData.aceitePolitica ? "sim" : "nao",
       perfis: mapPerfisToBackend(formData),
       status: mapSituacaoToStatus(formData.situacao),
