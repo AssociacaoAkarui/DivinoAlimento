@@ -114,6 +114,13 @@ const rootValue = {
     const usuarios = await context.usuarioService.listarTodos();
     return usuarios;
   },
+  buscarUsuario: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const usuario = await context.usuarioService.buscarPorId(args.id);
+    return usuario;
+  },
 };
 
 const schemaSDL = fs.readFileSync(path.join(__dirname, "api.graphql"), "utf8");
