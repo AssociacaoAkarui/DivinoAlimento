@@ -1,4 +1,4 @@
-import { gql } from 'graphql-request';
+import { gql } from "graphql-request";
 
 export const LOGIN_MUTATION = gql`
   mutation Login($input: LoginInput!) {
@@ -29,6 +29,18 @@ export const SYSTEM_INFORMATION_QUERY = gql`
 export const LISTAR_USUARIOS_QUERY = gql`
   query ListarUsuarios {
     listarUsuarios {
+      id
+      nome
+      email
+      status
+      perfis
+    }
+  }
+`;
+
+export const CRIAR_USUARIO_MUTATION = gql`
+  mutation CriarUsuario($input: CriarUsuarioInput!) {
+    criarUsuario(input: $input) {
       id
       nome
       email
