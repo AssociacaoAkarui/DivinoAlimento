@@ -1141,6 +1141,96 @@ class UsuarioService {
   }
 }
 
+class CategoriaProdutosService {
+  async listarCategorias() {
+    try {
+      const categorias = await CategoriaProdutos.findAll({
+        order: [["nome", "ASC"]],
+        attributes: ["id", "nome", "status", "observacao"],
+      });
+      return categorias.map((c) => c.toJSON());
+    } catch (error) {
+      throw new ServiceError("Falha ao listar categorias.", { cause: error });
+    }
+  }
+
+  async buscarPorId(id) {
+    const categoria = await CategoriaProdutos.findByPk(id, {
+      attributes: ["id", "nome", "status", "observacao"],
+    });
+
+    if (!categoria) {
+      throw new ServiceError("Categoria not found");
+    }
+
+    return categoria.toJSON();
+  }
+
+  async criarCategoria(dados) {
+    try {
+      const allowedFields = ["nome", "status", "observacao"];
+      const payloadSeguro = filterPayload(
+        CategoriaProdutos,
+        dados,
+        allowedFields,
+      );
+
+      const novaCategoria = await CategoriaProdutos.create(payloadSeguro);
+      return novaCategoria.toJSON();
+    } catch (error) {
+      throw new ServiceError("Falha ao criar categoria.", { cause: error });
+    }
+  }
+
+  async atualizarCategoria(id, dadosParaAtualizar) {
+    try {
+      const categoria = await CategoriaProdutos.findByPk(id);
+      if (!categoria) {
+        throw new Error("Categoria not found");
+      }
+
+      const allowedFields = ["nome", "status", "observacao"];
+      const payloadSeguro = filterPayload(
+        CategoriaProdutos,
+        dadosParaAtualizar,
+        allowedFields,
+      );
+
+      await categoria.update(payloadSeguro);
+      return categoria.toJSON();
+    } catch (error) {
+      throw new ServiceError("Falha ao atualizar categoria.", { cause: error });
+    }
+  }
+
+  async deletarCategoria(id) {
+    try {
+      const categoria = await CategoriaProdutos.findByPk(id);
+      if (!categoria) {
+        throw new ServiceError("Categoria not found");
+      }
+
+      const produtosAssociados = await Produto.count({
+        where: { categoriaId: id },
+      });
+
+      if (produtosAssociados > 0) {
+        throw new ServiceError(
+          `Categoria possui ${produtosAssociados} produto(s) associado(s)`,
+        );
+      }
+
+      await categoria.destroy();
+      return { success: true, message: "Categoria deletada com sucesso" };
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao deletar categoria.", { cause: error });
+    }
+  }
+}
+
 module.exports = {
   CicloService,
   ProdutoService,
@@ -1151,4 +1241,5 @@ module.exports = {
   PedidoConsumidoresService,
   UsuarioService,
   CryptoUUIDService,
+  CategoriaProdutosService,
 };
