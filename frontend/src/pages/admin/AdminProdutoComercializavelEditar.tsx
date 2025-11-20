@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { RoleTitle } from '@/components/layout/RoleTitle';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { RoleTitle } from "@/components/layout/RoleTitle";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,34 +22,66 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { ArrowLeft } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { produtosReferencia } from '@/data/produtos-referencia';
-import { formatBRLInput, parseBRLToNumber } from '@/utils/currency';
-import { ProductSearch } from '@/components/ui/product-search';
+} from "@/components/ui/alert-dialog";
+import { ArrowLeft } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import {
+  useListarProdutos,
+  useBuscarProdutoComercializavel,
+  useAtualizarProdutoComercializavel,
+  useDeletarProdutoComercializavel,
+} from "@/hooks/graphql";
+import {
+  formatBRLInput,
+  parseBRLToNumber,
+  isFormValid,
+} from "@/lib/produtocomercializavel-helpers";
 
 const AdminProdutoComercializavelEditar = () => {
   const navigate = useNavigate();
-  const { id: _id } = useParams();
+  const { id } = useParams();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // Mock data - em produção, carregar dados do produto com base no ID
+  // GraphQL hooks
+  const { data: produtos = [], isLoading: loadingProdutos } =
+    useListarProdutos();
+  const {
+    data: produtoComercializavel,
+    isLoading: loadingProduto,
+    error,
+  } = useBuscarProdutoComercializavel(id || "");
+  const { mutate: atualizarProduto, isPending: isUpdating } =
+    useAtualizarProdutoComercializavel();
+  const { mutate: deletarProduto, isPending: isDeleting } =
+    useDeletarProdutoComercializavel();
+
   const [formData, setFormData] = useState({
-    produto_base: 'Tomate Orgânico',
-    unidade: 'Unidade',
-    peso_kg: '0.15',
-    preco_base: '0.68',
-    status: 'ativo' as 'ativo' | 'inativo',
+    produtoId: undefined as number | undefined,
+    medida: "",
+    pesoKg: "",
+    precoBase: "",
+    status: "ativo" as "ativo" | "inativo",
   });
 
-  const _unidadesComercializacao = ['Unidade', 'Dúzia', 'Litro', 'Kg'];
+  // Populate form when data loads
+  useEffect(() => {
+    if (produtoComercializavel) {
+      setFormData({
+        produtoId: produtoComercializavel.produtoId,
+        medida: produtoComercializavel.medida,
+        pesoKg: produtoComercializavel.pesoKg.toString(),
+        precoBase: produtoComercializavel.precoBase
+          .toFixed(2)
+          .replace(".", ","),
+        status: produtoComercializavel.status as "ativo" | "inativo",
+      });
+    }
+  }, [produtoComercializavel]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validação básica
-    if (!formData.produto_base || !formData.unidade || !formData.peso_kg || !formData.preco_base) {
+    if (!isFormValid(formData)) {
       toast({
         title: "Erro",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -58,20 +90,41 @@ const AdminProdutoComercializavelEditar = () => {
       return;
     }
 
-    // Converter preço para número antes de salvar
-    const precoNumerico = parseBRLToNumber(formData.preco_base);
-    console.warn('Atualizando produto com preço:', precoNumerico);
+    const precoNumerico = parseBRLToNumber(formData.precoBase);
+    const pesoNumerico = parseFloat(formData.pesoKg);
 
-    toast({
-      title: "Sucesso",
-      description: "Alimento comercializável atualizado com sucesso!",
-    });
-
-    navigate('/admin/produtos-comercializaveis');
+    atualizarProduto(
+      {
+        id: id!,
+        input: {
+          produtoId: formData.produtoId,
+          medida: formData.medida.trim(),
+          pesoKg: pesoNumerico,
+          precoBase: precoNumerico,
+          status: formData.status,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Sucesso",
+            description: "Alimento comercializável atualizado com sucesso!",
+          });
+          navigate("/admin/produtos-comercializaveis");
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "Erro ao atualizar",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      },
+    );
   };
 
   const handleCancel = () => {
-    navigate('/admin/produtos-comercializaveis');
+    navigate("/admin/produtos-comercializaveis");
   };
 
   const handleDelete = () => {
@@ -79,20 +132,68 @@ const AdminProdutoComercializavelEditar = () => {
   };
 
   const confirmDelete = () => {
-    toast({
-      title: "Produto excluído",
-      description: "O alimento comercializável foi removido com sucesso.",
-    });
-    navigate('/admin/produtos-comercializaveis');
+    deletarProduto(
+      { id: id! },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Produto excluído",
+            description: "O alimento comercializável foi removido com sucesso.",
+          });
+          navigate("/admin/produtos-comercializaveis");
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "Erro ao excluir",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      },
+    );
   };
+
+  if (loadingProduto) {
+    return (
+      <ResponsiveLayout>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Carregando alimento...</p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ResponsiveLayout>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-destructive">
+            Erro ao carregar alimento: {error.message}
+          </p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  if (!produtoComercializavel) {
+    return (
+      <ResponsiveLayout>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Alimento não encontrado.</p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  const isPending = isUpdating || isDeleting;
 
   return (
     <ResponsiveLayout
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon-sm"
-          onClick={() => navigate('/admin/produtos-comercializaveis')}
+          onClick={() => navigate("/admin/produtos-comercializaveis")}
           className="text-primary-foreground hover:bg-primary-hover"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -101,7 +202,10 @@ const AdminProdutoComercializavelEditar = () => {
     >
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
-          <RoleTitle page="Editar Alimento Comercializável" className="text-2xl md:text-3xl mb-2" />
+          <RoleTitle
+            page="Editar Alimento Comercializável"
+            className="text-2xl md:text-3xl mb-2"
+          />
           <p className="text-muted-foreground">
             Atualize as informações da variação comercial
           </p>
@@ -113,56 +217,58 @@ const AdminProdutoComercializavelEditar = () => {
               <CardTitle>Informações do Alimento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <ProductSearch
-                value={formData.produto_base}
-                onSelect={(productName) => 
-                  setFormData({ ...formData, produto_base: productName })
-                }
-                label="Buscar alimento base *"
-                placeholder="Digite para buscar alimento base..."
-              />
-
               <div className="space-y-2">
                 <Label htmlFor="produto_base_select">
                   Alimento Base <span className="text-destructive">*</span>
                 </Label>
                 <Select
-                  value={formData.produto_base}
+                  value={formData.produtoId?.toString() || ""}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, produto_base: value })
+                    setFormData({ ...formData, produtoId: parseInt(value) })
                   }
+                  disabled={loadingProdutos}
                 >
                   <SelectTrigger id="produto_base_select">
-                    <SelectValue placeholder="Selecione o alimento base" />
+                    <SelectValue
+                      placeholder={
+                        loadingProdutos
+                          ? "Carregando..."
+                          : "Selecione o alimento base"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {produtosReferencia.map((produto) => (
-                      <SelectItem key={produto.id} value={produto.nome}>
-                        {produto.nome}
-                      </SelectItem>
-                    ))}
+                    {produtos
+                      .filter((p) => p.status === "ativo")
+                      .map((produto) => (
+                        <SelectItem key={produto.id} value={produto.id}>
+                          {produto.nome}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="unidade">
-                  Unidade de Comercialização <span className="text-destructive">*</span>
+                <Label htmlFor="medida">
+                  Unidade de Comercialização{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <Input
-                  id="unidade"
+                  id="medida"
                   type="text"
                   placeholder="Ex: Unidade, Dúzia, Litro, Kg"
-                  value={formData.unidade}
+                  value={formData.medida}
                   onChange={(e) =>
-                    setFormData({ ...formData, unidade: e.target.value })
+                    setFormData({ ...formData, medida: e.target.value })
                   }
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="peso_kg">
-                  Peso em Kg (para conversão) <span className="text-destructive">*</span>
+                  Peso em Kg (para conversão){" "}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="peso_kg"
@@ -170,9 +276,9 @@ const AdminProdutoComercializavelEditar = () => {
                   step="0.01"
                   min="0"
                   placeholder="Ex: 0.15"
-                  value={formData.peso_kg}
+                  value={formData.pesoKg}
                   onChange={(e) =>
-                    setFormData({ ...formData, peso_kg: e.target.value })
+                    setFormData({ ...formData, pesoKg: e.target.value })
                   }
                 />
               </div>
@@ -186,9 +292,12 @@ const AdminProdutoComercializavelEditar = () => {
                   type="text"
                   inputMode="decimal"
                   placeholder="Ex: 4,50"
-                  value={formData.preco_base}
+                  value={formData.precoBase}
                   onChange={(e) =>
-                    setFormData({ ...formData, preco_base: formatBRLInput(e.target.value) })
+                    setFormData({
+                      ...formData,
+                      precoBase: formatBRLInput(e.target.value),
+                    })
                   }
                 />
               </div>
@@ -197,7 +306,7 @@ const AdminProdutoComercializavelEditar = () => {
                 <Label htmlFor="status">Status</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(value: 'ativo' | 'inativo') =>
+                  onValueChange={(value: "ativo" | "inativo") =>
                     setFormData({ ...formData, status: value })
                   }
                 >
@@ -219,6 +328,7 @@ const AdminProdutoComercializavelEditar = () => {
               variant="outline"
               onClick={handleCancel}
               className="flex-1"
+              disabled={isPending}
             >
               Cancelar
             </Button>
@@ -227,11 +337,12 @@ const AdminProdutoComercializavelEditar = () => {
               variant="outline"
               onClick={handleDelete}
               className="flex-1 border-primary text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              disabled={isPending}
             >
-              Excluir
+              {isDeleting ? "Excluindo..." : "Excluir"}
             </Button>
-            <Button type="submit" className="flex-1">
-              Salvar Alterações
+            <Button type="submit" className="flex-1" disabled={isPending}>
+              {isUpdating ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </div>
         </form>
@@ -243,12 +354,16 @@ const AdminProdutoComercializavelEditar = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este alimento comercializável? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir este alimento comercializável? Esta
+              ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

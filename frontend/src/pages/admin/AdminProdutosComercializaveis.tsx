@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -32,15 +32,19 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { StatusToggle } from "@/components/ui/status-toggle";
 import { RoleTitle } from "@/components/layout/RoleTitle";
-
-interface ProdutoComercializavel {
-  id: string;
-  produto_base: string;
-  unidade: string;
-  peso_kg: number;
-  preco_base: number;
-  status: "Ativo" | "Inativo";
-}
+import {
+  useListarProdutosComercializaveis,
+  useAtualizarProdutoComercializavel,
+  useDeletarProdutoComercializavel,
+} from "@/hooks/graphql";
+import {
+  formatPrecoBase,
+  formatPesoKg,
+  formatMedida,
+  formatStatusDisplay,
+  searchByProdutoNome,
+  getUniqueProdutos,
+} from "@/lib/produtocomercializavel-helpers";
 
 const AdminProdutosComercializaveis = () => {
   const navigate = useNavigate();
@@ -58,36 +62,18 @@ const AdminProdutosComercializaveis = () => {
     setIsOpen,
   } = useFilters("/admin/produtos-comercializaveis");
 
-  const [produtos, setProdutos] = useState<ProdutoComercializavel[]>([
-    {
-      id: "1",
-      produto_base: "Tomate Orgânico",
-      unidade: "kg",
-      peso_kg: 1,
-      preco_base: 7.5,
-      status: "Ativo",
-    },
-    {
-      id: "2",
-      produto_base: "Ovos Caipiras",
-      unidade: "duzia",
-      peso_kg: 0.6,
-      preco_base: 15.0,
-      status: "Ativo",
-    },
-    {
-      id: "3",
-      produto_base: "Mel Orgânico",
-      unidade: "litro",
-      peso_kg: 1.4,
-      preco_base: 28.9,
-      status: "Inativo",
-    },
-  ]);
+  // GraphQL hooks
+  const {
+    data: produtos = [],
+    isLoading,
+    error,
+  } = useListarProdutosComercializaveis();
+  const { mutate: atualizarProduto } = useAtualizarProdutoComercializavel();
+  const { mutate: deletarProduto } = useDeletarProdutoComercializavel();
 
   // Lista de produtos base únicos para o filtro
   const produtosBase = useMemo(() => {
-    return Array.from(new Set(produtos.map((p) => p.produto_base)));
+    return getUniqueProdutos(produtos).map((p) => p.nome);
   }, [produtos]);
 
   const filteredProdutos = useMemo(() => {
@@ -95,24 +81,20 @@ const AdminProdutosComercializaveis = () => {
 
     // Aplicar busca com debounce
     if (debouncedSearch) {
-      result = result.filter((produto) =>
-        produto.produto_base
-          .toLowerCase()
-          .includes(debouncedSearch.toLowerCase()),
-      );
+      result = searchByProdutoNome(result, debouncedSearch);
     }
 
     // Aplicar filtro de status
     if (filters.status.length > 0) {
       result = result.filter((produto) =>
-        filters.status.includes(produto.status),
+        filters.status.includes(formatStatusDisplay(produto.status)),
       );
     }
 
     // Aplicar filtro de produto base
     if (filters.produtoBase.length > 0) {
       result = result.filter((produto) =>
-        filters.produtoBase.includes(produto.produto_base),
+        filters.produtoBase.includes(produto.produto?.nome || ""),
       );
     }
 
@@ -124,12 +106,24 @@ const AdminProdutosComercializaveis = () => {
   };
 
   const handleDelete = (id: string) => {
-    setProdutos((prev) => prev.filter((p) => p.id !== id));
-
-    toast({
-      title: "Alimento excluído",
-      description: "O alimento comercializável foi removido com sucesso.",
-    });
+    deletarProduto(
+      { id },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Alimento excluído",
+            description: "O alimento comercializável foi removido com sucesso.",
+          });
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "Erro ao excluir",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      },
+    );
   };
 
   const handleAddProduto = () => {
@@ -140,20 +134,50 @@ const AdminProdutosComercializaveis = () => {
     id: string,
     newStatus: "Ativo" | "Inativo",
   ) => {
-    // Aqui você faria a chamada PATCH /produtos-comercializaveis/{id} body { status: "ativo"|"inativo" }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setProdutos((prev) =>
-      prev.map((prod) =>
-        prod.id === id ? { ...prod, status: newStatus } : prod,
-      ),
+    const backendStatus = newStatus === "Ativo" ? "ativo" : "inativo";
+    atualizarProduto(
+      { id, input: { status: backendStatus } },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Status atualizado",
+            description: `Status do alimento alterado para ${newStatus}.`,
+          });
+        },
+        onError: (error: Error) => {
+          toast({
+            title: "Erro ao atualizar status",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      },
     );
-
-    toast({
-      title: "Status atualizado",
-      description: `Status do alimento alterado para ${newStatus}.`,
-    });
   };
+
+  if (isLoading) {
+    return (
+      <ResponsiveLayout>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">
+            Carregando alimentos comercializáveis...
+          </p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ResponsiveLayout>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-destructive">
+            Erro ao carregar alimentos: {error.message}
+          </p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
 
   return (
     <ResponsiveLayout
@@ -242,16 +266,20 @@ const AdminProdutosComercializaveis = () => {
                     {filteredProdutos.map((produto) => (
                       <TableRow key={produto.id}>
                         <TableCell className="font-medium">
-                          {produto.produto_base}
+                          {produto.produto?.nome || "N/A"}
                         </TableCell>
-                        <TableCell>{produto.unidade}</TableCell>
-                        <TableCell>{produto.peso_kg} kg</TableCell>
+                        <TableCell>{formatMedida(produto.medida)}</TableCell>
+                        <TableCell>{formatPesoKg(produto.pesoKg)}</TableCell>
                         <TableCell>
-                          R$ {produto.preco_base.toFixed(2)}
+                          {formatPrecoBase(produto.precoBase)}
                         </TableCell>
                         <TableCell>
                           <StatusToggle
-                            currentStatus={produto.status}
+                            currentStatus={
+                              formatStatusDisplay(produto.status) as
+                                | "Ativo"
+                                | "Inativo"
+                            }
                             onStatusChange={(newStatus) =>
                               handleStatusChange(produto.id, newStatus)
                             }
@@ -344,7 +372,6 @@ const AdminProdutosComercializaveis = () => {
             ))}
           </div>
         </div>
-
         <div className="space-y-4">
           <Label>Alimento Base</Label>
           <div className="space-y-2">
