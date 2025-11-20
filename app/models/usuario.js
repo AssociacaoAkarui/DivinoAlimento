@@ -21,6 +21,11 @@ module.exports = (sequelize, DataTypes) => {
         as: "PedidoConsumidores",
         onDelete: "CASCADE",
       });
+      Usuario.hasMany(models.SubmissaoProduto, {
+        foreignKey: "fornecedorId",
+        as: "SubmissaoProdutos",
+        onDelete: "CASCADE",
+      });
     }
   }
   Usuario.init(
