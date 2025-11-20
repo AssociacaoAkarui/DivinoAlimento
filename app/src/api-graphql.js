@@ -8,6 +8,10 @@ const {
   CryptoUUIDService,
   CategoriaProdutosService,
   ProdutoService,
+  ProdutoComercializavelService,
+  SubmissaoProdutoService,
+  CicloService,
+  OfertaService,
 } = require("../src/services/services.js");
 
 async function requiredAuthenticated(context) {
@@ -211,6 +215,272 @@ const rootValue = {
     const result = await context.produtoService.deletarProduto(args.id);
     return result;
   },
+
+  // ProdutoComercializavel resolvers
+  listarProdutosComercializaveis: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const produtosComercializaveis =
+      await context.produtoComercializavelService.listarTodos();
+    return produtosComercializaveis;
+  },
+
+  buscarProdutoComercializavel: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const produtoComercializavel =
+      await context.produtoComercializavelService.buscarPorId(args.id);
+    return produtoComercializavel;
+  },
+
+  listarProdutosComercializaveisPorProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const produtosComercializaveis =
+      await context.produtoComercializavelService.listarPorProdutoId(
+        args.produtoId,
+      );
+    return produtosComercializaveis;
+  },
+
+  criarProdutoComercializavel: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { input } = args;
+    const produtoComercializavel =
+      await context.produtoComercializavelService.criarProdutoComercializavel(
+        input,
+      );
+    return produtoComercializavel;
+  },
+
+  atualizarProdutoComercializavel: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { id, input } = args;
+    const produtoComercializavel =
+      await context.produtoComercializavelService.atualizarProdutoComercializavel(
+        id,
+        input,
+      );
+    return produtoComercializavel;
+  },
+
+  deletarProdutoComercializavel: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const result =
+      await context.produtoComercializavelService.deletarProdutoComercializavel(
+        args.id,
+      );
+    return result;
+  },
+
+  // SubmissaoProduto resolvers
+  listarSubmissoesProdutos: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const submissoes = await context.submissaoProdutoService.listarTodas();
+    return submissoes;
+  },
+
+  buscarSubmissaoProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const submissao = await context.submissaoProdutoService.buscarPorId(
+      args.id,
+    );
+    return submissao;
+  },
+
+  listarSubmissoesPorStatus: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const submissoes = await context.submissaoProdutoService.listarPorStatus(
+      args.status,
+    );
+    return submissoes;
+  },
+
+  listarSubmissoesPorFornecedor: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const submissoes =
+      await context.submissaoProdutoService.listarPorFornecedor(
+        args.fornecedorId,
+      );
+    return submissoes;
+  },
+
+  criarSubmissaoProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const { input } = args;
+    const submissao =
+      await context.submissaoProdutoService.criarSubmissao(input);
+    return submissao;
+  },
+
+  aprovarSubmissaoProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { id, input } = args;
+    const submissao = await context.submissaoProdutoService.aprovarSubmissao(
+      id,
+      input || {},
+    );
+    return submissao;
+  },
+
+  reprovarSubmissaoProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { id, motivoReprovacao } = args;
+    const submissao = await context.submissaoProdutoService.reprovarSubmissao(
+      id,
+      motivoReprovacao,
+    );
+    return submissao;
+  },
+
+  deletarSubmissaoProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const result = await context.submissaoProdutoService.deletarSubmissao(
+      args.id,
+    );
+    return result;
+  },
+
+  // Ciclo resolvers
+  listarCiclos: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const { limite, cursor } = args;
+    const result = await context.cicloService.listarCiclos(
+      limite || 10,
+      cursor,
+    );
+    return result;
+  },
+
+  buscarCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const ciclo = await context.cicloService.buscarCicloPorId(args.id);
+    return ciclo;
+  },
+
+  criarCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { input } = args;
+    const ciclo = await context.cicloService.criarCiclo(input);
+    return ciclo;
+  },
+
+  atualizarCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { id, input } = args;
+    const ciclo = await context.cicloService.atualizarCiclo(id, input);
+    return ciclo;
+  },
+
+  deletarCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const result = await context.cicloService.deletarCiclo(args.id);
+    return result;
+  },
+
+  // Oferta resolvers
+  buscarOferta: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const oferta = await context.ofertaService.buscarOfertaPorIdComProdutos(
+      args.id,
+    );
+    return oferta;
+  },
+
+  listarOfertasPorCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const ofertas = await context.ofertaService.listarOfertasPorCiclo(
+      args.cicloId,
+    );
+    return ofertas;
+  },
+
+  listarOfertasPorUsuario: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const ofertas = await context.ofertaService.listarOfertasPorUsuario(
+      args.usuarioId,
+    );
+    return ofertas;
+  },
+
+  criarOferta: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const { input } = args;
+    const oferta = await context.ofertaService.criarOferta(input);
+    return oferta;
+  },
+
+  adicionarProdutoOferta: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const { ofertaId, input } = args;
+    const ofertaProduto = await context.ofertaService.adicionarProduto(
+      ofertaId,
+      input.produtoId,
+      input.quantidade,
+      input.valorReferencia,
+      input.valorOferta,
+    );
+    return ofertaProduto;
+  },
+
+  atualizarQuantidadeProdutoOferta: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const { ofertaProdutoId, input } = args;
+    const ofertaProduto =
+      await context.ofertaService.atualizarQuantidadeProduto(
+        ofertaProdutoId,
+        input.quantidade,
+        input.valorOferta,
+      );
+    return ofertaProduto;
+  },
+
+  removerProdutoOferta: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const result = await context.ofertaService.removerProduto(
+      args.ofertaProdutoId,
+    );
+    return result;
+  },
 };
 
 const schemaSDL = fs.readFileSync(path.join(__dirname, "api.graphql"), "utf8");
@@ -221,6 +491,10 @@ const uuid4Service = new CryptoUUIDService();
 const usuarioService = new UsuarioService(uuid4Service);
 const categoriaProdutosService = new CategoriaProdutosService();
 const produtoService = new ProdutoService();
+const produtoComercializavelService = new ProdutoComercializavelService();
+const submissaoProdutoService = new SubmissaoProdutoService();
+const cicloService = new CicloService();
+const ofertaService = new OfertaService();
 
 const API = {
   rootValue,
@@ -229,12 +503,20 @@ const API = {
     usuarioService,
     categoriaProdutosService,
     produtoService,
+    produtoComercializavelService,
+    submissaoProdutoService,
+    cicloService,
+    ofertaService,
   },
   buildContext(sessionToken) {
     return {
       usuarioService,
       categoriaProdutosService,
       produtoService,
+      produtoComercializavelService,
+      submissaoProdutoService,
+      cicloService,
+      ofertaService,
       sessionToken,
     };
   },

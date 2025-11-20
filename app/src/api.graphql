@@ -106,6 +106,123 @@ input AtualizarProdutoInput {
     categoriaId: Int
 }
 
+type ProdutoComercializavel {
+    id: ID!
+    produtoId: Int!
+    produto: Produto
+    medida: String!
+    pesoKg: Float!
+    precoBase: Float!
+    status: String!
+    createdAt: String
+    updatedAt: String
+}
+
+input CriarProdutoComercializavelInput {
+    produtoId: Int!
+    medida: String!
+    pesoKg: Float!
+    precoBase: Float!
+    status: String
+}
+
+input AtualizarProdutoComercializavelInput {
+    produtoId: Int
+    medida: String
+    pesoKg: Float
+    precoBase: Float
+    status: String
+}
+
+type SubmissaoProduto {
+    id: ID!
+    fornecedorId: Int!
+    fornecedor: Usuario
+    nomeProduto: String!
+    descricao: String
+    imagemUrl: String
+    precoUnidade: Float!
+    medida: String!
+    status: String!
+    motivoReprovacao: String
+    createdAt: String
+    updatedAt: String
+}
+
+input CriarSubmissaoProdutoInput {
+    fornecedorId: Int!
+    nomeProduto: String!
+    descricao: String
+    imagemUrl: String
+    precoUnidade: Float!
+    medida: String!
+}
+
+input AprovarSubmissaoInput {
+    descricao: String
+    precoUnidade: Float
+}
+
+type PontoEntrega {
+    id: ID!
+    nome: String!
+    endereco: String
+    bairro: String
+    cidade: String
+    estado: String
+    cep: String
+    status: String
+}
+
+type Ciclo {
+    id: ID!
+    nome: String!
+    ofertaInicio: String!
+    ofertaFim: String!
+    pontoEntregaId: Int!
+    pontoEntrega: PontoEntrega
+    itensAdicionaisInicio: String
+    itensAdicionaisFim: String
+    retiradaConsumidorInicio: String
+    retiradaConsumidorFim: String
+    observacao: String
+    status: String!
+    createdAt: String
+    updatedAt: String
+}
+
+type ListarCiclosResponse {
+    total: Int!
+    ciclos: [Ciclo!]!
+    limite: Int!
+    nextCursor: String
+}
+
+input CriarCicloInput {
+    nome: String!
+    ofertaInicio: String!
+    ofertaFim: String!
+    pontoEntregaId: Int!
+    itensAdicionaisInicio: String
+    itensAdicionaisFim: String
+    retiradaConsumidorInicio: String
+    retiradaConsumidorFim: String
+    observacao: String
+}
+
+input AtualizarCicloInput {
+    nome: String
+    ofertaInicio: String
+    ofertaFim: String
+    pontoEntregaId: Int
+    itensAdicionaisInicio: String
+    itensAdicionaisFim: String
+    retiradaConsumidorInicio: String
+    retiradaConsumidorFim: String
+    observacao: String
+    status: String
+}
+
 input CriarUsuarioInput {
     nome: String!
     email: String!
@@ -129,6 +246,37 @@ type Mutation {
     criarProduto(input: CriarProdutoInput!): Produto!
     atualizarProduto(id: ID!, input: AtualizarProdutoInput!): Produto!
     deletarProduto(id: ID!): Boolean!
+    criarProdutoComercializavel(
+        input: CriarProdutoComercializavelInput!
+    ): ProdutoComercializavel!
+    atualizarProdutoComercializavel(
+        id: ID!
+        input: AtualizarProdutoComercializavelInput!
+    ): ProdutoComercializavel!
+    deletarProdutoComercializavel(id: ID!): Boolean!
+    criarSubmissaoProduto(input: CriarSubmissaoProdutoInput!): SubmissaoProduto!
+    aprovarSubmissaoProduto(
+        id: ID!
+        input: AprovarSubmissaoInput
+    ): SubmissaoProduto!
+    reprovarSubmissaoProduto(
+        id: ID!
+        motivoReprovacao: String!
+    ): SubmissaoProduto!
+    deletarSubmissaoProduto(id: ID!): Boolean!
+    criarCiclo(input: CriarCicloInput!): Ciclo!
+    atualizarCiclo(id: ID!, input: AtualizarCicloInput!): Ciclo!
+    deletarCiclo(id: ID!): Boolean!
+    criarOferta(input: CriarOfertaInput!): Oferta!
+    adicionarProdutoOferta(
+        ofertaId: ID!
+        input: AdicionarProdutoOfertaInput!
+    ): OfertaProduto!
+    atualizarQuantidadeProdutoOferta(
+        ofertaProdutoId: ID!
+        input: AtualizarQuantidadeProdutoInput!
+    ): OfertaProduto!
+    removerProdutoOferta(ofertaProdutoId: ID!): Boolean!
 }
 
 type Query {
@@ -140,4 +288,59 @@ type Query {
     buscarCategoria(id: ID!): CategoriaProdutos!
     listarProdutos: [Produto!]!
     buscarProduto(id: ID!): Produto!
+    listarProdutosComercializaveis: [ProdutoComercializavel!]!
+    buscarProdutoComercializavel(id: ID!): ProdutoComercializavel!
+    listarProdutosComercializaveisPorProduto(
+        produtoId: Int!
+    ): [ProdutoComercializavel!]!
+    listarSubmissoesProdutos: [SubmissaoProduto!]!
+    buscarSubmissaoProduto(id: ID!): SubmissaoProduto!
+    listarSubmissoesPorStatus(status: String!): [SubmissaoProduto!]!
+    listarSubmissoesPorFornecedor(fornecedorId: Int!): [SubmissaoProduto!]!
+    listarCiclos(limite: Int, cursor: String): ListarCiclosResponse!
+    buscarCiclo(id: ID!): Ciclo!
+    buscarOferta(id: ID!): Oferta!
+    listarOfertasPorCiclo(cicloId: Int!): [Oferta!]!
+    listarOfertasPorUsuario(usuarioId: Int!): [Oferta!]!
+}
+
+type OfertaProduto {
+    id: ID!
+    ofertaId: Int!
+    produtoId: Int!
+    produto: Produto
+    quantidade: Float!
+    valorReferencia: Float
+    valorOferta: Float
+}
+
+type Oferta {
+    id: ID!
+    cicloId: Int!
+    ciclo: Ciclo
+    usuarioId: Int!
+    usuario: Usuario
+    status: String!
+    observacao: String
+    ofertaProdutos: [OfertaProduto!]
+    createdAt: String
+    updatedAt: String
+}
+
+input CriarOfertaInput {
+    cicloId: Int!
+    usuarioId: Int!
+    observacao: String
+}
+
+input AdicionarProdutoOfertaInput {
+    produtoId: Int!
+    quantidade: Float!
+    valorReferencia: Float
+    valorOferta: Float
+}
+
+input AtualizarQuantidadeProdutoInput {
+    quantidade: Float!
+    valorOferta: Float
 }

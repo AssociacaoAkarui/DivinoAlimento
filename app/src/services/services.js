@@ -8,6 +8,8 @@ const {
   CicloCestas,
   CicloProdutos,
   Produto,
+  ProdutoComercializavel,
+  SubmissaoProduto,
   CategoriaProdutos,
   Composicoes,
   ComposicaoOfertaProdutos,
@@ -180,7 +182,37 @@ class CicloService {
       order: [["createdAt", "DESC"]],
     });
     const nextCursor = rows.length > 0 ? rows[rows.length - 1].createdAt : null;
-    return { total: count, ciclos: rows, limite, nextCursor };
+    const ciclos = rows.map((ciclo) => {
+      const json = ciclo.toJSON();
+      return {
+        ...json,
+        ofertaInicio: json.ofertaInicio
+          ? new Date(json.ofertaInicio).toISOString()
+          : null,
+        ofertaFim: json.ofertaFim
+          ? new Date(json.ofertaFim).toISOString()
+          : null,
+        itensAdicionaisInicio: json.itensAdicionaisInicio
+          ? new Date(json.itensAdicionaisInicio).toISOString()
+          : null,
+        itensAdicionaisFim: json.itensAdicionaisFim
+          ? new Date(json.itensAdicionaisFim).toISOString()
+          : null,
+        retiradaConsumidorInicio: json.retiradaConsumidorInicio
+          ? new Date(json.retiradaConsumidorInicio).toISOString()
+          : null,
+        retiradaConsumidorFim: json.retiradaConsumidorFim
+          ? new Date(json.retiradaConsumidorFim).toISOString()
+          : null,
+        createdAt: json.createdAt
+          ? new Date(json.createdAt).toISOString()
+          : null,
+        updatedAt: json.updatedAt
+          ? new Date(json.updatedAt).toISOString()
+          : null,
+      };
+    });
+    return { total: count, ciclos, limite, nextCursor };
   }
 
   async deletarCiclo(cicloId, options = {}) {
@@ -704,32 +736,93 @@ class PontoEntregaService {
 class OfertaService {
   async criarOferta(dados) {
     try {
-      const allowedFields = ["cicloId", "usuarioId"];
+      const allowedFields = ["cicloId", "usuarioId", "observacao"];
       const payloadSeguro = filterPayload(Oferta, dados, allowedFields);
+      payloadSeguro.status = "ativo";
       return await Oferta.create(payloadSeguro);
     } catch (error) {
       throw new ServiceError("Falha ao criar oferta.", { cause: error });
     }
   }
 
-  async adicionarProduto(ofertaId, produtoId, quantidade) {
+  async adicionarProduto(
+    ofertaId,
+    produtoId,
+    quantidade,
+    valorReferencia = null,
+    valorOferta = null,
+  ) {
     try {
       if (quantidade <= 0) {
         throw new ServiceError("A quantidade deve ser maior que zero.");
       }
+      const defaults = { quantidade };
+      if (valorReferencia !== null) defaults.valorReferencia = valorReferencia;
+      if (valorOferta !== null) defaults.valorOferta = valorOferta;
+
       const [ofertaProduto, created] = await OfertaProdutos.findOrCreate({
         where: { ofertaId, produtoId },
-        defaults: { quantidade },
+        defaults,
       });
 
       if (!created) {
-        await ofertaProduto.update({ quantidade });
+        const updateData = { quantidade };
+        if (valorReferencia !== null)
+          updateData.valorReferencia = valorReferencia;
+        if (valorOferta !== null) updateData.valorOferta = valorOferta;
+        await ofertaProduto.update(updateData);
       }
 
-      return ofertaProduto;
+      return await OfertaProdutos.findByPk(ofertaProduto.id, {
+        include: ["produto"],
+      });
     } catch (error) {
       if (error instanceof ServiceError) throw error;
       throw new ServiceError("Falha ao adicionar produto à oferta.", {
+        cause: error,
+      });
+    }
+  }
+
+  async listarOfertasPorCiclo(cicloId) {
+    try {
+      const ofertas = await Oferta.findAll({
+        where: { cicloId },
+        include: [
+          {
+            model: OfertaProdutos,
+            as: "ofertaProdutos",
+            include: ["produto"],
+          },
+          "ciclo",
+          "usuario",
+        ],
+      });
+      return ofertas;
+    } catch (error) {
+      throw new ServiceError("Falha ao listar ofertas por ciclo.", {
+        cause: error,
+      });
+    }
+  }
+
+  async listarOfertasPorUsuario(usuarioId) {
+    try {
+      const ofertas = await Oferta.findAll({
+        where: { usuarioId },
+        include: [
+          {
+            model: OfertaProdutos,
+            as: "ofertaProdutos",
+            include: ["produto"],
+          },
+          "ciclo",
+          "usuario",
+        ],
+      });
+      return ofertas;
+    } catch (error) {
+      throw new ServiceError("Falha ao listar ofertas por usuário.", {
         cause: error,
       });
     }
@@ -744,6 +837,8 @@ class OfertaService {
             as: "ofertaProdutos",
             include: ["produto"],
           },
+          "ciclo",
+          "usuario",
         ],
       });
       if (!oferta) {
@@ -758,7 +853,11 @@ class OfertaService {
     }
   }
 
-  async atualizarQuantidadeProduto(ofertaProdutoId, novaQuantidade) {
+  async atualizarQuantidadeProduto(
+    ofertaProdutoId,
+    novaQuantidade,
+    valorOferta = null,
+  ) {
     try {
       const ofertaProduto = await OfertaProdutos.findByPk(ofertaProdutoId);
       if (!ofertaProduto) {
@@ -769,8 +868,12 @@ class OfertaService {
       if (novaQuantidade <= 0) {
         throw new ServiceError("A quantidade deve ser maior que zero.");
       }
-      await ofertaProduto.update({ quantidade: novaQuantidade });
-      return ofertaProduto;
+      const updateData = { quantidade: novaQuantidade };
+      if (valorOferta !== null) updateData.valorOferta = valorOferta;
+      await ofertaProduto.update(updateData);
+      return await OfertaProdutos.findByPk(ofertaProdutoId, {
+        include: ["produto"],
+      });
     } catch (error) {
       if (error instanceof ServiceError) throw error;
       throw new ServiceError("Falha ao atualizar a quantidade do produto.", {
@@ -1243,9 +1346,345 @@ class CategoriaProdutosService {
   }
 }
 
+class ProdutoComercializavelService {
+  async criarProdutoComercializavel(dados) {
+    try {
+      if (!dados || !dados.produtoId) {
+        throw new ServiceError("O produtoId é obrigatório.");
+      }
+      if (!dados.medida) {
+        throw new ServiceError("A medida é obrigatória.");
+      }
+      if (dados.pesoKg === undefined || dados.pesoKg === null) {
+        throw new ServiceError("O peso em kg é obrigatório.");
+      }
+      if (dados.precoBase === undefined || dados.precoBase === null) {
+        throw new ServiceError("O preço base é obrigatório.");
+      }
+
+      // Verificar se o produto base existe
+      const produto = await Produto.findByPk(dados.produtoId);
+      if (!produto) {
+        throw new ServiceError(
+          `Produto com ID ${dados.produtoId} não encontrado`,
+        );
+      }
+
+      const allowedFields = [
+        "produtoId",
+        "medida",
+        "pesoKg",
+        "precoBase",
+        "status",
+      ];
+      const payloadSeguro = filterPayload(
+        ProdutoComercializavel,
+        dados,
+        allowedFields,
+      );
+      return await ProdutoComercializavel.create(payloadSeguro);
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao criar produto comercializável.", {
+        cause: error,
+      });
+    }
+  }
+
+  async buscarPorId(id) {
+    try {
+      const produtoComercializavel = await ProdutoComercializavel.findByPk(id, {
+        include: [{ model: Produto, as: "produto" }],
+      });
+      if (!produtoComercializavel) {
+        throw new ServiceError(
+          `Produto comercializável com ID ${id} não encontrado`,
+        );
+      }
+      return produtoComercializavel;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError(
+        "Falha ao buscar produto comercializável por ID.",
+        {
+          cause: error,
+        },
+      );
+    }
+  }
+
+  async atualizarProdutoComercializavel(id, dadosParaAtualizar) {
+    try {
+      const produtoComercializavel = await this.buscarPorId(id);
+
+      // Se está atualizando o produtoId, verificar se existe
+      if (dadosParaAtualizar.produtoId) {
+        const produto = await Produto.findByPk(dadosParaAtualizar.produtoId);
+        if (!produto) {
+          throw new ServiceError(
+            `Produto com ID ${dadosParaAtualizar.produtoId} não encontrado`,
+          );
+        }
+      }
+
+      const allowedFields = [
+        "produtoId",
+        "medida",
+        "pesoKg",
+        "precoBase",
+        "status",
+      ];
+      const payloadSeguro = filterPayload(
+        ProdutoComercializavel,
+        dadosParaAtualizar,
+        allowedFields,
+      );
+      await produtoComercializavel.update(payloadSeguro);
+      return produtoComercializavel;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao atualizar produto comercializável.", {
+        cause: error,
+      });
+    }
+  }
+
+  async deletarProdutoComercializavel(id) {
+    try {
+      const produtoComercializavel = await this.buscarPorId(id);
+      await produtoComercializavel.destroy();
+      return true;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao deletar produto comercializável.", {
+        cause: error,
+      });
+    }
+  }
+
+  async listarTodos() {
+    try {
+      const produtosComercializaveis = await ProdutoComercializavel.findAll({
+        include: [{ model: Produto, as: "produto" }],
+        order: [["createdAt", "DESC"]],
+      });
+      return produtosComercializaveis;
+    } catch (error) {
+      throw new ServiceError("Falha ao listar produtos comercializáveis.", {
+        cause: error,
+      });
+    }
+  }
+
+  async listarPorProdutoId(produtoId) {
+    try {
+      const produtosComercializaveis = await ProdutoComercializavel.findAll({
+        where: { produtoId },
+        include: [{ model: Produto, as: "produto" }],
+        order: [["medida", "ASC"]],
+      });
+      return produtosComercializaveis;
+    } catch (error) {
+      throw new ServiceError(
+        "Falha ao listar produtos comercializáveis por produto.",
+        { cause: error },
+      );
+    }
+  }
+}
+
+class SubmissaoProdutoService {
+  async criarSubmissao(dados) {
+    try {
+      if (!dados || !dados.fornecedorId) {
+        throw new ServiceError("O fornecedorId é obrigatório.");
+      }
+      if (!dados.nomeProduto) {
+        throw new ServiceError("O nome do produto é obrigatório.");
+      }
+      if (dados.precoUnidade === undefined || dados.precoUnidade === null) {
+        throw new ServiceError("O preço por unidade é obrigatório.");
+      }
+      if (!dados.medida) {
+        throw new ServiceError("A medida é obrigatória.");
+      }
+
+      // Verificar se o fornecedor existe
+      const fornecedor = await Usuario.findByPk(dados.fornecedorId);
+      if (!fornecedor) {
+        throw new ServiceError(
+          `Fornecedor com ID ${dados.fornecedorId} não encontrado`,
+        );
+      }
+
+      const allowedFields = [
+        "fornecedorId",
+        "nomeProduto",
+        "descricao",
+        "imagemUrl",
+        "precoUnidade",
+        "medida",
+        "status",
+      ];
+      const payloadSeguro = filterPayload(
+        SubmissaoProduto,
+        dados,
+        allowedFields,
+      );
+      return await SubmissaoProduto.create(payloadSeguro);
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao criar submissão de produto.", {
+        cause: error,
+      });
+    }
+  }
+
+  async buscarPorId(id) {
+    try {
+      const submissao = await SubmissaoProduto.findByPk(id, {
+        include: [{ model: Usuario, as: "fornecedor" }],
+      });
+      if (!submissao) {
+        throw new ServiceError(`Submissão com ID ${id} não encontrada`);
+      }
+      return submissao;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao buscar submissão de produto.", {
+        cause: error,
+      });
+    }
+  }
+
+  async aprovarSubmissao(id, dadosAtualizacao = {}) {
+    try {
+      const submissao = await this.buscarPorId(id);
+
+      const allowedFields = ["descricao", "precoUnidade"];
+      const payloadSeguro = filterPayload(
+        SubmissaoProduto,
+        dadosAtualizacao,
+        allowedFields,
+      );
+
+      await submissao.update({
+        ...payloadSeguro,
+        status: "aprovado",
+        motivoReprovacao: null,
+      });
+      return submissao;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao aprovar submissão de produto.", {
+        cause: error,
+      });
+    }
+  }
+
+  async reprovarSubmissao(id, motivoReprovacao) {
+    try {
+      if (!motivoReprovacao || !motivoReprovacao.trim()) {
+        throw new ServiceError("O motivo da reprovação é obrigatório.");
+      }
+
+      const submissao = await this.buscarPorId(id);
+      await submissao.update({
+        status: "reprovado",
+        motivoReprovacao: motivoReprovacao.trim(),
+      });
+      return submissao;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao reprovar submissão de produto.", {
+        cause: error,
+      });
+    }
+  }
+
+  async deletarSubmissao(id) {
+    try {
+      const submissao = await this.buscarPorId(id);
+      await submissao.destroy();
+      return true;
+    } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
+      throw new ServiceError("Falha ao deletar submissão de produto.", {
+        cause: error,
+      });
+    }
+  }
+
+  async listarTodas() {
+    try {
+      const submissoes = await SubmissaoProduto.findAll({
+        include: [{ model: Usuario, as: "fornecedor" }],
+        order: [["createdAt", "DESC"]],
+      });
+      return submissoes;
+    } catch (error) {
+      throw new ServiceError("Falha ao listar submissões de produtos.", {
+        cause: error,
+      });
+    }
+  }
+
+  async listarPorStatus(status) {
+    try {
+      const submissoes = await SubmissaoProduto.findAll({
+        where: { status },
+        include: [{ model: Usuario, as: "fornecedor" }],
+        order: [["createdAt", "DESC"]],
+      });
+      return submissoes;
+    } catch (error) {
+      throw new ServiceError(
+        "Falha ao listar submissões de produtos por status.",
+        { cause: error },
+      );
+    }
+  }
+
+  async listarPorFornecedor(fornecedorId) {
+    try {
+      const submissoes = await SubmissaoProduto.findAll({
+        where: { fornecedorId },
+        include: [{ model: Usuario, as: "fornecedor" }],
+        order: [["createdAt", "DESC"]],
+      });
+      return submissoes;
+    } catch (error) {
+      throw new ServiceError(
+        "Falha ao listar submissões de produtos por fornecedor.",
+        { cause: error },
+      );
+    }
+  }
+}
+
 module.exports = {
   CicloService,
   ProdutoService,
+  ProdutoComercializavelService,
+  SubmissaoProdutoService,
   CestaService,
   ComposicaoService,
   PontoEntregaService,
