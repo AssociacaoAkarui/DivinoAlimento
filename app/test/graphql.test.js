@@ -1325,6 +1325,1153 @@ describe("CategoriaProdutos GraphQL", function () {
     expect(result.errors).to.not.be.undefined;
     expect(result.errors[0].message).to.equal("Admin required");
   });
+
+  // SubmissaoProduto tests
+  it("admin user can create submissao produto", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const fornecedor = await usuarioService.create(
+      {
+        email: "fornecedor@example.com",
+        senha: "password123",
+        nome: "Fornecedor User",
+        perfis: ["fornecedor"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    const mutation = `
+      mutation CriarSubmissaoProduto($input: CriarSubmissaoProdutoInput!) {
+        criarSubmissaoProduto(input: $input) {
+          id
+          nomeProduto
+          precoUnidade
+          medida
+          status
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        input: {
+          fornecedorId: fornecedor.id,
+          nomeProduto: "Tomate Orgânico",
+          descricao: "Tomate cultivado sem agrotóxicos",
+          precoUnidade: 4.5,
+          medida: "kg",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarSubmissaoProduto.nomeProduto).to.equal(
+      "Tomate Orgânico",
+    );
+    expect(result.data.criarSubmissaoProduto.status).to.equal("pendente");
+  });
+
+  it("admin user can approve submissao produto", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const fornecedor = await usuarioService.create(
+      {
+        email: "fornecedor@example.com",
+        senha: "password123",
+        nome: "Fornecedor User",
+        perfis: ["fornecedor"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create submissao first
+    const { SubmissaoProdutoService } = require("../src/services/services.js");
+    const submissaoService = new SubmissaoProdutoService();
+    const submissao = await submissaoService.criarSubmissao({
+      fornecedorId: fornecedor.id,
+      nomeProduto: "Alface",
+      precoUnidade: 3.0,
+      medida: "unidade",
+    });
+
+    const mutation = `
+      mutation AprovarSubmissaoProduto($id: ID!, $input: AprovarSubmissaoInput) {
+        aprovarSubmissaoProduto(id: $id, input: $input) {
+          id
+          status
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        id: submissao.id,
+        input: { precoUnidade: 3.5 },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.aprovarSubmissaoProduto.status).to.equal("aprovado");
+  });
+
+  it("admin user can reject submissao produto", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const fornecedor = await usuarioService.create(
+      {
+        email: "fornecedor@example.com",
+        senha: "password123",
+        nome: "Fornecedor User",
+        perfis: ["fornecedor"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create submissao first
+    const { SubmissaoProdutoService } = require("../src/services/services.js");
+    const submissaoService = new SubmissaoProdutoService();
+    const submissao = await submissaoService.criarSubmissao({
+      fornecedorId: fornecedor.id,
+      nomeProduto: "Produto Ruim",
+      precoUnidade: 100.0,
+      medida: "kg",
+    });
+
+    const mutation = `
+      mutation ReprovarSubmissaoProduto($id: ID!, $motivoReprovacao: String!) {
+        reprovarSubmissaoProduto(id: $id, motivoReprovacao: $motivoReprovacao) {
+          id
+          status
+          motivoReprovacao
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        id: submissao.id,
+        motivoReprovacao: "Preço muito alto",
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.reprovarSubmissaoProduto.status).to.equal("reprovado");
+    expect(result.data.reprovarSubmissaoProduto.motivoReprovacao).to.equal(
+      "Preço muito alto",
+    );
+  });
+
+  it("admin user can list submissoes produtos", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const fornecedor = await usuarioService.create(
+      {
+        email: "fornecedor@example.com",
+        senha: "password123",
+        nome: "Fornecedor User",
+        perfis: ["fornecedor"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create submissoes
+    const { SubmissaoProdutoService } = require("../src/services/services.js");
+    const submissaoService = new SubmissaoProdutoService();
+    await submissaoService.criarSubmissao({
+      fornecedorId: fornecedor.id,
+      nomeProduto: "Produto 1",
+      precoUnidade: 5.0,
+      medida: "kg",
+    });
+    await submissaoService.criarSubmissao({
+      fornecedorId: fornecedor.id,
+      nomeProduto: "Produto 2",
+      precoUnidade: 10.0,
+      medida: "unidade",
+    });
+
+    const query = `
+      query ListarSubmissoesProdutos {
+        listarSubmissoesProdutos {
+          id
+          nomeProduto
+          status
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarSubmissoesProdutos).to.have.lengthOf(2);
+  });
+
+  it("admin user can delete submissao produto", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const fornecedor = await usuarioService.create(
+      {
+        email: "fornecedor@example.com",
+        senha: "password123",
+        nome: "Fornecedor User",
+        perfis: ["fornecedor"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create submissao
+    const { SubmissaoProdutoService } = require("../src/services/services.js");
+    const submissaoService = new SubmissaoProdutoService();
+    const submissao = await submissaoService.criarSubmissao({
+      fornecedorId: fornecedor.id,
+      nomeProduto: "Produto para Deletar",
+      precoUnidade: 5.0,
+      medida: "kg",
+    });
+
+    const mutation = `
+      mutation DeletarSubmissaoProduto($id: ID!) {
+        deletarSubmissaoProduto(id: $id)
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: { id: submissao.id },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.deletarSubmissaoProduto).to.be.true;
+  });
+
+  it("admin user can list submissoes by status", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const fornecedor = await usuarioService.create(
+      {
+        email: "fornecedor@example.com",
+        senha: "password123",
+        nome: "Fornecedor User",
+        perfis: ["fornecedor"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create submissoes with different status
+    const { SubmissaoProdutoService } = require("../src/services/services.js");
+    const submissaoService = new SubmissaoProdutoService();
+
+    await submissaoService.criarSubmissao({
+      fornecedorId: fornecedor.id,
+      nomeProduto: "Pendente 1",
+      precoUnidade: 5.0,
+      medida: "kg",
+    });
+
+    const aprovada = await submissaoService.criarSubmissao({
+      fornecedorId: fornecedor.id,
+      nomeProduto: "Aprovada",
+      precoUnidade: 10.0,
+      medida: "unidade",
+    });
+    await submissaoService.aprovarSubmissao(aprovada.id);
+
+    const query = `
+      query ListarSubmissoesPorStatus($status: String!) {
+        listarSubmissoesPorStatus(status: $status) {
+          id
+          nomeProduto
+          status
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      variableValues: { status: "pendente" },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarSubmissoesPorStatus).to.have.lengthOf(1);
+    expect(result.data.listarSubmissoesPorStatus[0].status).to.equal(
+      "pendente",
+    );
+  });
+});
+
+describe("ProdutoComercializavel GraphQL", function () {
+  it("admin user can create produto comercializavel", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+
+    const context = APIGraphql.buildContext(session.token);
+
+    // First create a categoria
+    const createCategoriaMutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const categoriaResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createCategoriaMutation,
+      variableValues: {
+        input: {
+          nome: "Frutas",
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const categoriaId = parseInt(categoriaResult.data.criarCategoria.id);
+
+    // Create a produto base
+    const createProdutoMutation = `
+      mutation CriarProduto($input: CriarProdutoInput!) {
+        criarProduto(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const produtoResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createProdutoMutation,
+      variableValues: {
+        input: {
+          nome: "Maçã Fuji",
+          status: "ativo",
+          categoriaId: categoriaId,
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const produtoId = parseInt(produtoResult.data.criarProduto.id);
+
+    // Create produto comercializavel
+    const mutation = `
+      mutation CriarProdutoComercializavel($input: CriarProdutoComercializavelInput!) {
+        criarProdutoComercializavel(input: $input) {
+          id
+          produtoId
+          medida
+          pesoKg
+          precoBase
+          status
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        input: {
+          produtoId: produtoId,
+          medida: "unidade",
+          pesoKg: 0.2,
+          precoBase: 2.5,
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarProdutoComercializavel.medida).to.equal("unidade");
+    expect(result.data.criarProdutoComercializavel.pesoKg).to.equal(0.2);
+    expect(result.data.criarProdutoComercializavel.precoBase).to.equal(2.5);
+    expect(result.data.criarProdutoComercializavel.status).to.equal("ativo");
+  });
+
+  it("admin user can list produtos comercializaveis", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+
+    const context = APIGraphql.buildContext(session.token);
+
+    const query = `
+      query ListarProdutosComercializaveis {
+        listarProdutosComercializaveis {
+          id
+          medida
+          pesoKg
+          precoBase
+          status
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarProdutosComercializaveis).to.be.an("array");
+  });
+
+  it("admin user can find produto comercializavel by id", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create categoria, produto and produto comercializavel
+    const createCategoriaMutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const categoriaResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createCategoriaMutation,
+      variableValues: {
+        input: {
+          nome: "Frutas",
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const categoriaId = parseInt(categoriaResult.data.criarCategoria.id);
+
+    const createProdutoMutation = `
+      mutation CriarProduto($input: CriarProdutoInput!) {
+        criarProduto(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const produtoResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createProdutoMutation,
+      variableValues: {
+        input: {
+          nome: "Banana Prata",
+          status: "ativo",
+          categoriaId: categoriaId,
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const produtoId = parseInt(produtoResult.data.criarProduto.id);
+
+    const createMutation = `
+      mutation CriarProdutoComercializavel($input: CriarProdutoComercializavelInput!) {
+        criarProdutoComercializavel(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const createResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createMutation,
+      variableValues: {
+        input: {
+          produtoId: produtoId,
+          medida: "dúzia",
+          pesoKg: 1.2,
+          precoBase: 15.0,
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const produtoComercializavelId =
+      createResult.data.criarProdutoComercializavel.id;
+
+    // Find by id
+    const query = `
+      query BuscarProdutoComercializavel($id: ID!) {
+        buscarProdutoComercializavel(id: $id) {
+          id
+          medida
+          pesoKg
+          precoBase
+          produto {
+            id
+            nome
+          }
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      variableValues: { id: produtoComercializavelId },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.buscarProdutoComercializavel.medida).to.equal("dúzia");
+    expect(result.data.buscarProdutoComercializavel.produto.nome).to.equal(
+      "Banana Prata",
+    );
+  });
+
+  it("admin user can update produto comercializavel", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create categoria and produto
+    const createCategoriaMutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const categoriaResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createCategoriaMutation,
+      variableValues: {
+        input: {
+          nome: "Frutas",
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const categoriaId = parseInt(categoriaResult.data.criarCategoria.id);
+
+    const createProdutoMutation = `
+      mutation CriarProduto($input: CriarProdutoInput!) {
+        criarProduto(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const produtoResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createProdutoMutation,
+      variableValues: {
+        input: {
+          nome: "Pera Williams",
+          status: "ativo",
+          categoriaId: categoriaId,
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const produtoId = parseInt(produtoResult.data.criarProduto.id);
+
+    // Create produto comercializavel
+    const createMutation = `
+      mutation CriarProdutoComercializavel($input: CriarProdutoComercializavelInput!) {
+        criarProdutoComercializavel(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const createResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createMutation,
+      variableValues: {
+        input: {
+          produtoId: produtoId,
+          medida: "caixa",
+          pesoKg: 5.0,
+          precoBase: 45.0,
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const produtoComercializavelId =
+      createResult.data.criarProdutoComercializavel.id;
+
+    // Update produto comercializavel
+    const mutation = `
+      mutation AtualizarProdutoComercializavel($id: ID!, $input: AtualizarProdutoComercializavelInput!) {
+        atualizarProdutoComercializavel(id: $id, input: $input) {
+          id
+          medida
+          precoBase
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        id: produtoComercializavelId,
+        input: {
+          medida: "unidade",
+          precoBase: 3.5,
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.atualizarProdutoComercializavel.medida).to.equal(
+      "unidade",
+    );
+    expect(result.data.atualizarProdutoComercializavel.precoBase).to.equal(3.5);
+  });
+
+  it("admin user can delete produto comercializavel", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create categoria and produto
+    const createCategoriaMutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const categoriaResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createCategoriaMutation,
+      variableValues: {
+        input: {
+          nome: "Frutas",
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const categoriaId = parseInt(categoriaResult.data.criarCategoria.id);
+
+    const createProdutoMutation = `
+      mutation CriarProduto($input: CriarProdutoInput!) {
+        criarProduto(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const produtoResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createProdutoMutation,
+      variableValues: {
+        input: {
+          nome: "Uva Itália",
+          status: "ativo",
+          categoriaId: categoriaId,
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const produtoId = parseInt(produtoResult.data.criarProduto.id);
+
+    // Create produto comercializavel
+    const createMutation = `
+      mutation CriarProdutoComercializavel($input: CriarProdutoComercializavelInput!) {
+        criarProdutoComercializavel(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const createResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createMutation,
+      variableValues: {
+        input: {
+          produtoId: produtoId,
+          medida: "kg",
+          pesoKg: 1.0,
+          precoBase: 12.0,
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const produtoComercializavelId =
+      createResult.data.criarProdutoComercializavel.id;
+
+    // Delete produto comercializavel
+    const mutation = `
+      mutation DeletarProdutoComercializavel($id: ID!) {
+        deletarProdutoComercializavel(id: $id)
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: { id: produtoComercializavelId },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.deletarProdutoComercializavel).to.be.true;
+  });
+
+  it("admin user can list produtos comercializaveis by produto", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create categoria and produto
+    const createCategoriaMutation = `
+      mutation CriarCategoria($input: CriarCategoriaProdutosInput!) {
+        criarCategoria(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const categoriaResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createCategoriaMutation,
+      variableValues: {
+        input: {
+          nome: "Frutas",
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const categoriaId = parseInt(categoriaResult.data.criarCategoria.id);
+
+    const createProdutoMutation = `
+      mutation CriarProduto($input: CriarProdutoInput!) {
+        criarProduto(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const produtoResult = await graphql({
+      schema: APIGraphql.schema,
+      source: createProdutoMutation,
+      variableValues: {
+        input: {
+          nome: "Laranja",
+          status: "ativo",
+          categoriaId: categoriaId,
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    const produtoId = parseInt(produtoResult.data.criarProduto.id);
+
+    // Create multiple produtos comercializaveis for the same produto
+    const createMutation = `
+      mutation CriarProdutoComercializavel($input: CriarProdutoComercializavelInput!) {
+        criarProdutoComercializavel(input: $input) {
+          id
+        }
+      }
+    `;
+
+    await graphql({
+      schema: APIGraphql.schema,
+      source: createMutation,
+      variableValues: {
+        input: {
+          produtoId: produtoId,
+          medida: "unidade",
+          pesoKg: 0.2,
+          precoBase: 1.5,
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    await graphql({
+      schema: APIGraphql.schema,
+      source: createMutation,
+      variableValues: {
+        input: {
+          produtoId: produtoId,
+          medida: "dúzia",
+          pesoKg: 2.4,
+          precoBase: 15.0,
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    // List by produto
+    const query = `
+      query ListarProdutosComercializaveisPorProduto($produtoId: Int!) {
+        listarProdutosComercializaveisPorProduto(produtoId: $produtoId) {
+          id
+          medida
+          precoBase
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      variableValues: { produtoId: produtoId },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarProdutosComercializaveisPorProduto).to.have.length(
+      2,
+    );
+  });
 });
 
 describe("Produto GraphQL", function () {
@@ -1894,5 +3041,764 @@ describe("Produto GraphQL", function () {
 
     expect(result.errors).to.not.be.undefined;
     expect(result.errors[0].message).to.equal("Admin required");
+  });
+});
+
+describe("Ciclo GraphQL", function () {
+  it("admin user can create ciclo", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create ponto de entrega first
+    const { PontoEntrega } = require("../models");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      status: "ativo",
+    });
+
+    const agora = new Date().toISOString();
+    const umaSemanaDepois = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+
+    const mutation = `
+      mutation CriarCiclo($input: CriarCicloInput!) {
+        criarCiclo(input: $input) {
+          id
+          nome
+          status
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        input: {
+          nome: "Ciclo Teste",
+          ofertaInicio: agora,
+          ofertaFim: umaSemanaDepois,
+          pontoEntregaId: pontoEntrega.id,
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarCiclo.nome).to.equal("Ciclo Teste");
+    expect(result.data.criarCiclo.status).to.equal("oferta");
+  });
+
+  it("admin user can list ciclos", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create ponto de entrega and ciclo
+    const { PontoEntrega } = require("../models");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      status: "ativo",
+    });
+
+    const { CicloService } = require("../src/services/services.js");
+    const cicloService = new CicloService();
+    const agora = new Date();
+    const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    await cicloService.criarCiclo({
+      nome: "Ciclo 1",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+    });
+    await cicloService.criarCiclo({
+      nome: "Ciclo 2",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+    });
+
+    const query = `
+      query ListarCiclos {
+        listarCiclos {
+          total
+          ciclos {
+            id
+            nome
+            status
+          }
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarCiclos.ciclos).to.have.lengthOf(2);
+  });
+
+  it("admin user can update ciclo", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create ponto de entrega and ciclo
+    const { PontoEntrega } = require("../models");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      status: "ativo",
+    });
+
+    const { CicloService } = require("../src/services/services.js");
+    const cicloService = new CicloService();
+    const agora = new Date();
+    const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const ciclo = await cicloService.criarCiclo({
+      nome: "Ciclo Original",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+    });
+
+    const mutation = `
+      mutation AtualizarCiclo($id: ID!, $input: AtualizarCicloInput!) {
+        atualizarCiclo(id: $id, input: $input) {
+          id
+          nome
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        id: ciclo.id,
+        input: {
+          nome: "Ciclo Atualizado",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.atualizarCiclo.nome).to.equal("Ciclo Atualizado");
+  });
+
+  it("admin user can delete ciclo", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create ponto de entrega and ciclo
+    const { PontoEntrega } = require("../models");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      status: "ativo",
+    });
+
+    const { CicloService } = require("../src/services/services.js");
+    const cicloService = new CicloService();
+    const agora = new Date();
+    const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const ciclo = await cicloService.criarCiclo({
+      nome: "Ciclo para Deletar",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+    });
+
+    const mutation = `
+      mutation DeletarCiclo($id: ID!) {
+        deletarCiclo(id: $id)
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: { id: ciclo.id },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.deletarCiclo).to.be.true;
+  });
+
+  it("admin user can get ciclo by id", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+      "admin",
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+    const context = APIGraphql.buildContext(session.token);
+
+    // Create ponto de entrega and ciclo
+    const { PontoEntrega } = require("../models");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      status: "ativo",
+    });
+
+    const { CicloService } = require("../src/services/services.js");
+    const cicloService = new CicloService();
+    const agora = new Date();
+    const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const ciclo = await cicloService.criarCiclo({
+      nome: "Ciclo Específico",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+    });
+
+    const query = `
+      query BuscarCiclo($id: ID!) {
+        buscarCiclo(id: $id) {
+          id
+          nome
+          status
+          pontoEntrega {
+            id
+            nome
+          }
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      variableValues: { id: ciclo.id },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.buscarCiclo.nome).to.equal("Ciclo Específico");
+    expect(result.data.buscarCiclo.pontoEntrega.nome).to.equal("Ponto Teste");
+  });
+});
+
+describe("Oferta GraphQL", function () {
+  it("authenticated user can create oferta", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const usuario = await usuarioService.create(
+      {
+        email: "fornecedor@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Fornecedor User",
+        perfis: ["fornecedor"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "fornecedor@example.com",
+      "password123",
+    );
+
+    const { PontoEntrega, Ciclo } = require("../models/index.js");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 123",
+      status: "ativo",
+    });
+
+    const agora = new Date();
+    const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const ciclo = await Ciclo.create({
+      nome: "Ciclo Teste",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+      status: "oferta",
+    });
+
+    const mutation = `
+      mutation CriarOferta($input: CriarOfertaInput!) {
+        criarOferta(input: $input) {
+          id
+          cicloId
+          usuarioId
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(session.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        input: {
+          cicloId: ciclo.id,
+          usuarioId: usuario.id,
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    if (result.errors)
+      console.log(
+        "criarOferta errors:",
+        JSON.stringify(result.errors, null, 2),
+      );
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarOferta.cicloId).to.equal(ciclo.id);
+    expect(result.data.criarOferta.usuarioId).to.equal(usuario.id);
+  });
+
+  it("authenticated user can add produto to oferta", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const usuario = await usuarioService.create(
+      {
+        email: "fornecedor@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Fornecedor User",
+        perfis: ["fornecedor"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "fornecedor@example.com",
+      "password123",
+    );
+
+    const {
+      PontoEntrega,
+      Ciclo,
+      Produto,
+      Oferta,
+    } = require("../models/index.js");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 123",
+      status: "ativo",
+    });
+
+    const agora = new Date();
+    const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const ciclo = await Ciclo.create({
+      nome: "Ciclo Teste",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+      status: "oferta",
+    });
+
+    const produto = await Produto.create({
+      nome: "Tomate",
+      medida: "kg",
+      valorReferencia: 5.0,
+      status: "ativo",
+    });
+
+    const oferta = await Oferta.create({
+      cicloId: ciclo.id,
+      usuarioId: usuario.id,
+      status: "ativo",
+    });
+
+    const mutation = `
+      mutation AdicionarProdutoOferta($ofertaId: ID!, $input: AdicionarProdutoOfertaInput!) {
+        adicionarProdutoOferta(ofertaId: $ofertaId, input: $input) {
+          id
+          ofertaId
+          produtoId
+          quantidade
+          valorOferta
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(session.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        ofertaId: oferta.id,
+        input: {
+          produtoId: produto.id,
+          quantidade: 10,
+          valorOferta: 4.5,
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.adicionarProdutoOferta.produtoId).to.equal(produto.id);
+    expect(result.data.adicionarProdutoOferta.quantidade).to.equal(10);
+    expect(result.data.adicionarProdutoOferta.valorOferta).to.equal(4.5);
+  });
+
+  it("authenticated user can get oferta with produtos", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    const usuario = await usuarioService.create(
+      {
+        email: "fornecedor@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Fornecedor User",
+        perfis: ["fornecedor"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "fornecedor@example.com",
+      "password123",
+    );
+
+    const {
+      PontoEntrega,
+      Ciclo,
+      Produto,
+      Oferta,
+      OfertaProdutos,
+    } = require("../models/index.js");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 123",
+      status: "ativo",
+    });
+
+    const agora = new Date();
+    const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const ciclo = await Ciclo.create({
+      nome: "Ciclo Teste",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+      status: "oferta",
+    });
+
+    const produto = await Produto.create({
+      nome: "Tomate",
+      medida: "kg",
+      valorReferencia: 5.0,
+      status: "ativo",
+    });
+
+    const oferta = await Oferta.create({
+      cicloId: ciclo.id,
+      usuarioId: usuario.id,
+      status: "ativo",
+    });
+
+    await OfertaProdutos.create({
+      ofertaId: oferta.id,
+      produtoId: produto.id,
+      quantidade: 10,
+      valorOferta: 4.5,
+    });
+
+    const query = `
+      query BuscarOferta($id: ID!) {
+        buscarOferta(id: $id) {
+          id
+          cicloId
+          usuarioId
+          status
+          ofertaProdutos {
+            id
+            produtoId
+            quantidade
+            valorOferta
+            produto {
+              id
+              nome
+            }
+          }
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(session.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      variableValues: { id: oferta.id },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    if (result.errors)
+      console.log(
+        "buscarOferta errors:",
+        JSON.stringify(result.errors, null, 2),
+      );
+    expect(result.errors).to.be.undefined;
+    expect(result.data.buscarOferta.id).to.equal(String(oferta.id));
+    expect(result.data.buscarOferta.ofertaProdutos).to.have.lengthOf(1);
+    expect(result.data.buscarOferta.ofertaProdutos[0].produto.nome).to.equal(
+      "Tomate",
+    );
+  });
+
+  it("authenticated user can remove produto from oferta", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "1234567890";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "fornecedor@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Fornecedor User",
+        perfis: ["fornecedor"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "fornecedor@example.com",
+      "password123",
+    );
+
+    const {
+      PontoEntrega,
+      Ciclo,
+      Produto,
+      Oferta,
+      OfertaProdutos,
+    } = require("../models/index.js");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 123",
+      status: "ativo",
+    });
+
+    const agora = new Date();
+    const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const ciclo = await Ciclo.create({
+      nome: "Ciclo Teste",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+      status: "oferta",
+    });
+
+    const produto = await Produto.create({
+      nome: "Tomate",
+      medida: "kg",
+      valorReferencia: 5.0,
+      status: "ativo",
+    });
+
+    const { Usuario } = require("../models/index.js");
+    const usuario = await Usuario.findOne({
+      where: { email: "fornecedor@example.com" },
+    });
+    const oferta = await Oferta.create({
+      cicloId: ciclo.id,
+      usuarioId: usuario.id,
+      status: "ativo",
+    });
+
+    const ofertaProduto = await OfertaProdutos.create({
+      ofertaId: oferta.id,
+      produtoId: produto.id,
+      quantidade: 10,
+      valorOferta: 4.5,
+    });
+
+    const mutation = `
+      mutation RemoverProdutoOferta($ofertaProdutoId: ID!) {
+        removerProdutoOferta(ofertaProdutoId: $ofertaProdutoId)
+      }
+    `;
+
+    const context = APIGraphql.buildContext(session.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: { ofertaProdutoId: ofertaProduto.id },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.removerProdutoOferta).to.be.true;
   });
 });
