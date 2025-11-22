@@ -476,32 +476,6 @@ export const BUSCAR_CICLO_QUERY = gql`
         id
         nome
       }
-      pontosEntrega {
-        id
-        nome
-      }
-      tiposCesta {
-        id
-        nome
-      }
-      cicloEntregas {
-        id
-        diaSemana
-        horaInicio
-        horaFim
-      }
-      CicloCestas {
-        id
-        cestaId
-        cesta {
-          id
-          nome
-        }
-      }
-      cicloProdutos {
-        id
-        produtoId
-      }
       createdAt
       updatedAt
     }

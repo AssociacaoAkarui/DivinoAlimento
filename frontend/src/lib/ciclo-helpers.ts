@@ -178,7 +178,11 @@ export function toDateInputValue(
   dateString: string | undefined | null,
 ): string {
   if (!dateString) return "";
-  const date = new Date(dateString);
+  const timestamp = /^\d+$/.test(dateString)
+    ? parseInt(dateString)
+    : dateString;
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return "";
   return date.toISOString().split("T")[0];
 }
 
@@ -186,11 +190,17 @@ export function toDateTimeInputValue(
   dateString: string | undefined | null,
 ): string {
   if (!dateString) return "";
-  const date = new Date(dateString);
+  const timestamp = /^\d+$/.test(dateString)
+    ? parseInt(dateString)
+    : dateString;
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return "";
   return date.toISOString().slice(0, 16);
 }
 
 export function fromDateInputValue(dateInput: string): string {
   if (!dateInput) return "";
-  return new Date(dateInput).toISOString();
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return "";
+  return date.toISOString();
 }

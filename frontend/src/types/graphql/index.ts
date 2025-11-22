@@ -24,9 +24,52 @@ export type ActiveSession = {
   usuarioId: Scalars['ID']['output'];
 };
 
+export type AdicionarProdutoOfertaInput = {
+  produtoId: Scalars['Int']['input'];
+  quantidade: Scalars['Float']['input'];
+  valorOferta?: InputMaybe<Scalars['Float']['input']>;
+  valorReferencia?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export type AprovarSubmissaoInput = {
+  descricao?: InputMaybe<Scalars['String']['input']>;
+  precoUnidade?: InputMaybe<Scalars['Float']['input']>;
+};
+
 export type AtualizarCategoriaProdutosInput = {
   nome?: InputMaybe<Scalars['String']['input']>;
   observacao?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type AtualizarCicloInput = {
+  itensAdicionaisFim?: InputMaybe<Scalars['String']['input']>;
+  itensAdicionaisInicio?: InputMaybe<Scalars['String']['input']>;
+  nome?: InputMaybe<Scalars['String']['input']>;
+  observacao?: InputMaybe<Scalars['String']['input']>;
+  ofertaFim?: InputMaybe<Scalars['String']['input']>;
+  ofertaInicio?: InputMaybe<Scalars['String']['input']>;
+  pontoEntregaId?: InputMaybe<Scalars['Int']['input']>;
+  retiradaConsumidorFim?: InputMaybe<Scalars['String']['input']>;
+  retiradaConsumidorInicio?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type AtualizarPontoEntregaInput = {
+  bairro?: InputMaybe<Scalars['String']['input']>;
+  cep?: InputMaybe<Scalars['String']['input']>;
+  cidade?: InputMaybe<Scalars['String']['input']>;
+  endereco?: InputMaybe<Scalars['String']['input']>;
+  estado?: InputMaybe<Scalars['String']['input']>;
+  nome?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type AtualizarProdutoComercializavelInput = {
+  medida?: InputMaybe<Scalars['String']['input']>;
+  pesoKg?: InputMaybe<Scalars['Float']['input']>;
+  precoBase?: InputMaybe<Scalars['Float']['input']>;
+  produtoId?: InputMaybe<Scalars['Int']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -38,6 +81,11 @@ export type AtualizarProdutoInput = {
   pesoGrama?: InputMaybe<Scalars['Float']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
   valorReferencia?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export type AtualizarQuantidadeProdutoInput = {
+  quantidade: Scalars['Float']['input'];
+  valorOferta?: InputMaybe<Scalars['Float']['input']>;
 };
 
 export type AtualizarUsuarioInput = {
@@ -62,10 +110,64 @@ export type CategoriaProdutos = {
   status: Scalars['String']['output'];
 };
 
+export type Ciclo = {
+  __typename?: 'Ciclo';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  itensAdicionaisFim?: Maybe<Scalars['String']['output']>;
+  itensAdicionaisInicio?: Maybe<Scalars['String']['output']>;
+  nome: Scalars['String']['output'];
+  observacao?: Maybe<Scalars['String']['output']>;
+  ofertaFim: Scalars['String']['output'];
+  ofertaInicio: Scalars['String']['output'];
+  pontoEntrega?: Maybe<PontoEntrega>;
+  pontoEntregaId: Scalars['Int']['output'];
+  retiradaConsumidorFim?: Maybe<Scalars['String']['output']>;
+  retiradaConsumidorInicio?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
 export type CriarCategoriaProdutosInput = {
   nome: Scalars['String']['input'];
   observacao?: InputMaybe<Scalars['String']['input']>;
   status: Scalars['String']['input'];
+};
+
+export type CriarCicloInput = {
+  itensAdicionaisFim?: InputMaybe<Scalars['String']['input']>;
+  itensAdicionaisInicio?: InputMaybe<Scalars['String']['input']>;
+  nome: Scalars['String']['input'];
+  observacao?: InputMaybe<Scalars['String']['input']>;
+  ofertaFim: Scalars['String']['input'];
+  ofertaInicio: Scalars['String']['input'];
+  pontoEntregaId: Scalars['Int']['input'];
+  retiradaConsumidorFim?: InputMaybe<Scalars['String']['input']>;
+  retiradaConsumidorInicio?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CriarOfertaInput = {
+  cicloId: Scalars['Int']['input'];
+  observacao?: InputMaybe<Scalars['String']['input']>;
+  usuarioId: Scalars['Int']['input'];
+};
+
+export type CriarPontoEntregaInput = {
+  bairro?: InputMaybe<Scalars['String']['input']>;
+  cep?: InputMaybe<Scalars['String']['input']>;
+  cidade?: InputMaybe<Scalars['String']['input']>;
+  endereco?: InputMaybe<Scalars['String']['input']>;
+  estado?: InputMaybe<Scalars['String']['input']>;
+  nome: Scalars['String']['input'];
+  status: Scalars['String']['input'];
+};
+
+export type CriarProdutoComercializavelInput = {
+  medida: Scalars['String']['input'];
+  pesoKg: Scalars['Float']['input'];
+  precoBase: Scalars['Float']['input'];
+  produtoId: Scalars['Int']['input'];
+  status?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CriarProdutoInput = {
@@ -76,6 +178,15 @@ export type CriarProdutoInput = {
   pesoGrama?: InputMaybe<Scalars['Float']['input']>;
   status: Scalars['String']['input'];
   valorReferencia?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export type CriarSubmissaoProdutoInput = {
+  descricao?: InputMaybe<Scalars['String']['input']>;
+  fornecedorId: Scalars['Int']['input'];
+  imagemUrl?: InputMaybe<Scalars['String']['input']>;
+  medida: Scalars['String']['input'];
+  nomeProduto: Scalars['String']['input'];
+  precoUnidade: Scalars['Float']['input'];
 };
 
 export type CriarUsuarioInput = {
@@ -98,6 +209,14 @@ export type HealthCheck = {
   status: Scalars['String']['output'];
 };
 
+export type ListarCiclosResponse = {
+  __typename?: 'ListarCiclosResponse';
+  ciclos: Array<Ciclo>;
+  limite: Scalars['Int']['output'];
+  nextCursor?: Maybe<Scalars['String']['output']>;
+  total: Scalars['Int']['output'];
+};
+
 export type LoginInput = {
   email: Scalars['String']['input'];
   senha: Scalars['String']['input'];
@@ -110,16 +229,45 @@ export type LogoutResponse = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  adicionarProdutoOferta: OfertaProduto;
+  aprovarSubmissaoProduto: SubmissaoProduto;
   atualizarCategoria: CategoriaProdutos;
+  atualizarCiclo: Ciclo;
+  atualizarPontoEntrega: PontoEntrega;
   atualizarProduto: Produto;
+  atualizarProdutoComercializavel: ProdutoComercializavel;
+  atualizarQuantidadeProdutoOferta: OfertaProduto;
   atualizarUsuario: Usuario;
   criarCategoria: CategoriaProdutos;
+  criarCiclo: Ciclo;
+  criarOferta: Oferta;
+  criarPontoEntrega: PontoEntrega;
   criarProduto: Produto;
+  criarProdutoComercializavel: ProdutoComercializavel;
+  criarSubmissaoProduto: SubmissaoProduto;
   criarUsuario: Usuario;
   deletarCategoria: DeletarCategoriaResponse;
+  deletarCiclo: Scalars['Boolean']['output'];
+  deletarPontoEntrega: Scalars['Boolean']['output'];
   deletarProduto: Scalars['Boolean']['output'];
+  deletarProdutoComercializavel: Scalars['Boolean']['output'];
+  deletarSubmissaoProduto: Scalars['Boolean']['output'];
+  removerProdutoOferta: Scalars['Boolean']['output'];
+  reprovarSubmissaoProduto: SubmissaoProduto;
   sessionLogin: ActiveSession;
   sessionLogout: LogoutResponse;
+};
+
+
+export type MutationAdicionarProdutoOfertaArgs = {
+  input: AdicionarProdutoOfertaInput;
+  ofertaId: Scalars['ID']['input'];
+};
+
+
+export type MutationAprovarSubmissaoProdutoArgs = {
+  id: Scalars['ID']['input'];
+  input?: InputMaybe<AprovarSubmissaoInput>;
 };
 
 
@@ -129,9 +277,33 @@ export type MutationAtualizarCategoriaArgs = {
 };
 
 
+export type MutationAtualizarCicloArgs = {
+  id: Scalars['ID']['input'];
+  input: AtualizarCicloInput;
+};
+
+
+export type MutationAtualizarPontoEntregaArgs = {
+  id: Scalars['ID']['input'];
+  input: AtualizarPontoEntregaInput;
+};
+
+
 export type MutationAtualizarProdutoArgs = {
   id: Scalars['ID']['input'];
   input: AtualizarProdutoInput;
+};
+
+
+export type MutationAtualizarProdutoComercializavelArgs = {
+  id: Scalars['ID']['input'];
+  input: AtualizarProdutoComercializavelInput;
+};
+
+
+export type MutationAtualizarQuantidadeProdutoOfertaArgs = {
+  input: AtualizarQuantidadeProdutoInput;
+  ofertaProdutoId: Scalars['ID']['input'];
 };
 
 
@@ -146,8 +318,33 @@ export type MutationCriarCategoriaArgs = {
 };
 
 
+export type MutationCriarCicloArgs = {
+  input: CriarCicloInput;
+};
+
+
+export type MutationCriarOfertaArgs = {
+  input: CriarOfertaInput;
+};
+
+
+export type MutationCriarPontoEntregaArgs = {
+  input: CriarPontoEntregaInput;
+};
+
+
 export type MutationCriarProdutoArgs = {
   input: CriarProdutoInput;
+};
+
+
+export type MutationCriarProdutoComercializavelArgs = {
+  input: CriarProdutoComercializavelInput;
+};
+
+
+export type MutationCriarSubmissaoProdutoArgs = {
+  input: CriarSubmissaoProdutoInput;
 };
 
 
@@ -161,13 +358,83 @@ export type MutationDeletarCategoriaArgs = {
 };
 
 
+export type MutationDeletarCicloArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeletarPontoEntregaArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationDeletarProdutoArgs = {
   id: Scalars['ID']['input'];
 };
 
 
+export type MutationDeletarProdutoComercializavelArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeletarSubmissaoProdutoArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationRemoverProdutoOfertaArgs = {
+  ofertaProdutoId: Scalars['ID']['input'];
+};
+
+
+export type MutationReprovarSubmissaoProdutoArgs = {
+  id: Scalars['ID']['input'];
+  motivoReprovacao: Scalars['String']['input'];
+};
+
+
 export type MutationSessionLoginArgs = {
   input: LoginInput;
+};
+
+export type Oferta = {
+  __typename?: 'Oferta';
+  ciclo?: Maybe<Ciclo>;
+  cicloId: Scalars['Int']['output'];
+  createdAt?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  observacao?: Maybe<Scalars['String']['output']>;
+  ofertaProdutos?: Maybe<Array<OfertaProduto>>;
+  status: Scalars['String']['output'];
+  updatedAt?: Maybe<Scalars['String']['output']>;
+  usuario?: Maybe<Usuario>;
+  usuarioId: Scalars['Int']['output'];
+};
+
+export type OfertaProduto = {
+  __typename?: 'OfertaProduto';
+  id: Scalars['ID']['output'];
+  ofertaId: Scalars['Int']['output'];
+  produto?: Maybe<Produto>;
+  produtoId: Scalars['Int']['output'];
+  quantidade: Scalars['Float']['output'];
+  valorOferta?: Maybe<Scalars['Float']['output']>;
+  valorReferencia?: Maybe<Scalars['Float']['output']>;
+};
+
+export type PontoEntrega = {
+  __typename?: 'PontoEntrega';
+  bairro?: Maybe<Scalars['String']['output']>;
+  cep?: Maybe<Scalars['String']['output']>;
+  cidade?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['String']['output']>;
+  endereco?: Maybe<Scalars['String']['output']>;
+  estado?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  nome: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
 export type Produto = {
@@ -183,14 +450,42 @@ export type Produto = {
   valorReferencia?: Maybe<Scalars['Float']['output']>;
 };
 
+export type ProdutoComercializavel = {
+  __typename?: 'ProdutoComercializavel';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  medida: Scalars['String']['output'];
+  pesoKg: Scalars['Float']['output'];
+  precoBase: Scalars['Float']['output'];
+  produto?: Maybe<Produto>;
+  produtoId: Scalars['Int']['output'];
+  status: Scalars['String']['output'];
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   buscarCategoria: CategoriaProdutos;
+  buscarCiclo: Ciclo;
+  buscarOferta: Oferta;
+  buscarPontoEntrega: PontoEntrega;
   buscarProduto: Produto;
+  buscarProdutoComercializavel: ProdutoComercializavel;
+  buscarSubmissaoProduto: SubmissaoProduto;
   buscarUsuario: Usuario;
   healthcheck: HealthCheck;
   listarCategorias: Array<CategoriaProdutos>;
+  listarCiclos: ListarCiclosResponse;
+  listarOfertasPorCiclo: Array<Oferta>;
+  listarOfertasPorUsuario: Array<Oferta>;
+  listarPontosEntrega: Array<PontoEntrega>;
+  listarPontosEntregaAtivos: Array<PontoEntrega>;
   listarProdutos: Array<Produto>;
+  listarProdutosComercializaveis: Array<ProdutoComercializavel>;
+  listarProdutosComercializaveisPorProduto: Array<ProdutoComercializavel>;
+  listarSubmissoesPorFornecedor: Array<SubmissaoProduto>;
+  listarSubmissoesPorStatus: Array<SubmissaoProduto>;
+  listarSubmissoesProdutos: Array<SubmissaoProduto>;
   listarUsuarios: Array<Usuario>;
   systemInformation: SystemInformation;
 };
@@ -201,13 +496,85 @@ export type QueryBuscarCategoriaArgs = {
 };
 
 
+export type QueryBuscarCicloArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryBuscarOfertaArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryBuscarPontoEntregaArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type QueryBuscarProdutoArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryBuscarProdutoComercializavelArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryBuscarSubmissaoProdutoArgs = {
   id: Scalars['ID']['input'];
 };
 
 
 export type QueryBuscarUsuarioArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryListarCiclosArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limite?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryListarOfertasPorCicloArgs = {
+  cicloId: Scalars['Int']['input'];
+};
+
+
+export type QueryListarOfertasPorUsuarioArgs = {
+  usuarioId: Scalars['Int']['input'];
+};
+
+
+export type QueryListarProdutosComercializaveisPorProdutoArgs = {
+  produtoId: Scalars['Int']['input'];
+};
+
+
+export type QueryListarSubmissoesPorFornecedorArgs = {
+  fornecedorId: Scalars['Int']['input'];
+};
+
+
+export type QueryListarSubmissoesPorStatusArgs = {
+  status: Scalars['String']['input'];
+};
+
+export type SubmissaoProduto = {
+  __typename?: 'SubmissaoProduto';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  descricao?: Maybe<Scalars['String']['output']>;
+  fornecedor?: Maybe<Usuario>;
+  fornecedorId: Scalars['Int']['output'];
+  id: Scalars['ID']['output'];
+  imagemUrl?: Maybe<Scalars['String']['output']>;
+  medida: Scalars['String']['output'];
+  motivoReprovacao?: Maybe<Scalars['String']['output']>;
+  nomeProduto: Scalars['String']['output'];
+  precoUnidade: Scalars['Float']['output'];
+  status: Scalars['String']['output'];
+  updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
 export type SystemInformation = {
@@ -347,6 +714,223 @@ export type DeletarProdutoMutationVariables = Exact<{
 
 
 export type DeletarProdutoMutation = { __typename?: 'Mutation', deletarProduto: boolean };
+
+export type ListarProdutosComercializaveisQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListarProdutosComercializaveisQuery = { __typename?: 'Query', listarProdutosComercializaveis: Array<{ __typename?: 'ProdutoComercializavel', id: string, produtoId: number, medida: string, pesoKg: number, precoBase: number, status: string, createdAt?: string | null, updatedAt?: string | null, produto?: { __typename?: 'Produto', id: string, nome: string } | null }> };
+
+export type BuscarProdutoComercializavelQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarProdutoComercializavelQuery = { __typename?: 'Query', buscarProdutoComercializavel: { __typename?: 'ProdutoComercializavel', id: string, produtoId: number, medida: string, pesoKg: number, precoBase: number, status: string, createdAt?: string | null, updatedAt?: string | null, produto?: { __typename?: 'Produto', id: string, nome: string } | null } };
+
+export type ListarProdutosComercializaveisPorProdutoQueryVariables = Exact<{
+  produtoId: Scalars['Int']['input'];
+}>;
+
+
+export type ListarProdutosComercializaveisPorProdutoQuery = { __typename?: 'Query', listarProdutosComercializaveisPorProduto: Array<{ __typename?: 'ProdutoComercializavel', id: string, produtoId: number, medida: string, pesoKg: number, precoBase: number, status: string }> };
+
+export type CriarProdutoComercializavelMutationVariables = Exact<{
+  input: CriarProdutoComercializavelInput;
+}>;
+
+
+export type CriarProdutoComercializavelMutation = { __typename?: 'Mutation', criarProdutoComercializavel: { __typename?: 'ProdutoComercializavel', id: string, produtoId: number, medida: string, pesoKg: number, precoBase: number, status: string, produto?: { __typename?: 'Produto', id: string, nome: string } | null } };
+
+export type AtualizarProdutoComercializavelMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: AtualizarProdutoComercializavelInput;
+}>;
+
+
+export type AtualizarProdutoComercializavelMutation = { __typename?: 'Mutation', atualizarProdutoComercializavel: { __typename?: 'ProdutoComercializavel', id: string, produtoId: number, medida: string, pesoKg: number, precoBase: number, status: string, produto?: { __typename?: 'Produto', id: string, nome: string } | null } };
+
+export type DeletarProdutoComercializavelMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeletarProdutoComercializavelMutation = { __typename?: 'Mutation', deletarProdutoComercializavel: boolean };
+
+export type ListarSubmissoesProdutosQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListarSubmissoesProdutosQuery = { __typename?: 'Query', listarSubmissoesProdutos: Array<{ __typename?: 'SubmissaoProduto', id: string, fornecedorId: number, nomeProduto: string, descricao?: string | null, imagemUrl?: string | null, precoUnidade: number, medida: string, status: string, motivoReprovacao?: string | null, createdAt?: string | null, updatedAt?: string | null, fornecedor?: { __typename?: 'Usuario', id: string, nome: string } | null }> };
+
+export type BuscarSubmissaoProdutoQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarSubmissaoProdutoQuery = { __typename?: 'Query', buscarSubmissaoProduto: { __typename?: 'SubmissaoProduto', id: string, fornecedorId: number, nomeProduto: string, descricao?: string | null, imagemUrl?: string | null, precoUnidade: number, medida: string, status: string, motivoReprovacao?: string | null, createdAt?: string | null, updatedAt?: string | null, fornecedor?: { __typename?: 'Usuario', id: string, nome: string } | null } };
+
+export type ListarSubmissoesPorStatusQueryVariables = Exact<{
+  status: Scalars['String']['input'];
+}>;
+
+
+export type ListarSubmissoesPorStatusQuery = { __typename?: 'Query', listarSubmissoesPorStatus: Array<{ __typename?: 'SubmissaoProduto', id: string, fornecedorId: number, nomeProduto: string, descricao?: string | null, imagemUrl?: string | null, precoUnidade: number, medida: string, status: string, motivoReprovacao?: string | null, createdAt?: string | null, updatedAt?: string | null, fornecedor?: { __typename?: 'Usuario', id: string, nome: string } | null }> };
+
+export type CriarSubmissaoProdutoMutationVariables = Exact<{
+  input: CriarSubmissaoProdutoInput;
+}>;
+
+
+export type CriarSubmissaoProdutoMutation = { __typename?: 'Mutation', criarSubmissaoProduto: { __typename?: 'SubmissaoProduto', id: string, nomeProduto: string, precoUnidade: number, medida: string, status: string } };
+
+export type AprovarSubmissaoProdutoMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input?: InputMaybe<AprovarSubmissaoInput>;
+}>;
+
+
+export type AprovarSubmissaoProdutoMutation = { __typename?: 'Mutation', aprovarSubmissaoProduto: { __typename?: 'SubmissaoProduto', id: string, status: string } };
+
+export type ReprovarSubmissaoProdutoMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  motivoReprovacao: Scalars['String']['input'];
+}>;
+
+
+export type ReprovarSubmissaoProdutoMutation = { __typename?: 'Mutation', reprovarSubmissaoProduto: { __typename?: 'SubmissaoProduto', id: string, status: string, motivoReprovacao?: string | null } };
+
+export type DeletarSubmissaoProdutoMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeletarSubmissaoProdutoMutation = { __typename?: 'Mutation', deletarSubmissaoProduto: boolean };
+
+export type ListarCiclosQueryVariables = Exact<{
+  limite?: InputMaybe<Scalars['Int']['input']>;
+  cursor?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListarCiclosQuery = { __typename?: 'Query', listarCiclos: { __typename?: 'ListarCiclosResponse', total: number, limite: number, nextCursor?: string | null, ciclos: Array<{ __typename?: 'Ciclo', id: string, nome: string, ofertaInicio: string, ofertaFim: string, itensAdicionaisInicio?: string | null, itensAdicionaisFim?: string | null, retiradaConsumidorInicio?: string | null, retiradaConsumidorFim?: string | null, observacao?: string | null, status: string, pontoEntregaId: number, createdAt?: string | null, updatedAt?: string | null, pontoEntrega?: { __typename?: 'PontoEntrega', id: string, nome: string } | null }> } };
+
+export type BuscarCicloQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarCicloQuery = { __typename?: 'Query', buscarCiclo: { __typename?: 'Ciclo', id: string, nome: string, ofertaInicio: string, ofertaFim: string, itensAdicionaisInicio?: string | null, itensAdicionaisFim?: string | null, retiradaConsumidorInicio?: string | null, retiradaConsumidorFim?: string | null, observacao?: string | null, status: string, pontoEntregaId: number, createdAt?: string | null, updatedAt?: string | null, pontoEntrega?: { __typename?: 'PontoEntrega', id: string, nome: string } | null } };
+
+export type CriarCicloMutationVariables = Exact<{
+  input: CriarCicloInput;
+}>;
+
+
+export type CriarCicloMutation = { __typename?: 'Mutation', criarCiclo: { __typename?: 'Ciclo', id: string, nome: string, status: string } };
+
+export type AtualizarCicloMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: AtualizarCicloInput;
+}>;
+
+
+export type AtualizarCicloMutation = { __typename?: 'Mutation', atualizarCiclo: { __typename?: 'Ciclo', id: string, nome: string, status: string } };
+
+export type DeletarCicloMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeletarCicloMutation = { __typename?: 'Mutation', deletarCiclo: boolean };
+
+export type BuscarOfertaQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarOfertaQuery = { __typename?: 'Query', buscarOferta: { __typename?: 'Oferta', id: string, cicloId: number, usuarioId: number, status: string, observacao?: string | null, createdAt?: string | null, updatedAt?: string | null, ciclo?: { __typename?: 'Ciclo', id: string, nome: string, ofertaInicio: string, ofertaFim: string, status: string } | null, usuario?: { __typename?: 'Usuario', id: string, nome: string } | null, ofertaProdutos?: Array<{ __typename?: 'OfertaProduto', id: string, ofertaId: number, produtoId: number, quantidade: number, valorReferencia?: number | null, valorOferta?: number | null, produto?: { __typename?: 'Produto', id: string, nome: string, medida?: string | null, valorReferencia?: number | null } | null }> | null } };
+
+export type ListarOfertasPorCicloQueryVariables = Exact<{
+  cicloId: Scalars['Int']['input'];
+}>;
+
+
+export type ListarOfertasPorCicloQuery = { __typename?: 'Query', listarOfertasPorCiclo: Array<{ __typename?: 'Oferta', id: string, cicloId: number, usuarioId: number, status: string, observacao?: string | null, createdAt?: string | null, usuario?: { __typename?: 'Usuario', id: string, nome: string } | null, ofertaProdutos?: Array<{ __typename?: 'OfertaProduto', id: string, produtoId: number, quantidade: number, valorOferta?: number | null, produto?: { __typename?: 'Produto', id: string, nome: string } | null }> | null }> };
+
+export type ListarOfertasPorUsuarioQueryVariables = Exact<{
+  usuarioId: Scalars['Int']['input'];
+}>;
+
+
+export type ListarOfertasPorUsuarioQuery = { __typename?: 'Query', listarOfertasPorUsuario: Array<{ __typename?: 'Oferta', id: string, cicloId: number, usuarioId: number, status: string, observacao?: string | null, createdAt?: string | null, ciclo?: { __typename?: 'Ciclo', id: string, nome: string, ofertaInicio: string, ofertaFim: string, status: string } | null, ofertaProdutos?: Array<{ __typename?: 'OfertaProduto', id: string, produtoId: number, quantidade: number, valorOferta?: number | null, produto?: { __typename?: 'Produto', id: string, nome: string } | null }> | null }> };
+
+export type CriarOfertaMutationVariables = Exact<{
+  input: CriarOfertaInput;
+}>;
+
+
+export type CriarOfertaMutation = { __typename?: 'Mutation', criarOferta: { __typename?: 'Oferta', id: string, cicloId: number, usuarioId: number, status: string, observacao?: string | null } };
+
+export type AdicionarProdutoOfertaMutationVariables = Exact<{
+  ofertaId: Scalars['ID']['input'];
+  input: AdicionarProdutoOfertaInput;
+}>;
+
+
+export type AdicionarProdutoOfertaMutation = { __typename?: 'Mutation', adicionarProdutoOferta: { __typename?: 'OfertaProduto', id: string, ofertaId: number, produtoId: number, quantidade: number, valorReferencia?: number | null, valorOferta?: number | null, produto?: { __typename?: 'Produto', id: string, nome: string, medida?: string | null, valorReferencia?: number | null } | null } };
+
+export type AtualizarQuantidadeProdutoOfertaMutationVariables = Exact<{
+  ofertaProdutoId: Scalars['ID']['input'];
+  input: AtualizarQuantidadeProdutoInput;
+}>;
+
+
+export type AtualizarQuantidadeProdutoOfertaMutation = { __typename?: 'Mutation', atualizarQuantidadeProdutoOferta: { __typename?: 'OfertaProduto', id: string, quantidade: number, valorOferta?: number | null } };
+
+export type RemoverProdutoOfertaMutationVariables = Exact<{
+  ofertaProdutoId: Scalars['ID']['input'];
+}>;
+
+
+export type RemoverProdutoOfertaMutation = { __typename?: 'Mutation', removerProdutoOferta: boolean };
+
+export type ListarPontosEntregaQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListarPontosEntregaQuery = { __typename?: 'Query', listarPontosEntrega: Array<{ __typename?: 'PontoEntrega', id: string, nome: string, endereco?: string | null, bairro?: string | null, cidade?: string | null, estado?: string | null, cep?: string | null, status: string, createdAt?: string | null, updatedAt?: string | null }> };
+
+export type ListarPontosEntregaAtivosQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListarPontosEntregaAtivosQuery = { __typename?: 'Query', listarPontosEntregaAtivos: Array<{ __typename?: 'PontoEntrega', id: string, nome: string, endereco?: string | null, bairro?: string | null, cidade?: string | null, estado?: string | null, cep?: string | null, status: string }> };
+
+export type BuscarPontoEntregaQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarPontoEntregaQuery = { __typename?: 'Query', buscarPontoEntrega: { __typename?: 'PontoEntrega', id: string, nome: string, endereco?: string | null, bairro?: string | null, cidade?: string | null, estado?: string | null, cep?: string | null, status: string, createdAt?: string | null, updatedAt?: string | null } };
+
+export type CriarPontoEntregaMutationVariables = Exact<{
+  input: CriarPontoEntregaInput;
+}>;
+
+
+export type CriarPontoEntregaMutation = { __typename?: 'Mutation', criarPontoEntrega: { __typename?: 'PontoEntrega', id: string, nome: string, endereco?: string | null, bairro?: string | null, cidade?: string | null, estado?: string | null, cep?: string | null, status: string } };
+
+export type AtualizarPontoEntregaMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: AtualizarPontoEntregaInput;
+}>;
+
+
+export type AtualizarPontoEntregaMutation = { __typename?: 'Mutation', atualizarPontoEntrega: { __typename?: 'PontoEntrega', id: string, nome: string, endereco?: string | null, bairro?: string | null, cidade?: string | null, estado?: string | null, cep?: string | null, status: string } };
+
+export type DeletarPontoEntregaMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeletarPontoEntregaMutation = { __typename?: 'Mutation', deletarPontoEntrega: boolean };
 
 
 export const LoginDocument = gql`
@@ -555,6 +1139,479 @@ export const DeletarProdutoDocument = gql`
   deletarProduto(id: $id)
 }
     `;
+export const ListarProdutosComercializaveisDocument = gql`
+    query ListarProdutosComercializaveis {
+  listarProdutosComercializaveis {
+    id
+    produtoId
+    produto {
+      id
+      nome
+    }
+    medida
+    pesoKg
+    precoBase
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const BuscarProdutoComercializavelDocument = gql`
+    query BuscarProdutoComercializavel($id: ID!) {
+  buscarProdutoComercializavel(id: $id) {
+    id
+    produtoId
+    produto {
+      id
+      nome
+    }
+    medida
+    pesoKg
+    precoBase
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const ListarProdutosComercializaveisPorProdutoDocument = gql`
+    query ListarProdutosComercializaveisPorProduto($produtoId: Int!) {
+  listarProdutosComercializaveisPorProduto(produtoId: $produtoId) {
+    id
+    produtoId
+    medida
+    pesoKg
+    precoBase
+    status
+  }
+}
+    `;
+export const CriarProdutoComercializavelDocument = gql`
+    mutation CriarProdutoComercializavel($input: CriarProdutoComercializavelInput!) {
+  criarProdutoComercializavel(input: $input) {
+    id
+    produtoId
+    produto {
+      id
+      nome
+    }
+    medida
+    pesoKg
+    precoBase
+    status
+  }
+}
+    `;
+export const AtualizarProdutoComercializavelDocument = gql`
+    mutation AtualizarProdutoComercializavel($id: ID!, $input: AtualizarProdutoComercializavelInput!) {
+  atualizarProdutoComercializavel(id: $id, input: $input) {
+    id
+    produtoId
+    produto {
+      id
+      nome
+    }
+    medida
+    pesoKg
+    precoBase
+    status
+  }
+}
+    `;
+export const DeletarProdutoComercializavelDocument = gql`
+    mutation DeletarProdutoComercializavel($id: ID!) {
+  deletarProdutoComercializavel(id: $id)
+}
+    `;
+export const ListarSubmissoesProdutosDocument = gql`
+    query ListarSubmissoesProdutos {
+  listarSubmissoesProdutos {
+    id
+    fornecedorId
+    fornecedor {
+      id
+      nome
+    }
+    nomeProduto
+    descricao
+    imagemUrl
+    precoUnidade
+    medida
+    status
+    motivoReprovacao
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const BuscarSubmissaoProdutoDocument = gql`
+    query BuscarSubmissaoProduto($id: ID!) {
+  buscarSubmissaoProduto(id: $id) {
+    id
+    fornecedorId
+    fornecedor {
+      id
+      nome
+    }
+    nomeProduto
+    descricao
+    imagemUrl
+    precoUnidade
+    medida
+    status
+    motivoReprovacao
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const ListarSubmissoesPorStatusDocument = gql`
+    query ListarSubmissoesPorStatus($status: String!) {
+  listarSubmissoesPorStatus(status: $status) {
+    id
+    fornecedorId
+    fornecedor {
+      id
+      nome
+    }
+    nomeProduto
+    descricao
+    imagemUrl
+    precoUnidade
+    medida
+    status
+    motivoReprovacao
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const CriarSubmissaoProdutoDocument = gql`
+    mutation CriarSubmissaoProduto($input: CriarSubmissaoProdutoInput!) {
+  criarSubmissaoProduto(input: $input) {
+    id
+    nomeProduto
+    precoUnidade
+    medida
+    status
+  }
+}
+    `;
+export const AprovarSubmissaoProdutoDocument = gql`
+    mutation AprovarSubmissaoProduto($id: ID!, $input: AprovarSubmissaoInput) {
+  aprovarSubmissaoProduto(id: $id, input: $input) {
+    id
+    status
+  }
+}
+    `;
+export const ReprovarSubmissaoProdutoDocument = gql`
+    mutation ReprovarSubmissaoProduto($id: ID!, $motivoReprovacao: String!) {
+  reprovarSubmissaoProduto(id: $id, motivoReprovacao: $motivoReprovacao) {
+    id
+    status
+    motivoReprovacao
+  }
+}
+    `;
+export const DeletarSubmissaoProdutoDocument = gql`
+    mutation DeletarSubmissaoProduto($id: ID!) {
+  deletarSubmissaoProduto(id: $id)
+}
+    `;
+export const ListarCiclosDocument = gql`
+    query ListarCiclos($limite: Int, $cursor: String) {
+  listarCiclos(limite: $limite, cursor: $cursor) {
+    total
+    ciclos {
+      id
+      nome
+      ofertaInicio
+      ofertaFim
+      itensAdicionaisInicio
+      itensAdicionaisFim
+      retiradaConsumidorInicio
+      retiradaConsumidorFim
+      observacao
+      status
+      pontoEntregaId
+      pontoEntrega {
+        id
+        nome
+      }
+      createdAt
+      updatedAt
+    }
+    limite
+    nextCursor
+  }
+}
+    `;
+export const BuscarCicloDocument = gql`
+    query BuscarCiclo($id: ID!) {
+  buscarCiclo(id: $id) {
+    id
+    nome
+    ofertaInicio
+    ofertaFim
+    itensAdicionaisInicio
+    itensAdicionaisFim
+    retiradaConsumidorInicio
+    retiradaConsumidorFim
+    observacao
+    status
+    pontoEntregaId
+    pontoEntrega {
+      id
+      nome
+    }
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const CriarCicloDocument = gql`
+    mutation CriarCiclo($input: CriarCicloInput!) {
+  criarCiclo(input: $input) {
+    id
+    nome
+    status
+  }
+}
+    `;
+export const AtualizarCicloDocument = gql`
+    mutation AtualizarCiclo($id: ID!, $input: AtualizarCicloInput!) {
+  atualizarCiclo(id: $id, input: $input) {
+    id
+    nome
+    status
+  }
+}
+    `;
+export const DeletarCicloDocument = gql`
+    mutation DeletarCiclo($id: ID!) {
+  deletarCiclo(id: $id)
+}
+    `;
+export const BuscarOfertaDocument = gql`
+    query BuscarOferta($id: ID!) {
+  buscarOferta(id: $id) {
+    id
+    cicloId
+    ciclo {
+      id
+      nome
+      ofertaInicio
+      ofertaFim
+      status
+    }
+    usuarioId
+    usuario {
+      id
+      nome
+    }
+    status
+    observacao
+    ofertaProdutos {
+      id
+      ofertaId
+      produtoId
+      produto {
+        id
+        nome
+        medida
+        valorReferencia
+      }
+      quantidade
+      valorReferencia
+      valorOferta
+    }
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const ListarOfertasPorCicloDocument = gql`
+    query ListarOfertasPorCiclo($cicloId: Int!) {
+  listarOfertasPorCiclo(cicloId: $cicloId) {
+    id
+    cicloId
+    usuarioId
+    usuario {
+      id
+      nome
+    }
+    status
+    observacao
+    ofertaProdutos {
+      id
+      produtoId
+      produto {
+        id
+        nome
+      }
+      quantidade
+      valorOferta
+    }
+    createdAt
+  }
+}
+    `;
+export const ListarOfertasPorUsuarioDocument = gql`
+    query ListarOfertasPorUsuario($usuarioId: Int!) {
+  listarOfertasPorUsuario(usuarioId: $usuarioId) {
+    id
+    cicloId
+    ciclo {
+      id
+      nome
+      ofertaInicio
+      ofertaFim
+      status
+    }
+    usuarioId
+    status
+    observacao
+    ofertaProdutos {
+      id
+      produtoId
+      produto {
+        id
+        nome
+      }
+      quantidade
+      valorOferta
+    }
+    createdAt
+  }
+}
+    `;
+export const CriarOfertaDocument = gql`
+    mutation CriarOferta($input: CriarOfertaInput!) {
+  criarOferta(input: $input) {
+    id
+    cicloId
+    usuarioId
+    status
+    observacao
+  }
+}
+    `;
+export const AdicionarProdutoOfertaDocument = gql`
+    mutation AdicionarProdutoOferta($ofertaId: ID!, $input: AdicionarProdutoOfertaInput!) {
+  adicionarProdutoOferta(ofertaId: $ofertaId, input: $input) {
+    id
+    ofertaId
+    produtoId
+    produto {
+      id
+      nome
+      medida
+      valorReferencia
+    }
+    quantidade
+    valorReferencia
+    valorOferta
+  }
+}
+    `;
+export const AtualizarQuantidadeProdutoOfertaDocument = gql`
+    mutation AtualizarQuantidadeProdutoOferta($ofertaProdutoId: ID!, $input: AtualizarQuantidadeProdutoInput!) {
+  atualizarQuantidadeProdutoOferta(
+    ofertaProdutoId: $ofertaProdutoId
+    input: $input
+  ) {
+    id
+    quantidade
+    valorOferta
+  }
+}
+    `;
+export const RemoverProdutoOfertaDocument = gql`
+    mutation RemoverProdutoOferta($ofertaProdutoId: ID!) {
+  removerProdutoOferta(ofertaProdutoId: $ofertaProdutoId)
+}
+    `;
+export const ListarPontosEntregaDocument = gql`
+    query ListarPontosEntrega {
+  listarPontosEntrega {
+    id
+    nome
+    endereco
+    bairro
+    cidade
+    estado
+    cep
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const ListarPontosEntregaAtivosDocument = gql`
+    query ListarPontosEntregaAtivos {
+  listarPontosEntregaAtivos {
+    id
+    nome
+    endereco
+    bairro
+    cidade
+    estado
+    cep
+    status
+  }
+}
+    `;
+export const BuscarPontoEntregaDocument = gql`
+    query BuscarPontoEntrega($id: ID!) {
+  buscarPontoEntrega(id: $id) {
+    id
+    nome
+    endereco
+    bairro
+    cidade
+    estado
+    cep
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const CriarPontoEntregaDocument = gql`
+    mutation CriarPontoEntrega($input: CriarPontoEntregaInput!) {
+  criarPontoEntrega(input: $input) {
+    id
+    nome
+    endereco
+    bairro
+    cidade
+    estado
+    cep
+    status
+  }
+}
+    `;
+export const AtualizarPontoEntregaDocument = gql`
+    mutation AtualizarPontoEntrega($id: ID!, $input: AtualizarPontoEntregaInput!) {
+  atualizarPontoEntrega(id: $id, input: $input) {
+    id
+    nome
+    endereco
+    bairro
+    cidade
+    estado
+    cep
+    status
+  }
+}
+    `;
+export const DeletarPontoEntregaDocument = gql`
+    mutation DeletarPontoEntrega($id: ID!) {
+  deletarPontoEntrega(id: $id)
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
@@ -616,6 +1673,99 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     DeletarProduto(variables: DeletarProdutoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarProdutoMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeletarProdutoMutation>({ document: DeletarProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarProduto', 'mutation', variables);
+    },
+    ListarProdutosComercializaveis(variables?: ListarProdutosComercializaveisQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarProdutosComercializaveisQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarProdutosComercializaveisQuery>({ document: ListarProdutosComercializaveisDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarProdutosComercializaveis', 'query', variables);
+    },
+    BuscarProdutoComercializavel(variables: BuscarProdutoComercializavelQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarProdutoComercializavelQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarProdutoComercializavelQuery>({ document: BuscarProdutoComercializavelDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarProdutoComercializavel', 'query', variables);
+    },
+    ListarProdutosComercializaveisPorProduto(variables: ListarProdutosComercializaveisPorProdutoQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarProdutosComercializaveisPorProdutoQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarProdutosComercializaveisPorProdutoQuery>({ document: ListarProdutosComercializaveisPorProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarProdutosComercializaveisPorProduto', 'query', variables);
+    },
+    CriarProdutoComercializavel(variables: CriarProdutoComercializavelMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarProdutoComercializavelMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarProdutoComercializavelMutation>({ document: CriarProdutoComercializavelDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarProdutoComercializavel', 'mutation', variables);
+    },
+    AtualizarProdutoComercializavel(variables: AtualizarProdutoComercializavelMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AtualizarProdutoComercializavelMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AtualizarProdutoComercializavelMutation>({ document: AtualizarProdutoComercializavelDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AtualizarProdutoComercializavel', 'mutation', variables);
+    },
+    DeletarProdutoComercializavel(variables: DeletarProdutoComercializavelMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarProdutoComercializavelMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeletarProdutoComercializavelMutation>({ document: DeletarProdutoComercializavelDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarProdutoComercializavel', 'mutation', variables);
+    },
+    ListarSubmissoesProdutos(variables?: ListarSubmissoesProdutosQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarSubmissoesProdutosQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarSubmissoesProdutosQuery>({ document: ListarSubmissoesProdutosDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarSubmissoesProdutos', 'query', variables);
+    },
+    BuscarSubmissaoProduto(variables: BuscarSubmissaoProdutoQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarSubmissaoProdutoQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarSubmissaoProdutoQuery>({ document: BuscarSubmissaoProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarSubmissaoProduto', 'query', variables);
+    },
+    ListarSubmissoesPorStatus(variables: ListarSubmissoesPorStatusQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarSubmissoesPorStatusQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarSubmissoesPorStatusQuery>({ document: ListarSubmissoesPorStatusDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarSubmissoesPorStatus', 'query', variables);
+    },
+    CriarSubmissaoProduto(variables: CriarSubmissaoProdutoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarSubmissaoProdutoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarSubmissaoProdutoMutation>({ document: CriarSubmissaoProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarSubmissaoProduto', 'mutation', variables);
+    },
+    AprovarSubmissaoProduto(variables: AprovarSubmissaoProdutoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AprovarSubmissaoProdutoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AprovarSubmissaoProdutoMutation>({ document: AprovarSubmissaoProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AprovarSubmissaoProduto', 'mutation', variables);
+    },
+    ReprovarSubmissaoProduto(variables: ReprovarSubmissaoProdutoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ReprovarSubmissaoProdutoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ReprovarSubmissaoProdutoMutation>({ document: ReprovarSubmissaoProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ReprovarSubmissaoProduto', 'mutation', variables);
+    },
+    DeletarSubmissaoProduto(variables: DeletarSubmissaoProdutoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarSubmissaoProdutoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeletarSubmissaoProdutoMutation>({ document: DeletarSubmissaoProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarSubmissaoProduto', 'mutation', variables);
+    },
+    ListarCiclos(variables?: ListarCiclosQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarCiclosQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarCiclosQuery>({ document: ListarCiclosDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarCiclos', 'query', variables);
+    },
+    BuscarCiclo(variables: BuscarCicloQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarCicloQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarCicloQuery>({ document: BuscarCicloDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarCiclo', 'query', variables);
+    },
+    CriarCiclo(variables: CriarCicloMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarCicloMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarCicloMutation>({ document: CriarCicloDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarCiclo', 'mutation', variables);
+    },
+    AtualizarCiclo(variables: AtualizarCicloMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AtualizarCicloMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AtualizarCicloMutation>({ document: AtualizarCicloDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AtualizarCiclo', 'mutation', variables);
+    },
+    DeletarCiclo(variables: DeletarCicloMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarCicloMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeletarCicloMutation>({ document: DeletarCicloDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarCiclo', 'mutation', variables);
+    },
+    BuscarOferta(variables: BuscarOfertaQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarOfertaQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarOfertaQuery>({ document: BuscarOfertaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarOferta', 'query', variables);
+    },
+    ListarOfertasPorCiclo(variables: ListarOfertasPorCicloQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarOfertasPorCicloQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarOfertasPorCicloQuery>({ document: ListarOfertasPorCicloDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarOfertasPorCiclo', 'query', variables);
+    },
+    ListarOfertasPorUsuario(variables: ListarOfertasPorUsuarioQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarOfertasPorUsuarioQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarOfertasPorUsuarioQuery>({ document: ListarOfertasPorUsuarioDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarOfertasPorUsuario', 'query', variables);
+    },
+    CriarOferta(variables: CriarOfertaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarOfertaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarOfertaMutation>({ document: CriarOfertaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarOferta', 'mutation', variables);
+    },
+    AdicionarProdutoOferta(variables: AdicionarProdutoOfertaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AdicionarProdutoOfertaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AdicionarProdutoOfertaMutation>({ document: AdicionarProdutoOfertaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AdicionarProdutoOferta', 'mutation', variables);
+    },
+    AtualizarQuantidadeProdutoOferta(variables: AtualizarQuantidadeProdutoOfertaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AtualizarQuantidadeProdutoOfertaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AtualizarQuantidadeProdutoOfertaMutation>({ document: AtualizarQuantidadeProdutoOfertaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AtualizarQuantidadeProdutoOferta', 'mutation', variables);
+    },
+    RemoverProdutoOferta(variables: RemoverProdutoOfertaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<RemoverProdutoOfertaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<RemoverProdutoOfertaMutation>({ document: RemoverProdutoOfertaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'RemoverProdutoOferta', 'mutation', variables);
+    },
+    ListarPontosEntrega(variables?: ListarPontosEntregaQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarPontosEntregaQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarPontosEntregaQuery>({ document: ListarPontosEntregaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarPontosEntrega', 'query', variables);
+    },
+    ListarPontosEntregaAtivos(variables?: ListarPontosEntregaAtivosQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarPontosEntregaAtivosQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarPontosEntregaAtivosQuery>({ document: ListarPontosEntregaAtivosDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarPontosEntregaAtivos', 'query', variables);
+    },
+    BuscarPontoEntrega(variables: BuscarPontoEntregaQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarPontoEntregaQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarPontoEntregaQuery>({ document: BuscarPontoEntregaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarPontoEntrega', 'query', variables);
+    },
+    CriarPontoEntrega(variables: CriarPontoEntregaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarPontoEntregaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarPontoEntregaMutation>({ document: CriarPontoEntregaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarPontoEntrega', 'mutation', variables);
+    },
+    AtualizarPontoEntrega(variables: AtualizarPontoEntregaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AtualizarPontoEntregaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AtualizarPontoEntregaMutation>({ document: AtualizarPontoEntregaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AtualizarPontoEntrega', 'mutation', variables);
+    },
+    DeletarPontoEntrega(variables: DeletarPontoEntregaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarPontoEntregaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeletarPontoEntregaMutation>({ document: DeletarPontoEntregaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarPontoEntrega', 'mutation', variables);
     }
   };
 }

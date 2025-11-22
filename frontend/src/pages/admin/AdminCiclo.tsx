@@ -22,6 +22,7 @@ import {
   useBuscarCiclo,
   useCriarCiclo,
   useAtualizarCiclo,
+  useListarPontosEntregaAtivos,
   CriarCicloInput,
   AtualizarCicloInput,
 } from "@/hooks/graphql";
@@ -52,10 +53,11 @@ const AdminCiclo = () => {
   const { data: cicloData, isLoading: isLoadingCiclo } = useBuscarCiclo(
     id || "",
   );
+  const { data: pontosEntregaData } = useListarPontosEntregaAtivos();
   const criarCicloMutation = useCriarCiclo();
   const atualizarCicloMutation = useAtualizarCiclo();
 
-  const pontosEntrega = cicloData?.buscarCiclo?.pontosEntrega || [];
+  const pontosEntrega = pontosEntregaData?.listarPontosEntregaAtivos ?? [];
 
   // Load ciclo data when editing
   useEffect(() => {
@@ -76,7 +78,7 @@ const AdminCiclo = () => {
       );
       setObservacao(ciclo.observacao || "");
       setStatus(ciclo.status);
-      setPontoEntregaId(ciclo.pontoEntregaId);
+      setPontoEntregaId(ciclo.pontoEntregaId?.toString() || "");
     }
   }, [isEdit, cicloData]);
 
