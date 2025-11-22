@@ -31,18 +31,18 @@ import {
   Search,
   Info,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { formatBRL, formatBRLInput, parseBRLToNumber } from "@/utils/currency";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-  ProdutoComercializavel,
   OfertaProduto,
-  criarDescricaoProduto,
   CertificacaoType,
   TipoAgriculturaType,
 } from "@/types/produto-oferta";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,70 +53,35 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  useBuscarCiclo,
+  useListarProdutosComercializaveis,
+} from "@/hooks/graphql";
 
-// Mock data - produtos comercializáveis
-const mockProdutosComercializaveis: ProdutoComercializavel[] = [
-  {
-    id: "pc1",
-    produto_base_id: "pb1",
-    produto_base_nome: "Tomate Orgânico",
-    unidade: "Unidade",
-    peso: 0.15,
-    preco_base: 0.68,
-    quantidade: 1,
-    status: "ativo",
-    certificado: true,
-    agricultura_familiar: true,
-  },
-  {
-    id: "pc2",
-    produto_base_id: "pb1",
-    produto_base_nome: "Tomate Orgânico",
-    unidade: "Cesta",
-    peso: 1.0,
-    preco_base: 4.5,
-    quantidade: 1,
-    status: "ativo",
-    certificado: true,
-    agricultura_familiar: true,
-  },
-  {
-    id: "pc3",
-    produto_base_id: "pb1",
-    produto_base_nome: "Tomate Orgânico",
-    unidade: "Dúzia",
-    peso: 1.8,
-    preco_base: 8.0,
-    quantidade: 12,
-    status: "ativo",
-    certificado: true,
-    agricultura_familiar: true,
-  },
-  {
-    id: "pc4",
-    produto_base_id: "pb2",
-    produto_base_nome: "Alface Hidropônica",
-    unidade: "Unidade",
-    peso: 0.3,
-    preco_base: 2.5,
-    quantidade: 1,
-    status: "ativo",
-    certificado: false,
-    agricultura_familiar: true,
-  },
-  {
-    id: "pc5",
-    produto_base_id: "pb2",
-    produto_base_nome: "Alface Hidropônica",
-    unidade: "Caixa",
-    peso: 3.0,
-    preco_base: 25.0,
-    quantidade: 10,
-    status: "ativo",
-    certificado: false,
-    agricultura_familiar: true,
-  },
-];
+// Interface para produto comercializável do GraphQL
+interface ProdutoComercializavelAPI {
+  id: string;
+  produtoId: number;
+  produto?: {
+    id: string;
+    nome: string;
+  };
+  medida: string;
+  pesoKg?: number;
+  precoBase: number;
+  status: string;
+}
+
+// Helper para criar descrição do produto comercializável
+const criarDescricaoProdutoAPI = (
+  produto: ProdutoComercializavelAPI,
+): string => {
+  const nome = produto.produto?.nome || "Produto";
+  const medida = produto.medida || "";
+  const peso = produto.pesoKg ? `${produto.pesoKg.toFixed(2)} kg` : "";
+  const preco = `R$ ${produto.precoBase.toFixed(2).replace(".", ",")}`;
+  return `${nome} (${medida}) - ${peso} - ${preco}`;
+};
 
 export default function AdminOferta() {
   const navigate = useNavigate();
@@ -150,6 +115,16 @@ export default function AdminOferta() {
   const valorInputRef = useRef<HTMLInputElement>(null);
   const quantidadeInputRef = useRef<HTMLInputElement>(null);
 
+  // GraphQL hooks
+  const { data: cicloData, isLoading: cicloLoading } = useBuscarCiclo(
+    cicloId || "",
+  );
+  const { data: produtosComercializaveisData, isLoading: produtosLoading } =
+    useListarProdutosComercializaveis();
+
+  const ciclo = cicloData?.buscarCiclo;
+  const produtosComercializaveis = produtosComercializaveisData || [];
+
   // Carregar ofertas do localStorage na montagem
   useEffect(() => {
     const ofertasSalvas = localStorage.getItem(`ofertas-ciclo-${cicloId}`);
@@ -158,63 +133,63 @@ export default function AdminOferta() {
     }
   }, [cicloId]);
 
-  // Mock ciclo data
-  const mockCiclo = {
-    id: cicloId || "1",
-    nome: "1º Ciclo de Novembro 2025",
-    data_inicio_oferta: new Date("2025-11-01"),
-    data_fim_oferta: new Date("2025-11-07"),
-    data_inicio_ciclo: new Date("2025-11-10"),
-    data_fim_ciclo: new Date("2025-11-16"),
-  };
-
-  // Forçar período de oferta aberto para testes (UC011)
-  const periodoOfertaAberto = true; // Status forçado: Liberado
+  // Verificar se período de oferta está aberto
+  const periodoOfertaAberto = useMemo(() => {
+    if (!ciclo?.ofertaInicio || !ciclo?.ofertaFim) return true;
+    const inicio = new Date(ciclo.ofertaInicio);
+    const fim = new Date(ciclo.ofertaFim);
+    if (isNaN(inicio.getTime()) || isNaN(fim.getTime())) return true;
+    const agora = new Date();
+    return agora >= inicio && agora <= fim;
+  }, [ciclo]);
 
   // Produtos filtrados pela busca
   const produtosFiltrados = useMemo(() => {
-    if (!searchProduto) return mockProdutosComercializaveis;
+    if (!produtosComercializaveis.length) return [];
+    if (!searchProduto) return produtosComercializaveis;
 
     const busca = searchProduto.toLowerCase();
-    return mockProdutosComercializaveis.filter(
-      (p) =>
-        p.produto_base_nome.toLowerCase().includes(busca) ||
-        p.unidade.toLowerCase().includes(busca),
+    return produtosComercializaveis.filter(
+      (p: ProdutoComercializavelAPI) =>
+        (p.produto?.nome || "").toLowerCase().includes(busca) ||
+        p.medida.toLowerCase().includes(busca),
     );
-  }, [searchProduto]);
+  }, [searchProduto, produtosComercializaveis]);
 
   // Lista única de produtos base (para o primeiro dropdown mobile)
   const produtosBase = useMemo(() => {
     const baseMap = new Map<string, string>();
-    mockProdutosComercializaveis.forEach((p) => {
-      baseMap.set(p.produto_base_id, p.produto_base_nome);
+    produtosComercializaveis.forEach((p: ProdutoComercializavelAPI) => {
+      if (p.produto) {
+        baseMap.set(p.produto.id, p.produto.nome);
+      }
     });
     return Array.from(baseMap.entries()).map(([id, nome]) => ({ id, nome }));
-  }, []);
+  }, [produtosComercializaveis]);
 
   // Variações do produto base selecionado (para o segundo dropdown mobile)
   const variacoesProduto = useMemo(() => {
     if (!selectedProdutoBase) return [];
-    return mockProdutosComercializaveis.filter(
-      (p) => p.produto_base_id === selectedProdutoBase,
+    return produtosComercializaveis.filter(
+      (p: ProdutoComercializavelAPI) => p.produto?.id === selectedProdutoBase,
     );
-  }, [selectedProdutoBase]);
+  }, [selectedProdutoBase, produtosComercializaveis]);
 
   // Ao selecionar um produto, preencher o valor unitário com o preço base e focar
   useEffect(() => {
     if (selectedProdutoId && !editingOferta) {
-      const produto = mockProdutosComercializaveis.find(
-        (p) => p.id === selectedProdutoId,
+      const produto = produtosComercializaveis.find(
+        (p: ProdutoComercializavelAPI) => p.id === selectedProdutoId,
       );
       if (produto) {
-        const precoFormatado = produto.preco_base.toFixed(2).replace(".", ",");
+        const precoFormatado = produto.precoBase.toFixed(2).replace(".", ",");
         setValorUnitario(precoFormatado);
-        setPrecoBaseSugerido(produto.preco_base);
+        setPrecoBaseSugerido(produto.precoBase);
         // Focar no campo de valor após seleção
         setTimeout(() => valorInputRef.current?.focus(), 100);
       }
     }
-  }, [selectedProdutoId, editingOferta]);
+  }, [selectedProdutoId, editingOferta, produtosComercializaveis]);
 
   // Validar se o formulário está completo
   const isFormValid = useMemo(() => {
@@ -265,8 +240,8 @@ export default function AdminOferta() {
       return;
     }
 
-    const produto = mockProdutosComercializaveis.find(
-      (p) => p.id === selectedProdutoId,
+    const produto = produtosComercializaveis.find(
+      (p: ProdutoComercializavelAPI) => p.id === selectedProdutoId,
     );
     if (!produto) return;
 
@@ -281,11 +256,11 @@ export default function AdminOferta() {
             ? {
                 ...o,
                 produto_comercializavel_id: selectedProdutoId,
-                produto_base_nome: produto.produto_base_nome,
-                unidade: produto.unidade,
-                peso: produto.peso,
-                volume: produto.volume,
-                preco_base: produto.preco_base,
+                produto_base_nome: produto.produto?.nome || "",
+                unidade: produto.medida,
+                peso: produto.pesoKg,
+                volume: undefined,
+                preco_base: produto.precoBase,
                 valor_unitario: valor,
                 quantidade_disponivel: quantidade,
                 certificacao: certificacao as CertificacaoType,
@@ -305,11 +280,11 @@ export default function AdminOferta() {
         ciclo_id: cicloId || "",
         mercado_ciclo_id: "",
         produto_comercializavel_id: selectedProdutoId,
-        produto_base_nome: produto.produto_base_nome,
-        unidade: produto.unidade,
-        peso: produto.peso,
-        volume: produto.volume,
-        preco_base: produto.preco_base,
+        produto_base_nome: produto.produto?.nome || "",
+        unidade: produto.medida,
+        peso: produto.pesoKg,
+        volume: undefined,
+        preco_base: produto.precoBase,
         valor_unitario: valor,
         quantidade_disponivel: quantidade,
         certificacao: certificacao as CertificacaoType,
@@ -328,11 +303,12 @@ export default function AdminOferta() {
   const handleEditarOferta = (oferta: OfertaProduto) => {
     setEditingOferta(oferta);
     setSelectedProdutoId(oferta.produto_comercializavel_id);
-    const produto = mockProdutosComercializaveis.find(
-      (p) => p.id === oferta.produto_comercializavel_id,
+    const produto = produtosComercializaveis.find(
+      (p: ProdutoComercializavelAPI) =>
+        p.id === oferta.produto_comercializavel_id,
     );
-    if (produto) {
-      setSelectedProdutoBase(produto.produto_base_id);
+    if (produto?.produto) {
+      setSelectedProdutoBase(produto.produto.id);
     }
     const precoFormatado = oferta.valor_unitario.toFixed(2).replace(".", ",");
     setValorUnitario(precoFormatado);
@@ -398,7 +374,7 @@ export default function AdminOferta() {
     // Log de auditoria (em produção, enviar ao backend)
     console.warn("Auditoria - Oferta Registrada:", {
       usuario: "Admin",
-      ciclo: mockCiclo.nome,
+      ciclo: ciclo?.nome || "Ciclo",
       ciclo_id: cicloId,
       timestamp: new Date().toISOString(),
       total_produtos: ofertas.length,
@@ -418,7 +394,7 @@ export default function AdminOferta() {
 
     toast({
       title: "✓ Oferta registrada com sucesso",
-      description: `${ofertas.length} produto(s) salvos no ciclo ${mockCiclo.nome}`,
+      description: `${ofertas.length} produto(s) salvos no ciclo ${ciclo?.nome || "Ciclo"}`,
       duration: 4000,
     });
   };
@@ -432,7 +408,7 @@ export default function AdminOferta() {
           onClick={() => {
             if (activeRole === "fornecedor") {
               navigate("/fornecedor/selecionar-ciclo");
-            } else if (activeRole === "admin_mercado") {
+            } else if (activeRole === "adminmercado") {
               navigate("/adminmercado/ciclo-index");
             } else {
               navigate("/admin/ciclo-index");
@@ -464,18 +440,24 @@ export default function AdminOferta() {
               </Badge>
               <div className="text-center md:text-left md:order-1">
                 <RoleTitle
-                  page={mockCiclo.nome}
+                  page={ciclo?.nome || "Ciclo"}
                   className="text-2xl md:text-3xl"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
                   Período:{" "}
-                  {format(mockCiclo.data_inicio_oferta, "dd/MM/yyyy", {
-                    locale: ptBR,
-                  })}{" "}
+                  {ciclo?.ofertaInicio &&
+                  !isNaN(new Date(ciclo.ofertaInicio).getTime())
+                    ? format(new Date(ciclo.ofertaInicio), "dd/MM/yyyy", {
+                        locale: ptBR,
+                      })
+                    : "-"}{" "}
                   -{" "}
-                  {format(mockCiclo.data_fim_oferta, "dd/MM/yyyy", {
-                    locale: ptBR,
-                  })}
+                  {ciclo?.ofertaFim &&
+                  !isNaN(new Date(ciclo.ofertaFim).getTime())
+                    ? format(new Date(ciclo.ofertaFim), "dd/MM/yyyy", {
+                        locale: ptBR,
+                      })
+                    : "-"}
                 </p>
               </div>
             </div>
@@ -588,7 +570,7 @@ export default function AdminOferta() {
                   <SelectContent className="max-h-[300px] bg-background z-50">
                     {produtosFiltrados.map((produto) => (
                       <SelectItem key={produto.id} value={produto.id}>
-                        {criarDescricaoProduto(produto)}
+                        {criarDescricaoProdutoAPI(produto)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -635,21 +617,17 @@ export default function AdminOferta() {
                         <SelectValue placeholder="Selecione a variação" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px] bg-background z-50">
-                        {variacoesProduto.map((produto) => (
-                          <SelectItem key={produto.id} value={produto.id}>
-                            ({produto.unidade}) -{" "}
-                            {produto.peso
-                              ? `${produto.peso.toFixed(2)} kg`
-                              : produto.volume
-                                ? `${produto.volume.toFixed(2)} L`
+                        {variacoesProduto.map(
+                          (produto: ProdutoComercializavelAPI) => (
+                            <SelectItem key={produto.id} value={produto.id}>
+                              ({produto.medida}) -{" "}
+                              {produto.pesoKg
+                                ? `${produto.pesoKg.toFixed(2)} kg`
                                 : ""}{" "}
-                            -{" "}
-                            {produto.quantidade > 1
-                              ? `${produto.quantidade} un. - `
-                              : ""}
-                            {formatBRL(produto.preco_base)}
-                          </SelectItem>
-                        ))}
+                              - {formatBRL(produto.precoBase)}
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

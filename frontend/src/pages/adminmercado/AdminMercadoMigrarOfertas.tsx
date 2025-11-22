@@ -1,19 +1,40 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ciclos } from "@/fixtures/ciclos";
 import { sobrasPorCiclo } from "@/fixtures/produtosSobra";
 import { formatBRL } from "@/utils/currency";
-import { RoleTitle } from '@/components/layout/RoleTitle';
+import { RoleTitle } from "@/components/layout/RoleTitle";
+import { useListarCiclos } from "@/hooks/graphql";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface ProdutoMigracao {
   id: string;
@@ -34,21 +55,52 @@ export default function AdminMercadoMigrarOfertas() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [destinoSelecionadoId, setDestinoSelecionadoId] = useState<string>(cicloId || "");
+  const [destinoSelecionadoId, setDestinoSelecionadoId] = useState<string>(
+    cicloId || "",
+  );
   const [ciclosOrigemIds, setCiclosOrigemIds] = useState<string[]>([]);
   const [produtos, setProdutos] = useState<ProdutoMigracao[]>([]);
   const [busca, setBusca] = useState("");
 
+  // GraphQL hook para listar ciclos
+  const { data: ciclosData, isLoading: ciclosLoading } = useListarCiclos();
+  const ciclos = ciclosData?.listarCiclos || [];
+
+  // Helper para formatar período do ciclo
+  const formatarPeriodo = (ciclo: {
+    ofertaInicio?: string;
+    ofertaFim?: string;
+  }) => {
+    if (!ciclo.ofertaInicio || !ciclo.ofertaFim) return "";
+    const inicio = format(new Date(ciclo.ofertaInicio), "dd/MM/yyyy", {
+      locale: ptBR,
+    });
+    const fim = format(new Date(ciclo.ofertaFim), "dd/MM/yyyy", {
+      locale: ptBR,
+    });
+    return `${inicio} – ${fim}`;
+  };
+
   // Filtrar apenas ciclos que pertencem ao admin de mercado logado
-  const cicloDestino = ciclos.find(c => c.id === destinoSelecionadoId);
-  const ciclosFinalizados = ciclos.filter(c => 
-    c.status === "Finalizado" && 
-    c.id !== destinoSelecionadoId
-    // TODO: filtrar por admin logado quando houver campo adminResponsavel
+  const cicloDestino = useMemo(
+    () => ciclos.find((c: { id: string }) => c.id === destinoSelecionadoId),
+    [ciclos, destinoSelecionadoId],
   );
-  const ciclosAtivos = ciclos.filter(c => 
-    c.status === "Ativo"
-    // TODO: filtrar por admin logado quando houver campo adminResponsavel
+  const ciclosFinalizados = useMemo(
+    () =>
+      ciclos.filter(
+        (c: { id: string; status: string }) =>
+          c.status === "finalizado" && c.id !== destinoSelecionadoId,
+      ),
+    [ciclos, destinoSelecionadoId],
+  );
+  const ciclosAtivos = useMemo(
+    () =>
+      ciclos.filter(
+        (c: { status: string }) =>
+          c.status === "oferta" || c.status === "ativo",
+      ),
+    [ciclos],
   );
 
   const handleCarregarSobras = () => {
@@ -72,10 +124,11 @@ export default function AdminMercadoMigrarOfertas() {
 
     const produtosMap = new Map<string, ProdutoMigracao>();
 
-    ciclosOrigemIds.forEach(cicloId => {
-      const sobras = sobrasPorCiclo[cicloId as keyof typeof sobrasPorCiclo] || [];
+    ciclosOrigemIds.forEach((cicloId) => {
+      const sobras =
+        sobrasPorCiclo[cicloId as keyof typeof sobrasPorCiclo] || [];
 
-      sobras.forEach(s => {
+      sobras.forEach((s) => {
         const ofertados = s.disponivel || 0;
         const pedidos = Math.floor(ofertados * 0.4);
         const sobraram = Math.max(ofertados - pedidos, 0);
@@ -101,7 +154,7 @@ export default function AdminMercadoMigrarOfertas() {
             sobraram,
             qtdMigrar: sobraram,
             selecionado: sobraram > 0,
-            ciclosOrigem: [cicloId]
+            ciclosOrigem: [cicloId],
           });
         }
       });
@@ -109,10 +162,11 @@ export default function AdminMercadoMigrarOfertas() {
 
     const todosProdutos = Array.from(produtosMap.values());
 
-    if (todosProdutos.every(p => p.sobraram === 0)) {
+    if (todosProdutos.every((p) => p.sobraram === 0)) {
       toast({
         title: "Atenção",
-        description: "Nenhum item disponível para migração nos ciclos selecionados.",
+        description:
+          "Nenhum item disponível para migração nos ciclos selecionados.",
         variant: "destructive",
       });
       return;
@@ -122,41 +176,43 @@ export default function AdminMercadoMigrarOfertas() {
   };
 
   const handleToggleCicloOrigem = (cicloId: string) => {
-    setCiclosOrigemIds(prev =>
+    setCiclosOrigemIds((prev) =>
       prev.includes(cicloId)
-        ? prev.filter(id => id !== cicloId)
-        : [...prev, cicloId]
+        ? prev.filter((id) => id !== cicloId)
+        : [...prev, cicloId],
     );
   };
 
   const handleToggleProduto = (id: string, checked: boolean) => {
-    setProdutos(prev => prev.map(p =>
-      p.id === id ? { ...p, selecionado: checked } : p
-    ));
+    setProdutos((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, selecionado: checked } : p)),
+    );
   };
 
   const handleQtdMigrarChange = (id: string, value: number) => {
-    setProdutos(prev => prev.map(p => {
-      if (p.id === id) {
-        const qtd = Math.max(1, Math.min(value, p.sobraram));
-        return { ...p, qtdMigrar: qtd };
-      }
-      return p;
-    }));
+    setProdutos((prev) =>
+      prev.map((p) => {
+        if (p.id === id) {
+          const qtd = Math.max(1, Math.min(value, p.sobraram));
+          return { ...p, qtdMigrar: qtd };
+        }
+        return p;
+      }),
+    );
   };
 
   const handleSelecionarTodos = () => {
-    setProdutos(prev => prev.map(p =>
-      p.sobraram > 0 ? { ...p, selecionado: true } : p
-    ));
+    setProdutos((prev) =>
+      prev.map((p) => (p.sobraram > 0 ? { ...p, selecionado: true } : p)),
+    );
   };
 
   const handleLimparSelecao = () => {
-    setProdutos(prev => prev.map(p => ({ ...p, selecionado: false })));
+    setProdutos((prev) => prev.map((p) => ({ ...p, selecionado: false })));
   };
 
   const handleSalvarMigracao = () => {
-    const selecionados = produtos.filter(p => p.selecionado);
+    const selecionados = produtos.filter((p) => p.selecionado);
 
     if (selecionados.length === 0) {
       toast({
@@ -176,10 +232,11 @@ export default function AdminMercadoMigrarOfertas() {
       return;
     }
 
-    if (cicloDestino.status !== "Ativo") {
+    if (cicloDestino.status !== "oferta" && cicloDestino.status !== "ativo") {
       toast({
         title: "Erro",
-        description: "Ciclo de destino precisa estar ativo para receber migração.",
+        description:
+          "Ciclo de destino precisa estar ativo para receber migração.",
         variant: "destructive",
       });
       return;
@@ -190,26 +247,33 @@ export default function AdminMercadoMigrarOfertas() {
       description: `${selecionados.length} produtos foram adicionados ao ciclo de destino.`,
     });
 
-    navigate('/adminmercado/ciclo-index');
+    navigate("/adminmercado/ciclo-index");
   };
 
-  const produtosFiltrados = produtos.filter(p =>
-    p.produto.toLowerCase().includes(busca.toLowerCase()) ||
-    p.fornecedor.toLowerCase().includes(busca.toLowerCase())
+  const produtosFiltrados = produtos.filter(
+    (p) =>
+      p.produto.toLowerCase().includes(busca.toLowerCase()) ||
+      p.fornecedor.toLowerCase().includes(busca.toLowerCase()),
   );
 
-  const produtosSelecionados = produtos.filter(p => p.selecionado);
+  const produtosSelecionados = produtos.filter((p) => p.selecionado);
   const totalItens = produtosSelecionados.length;
-  const totalQtd = produtosSelecionados.reduce((sum, p) => sum + p.qtdMigrar, 0);
-  const totalValor = produtosSelecionados.reduce((sum, p) => sum + (p.qtdMigrar * p.valor), 0);
+  const totalQtd = produtosSelecionados.reduce(
+    (sum, p) => sum + p.qtdMigrar,
+    0,
+  );
+  const totalValor = produtosSelecionados.reduce(
+    (sum, p) => sum + p.qtdMigrar * p.valor,
+    0,
+  );
 
   return (
-    <ResponsiveLayout 
+    <ResponsiveLayout
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate('/adminmercado/ciclo-index')} 
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/adminmercado/ciclo-index")}
           className="text-white hover:bg-white/20"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -219,9 +283,13 @@ export default function AdminMercadoMigrarOfertas() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <RoleTitle page="Migrar Ofertas de um Ciclo para Outro" className="text-2xl md:text-3xl" />
+          <RoleTitle
+            page="Migrar Ofertas de um Ciclo para Outro"
+            className="text-2xl md:text-3xl"
+          />
           <p className="text-sm md:text-base text-muted-foreground">
-            Copie as ofertas já configuradas em um ciclo anterior para este ciclo
+            Copie as ofertas já configuradas em um ciclo anterior para este
+            ciclo
           </p>
         </div>
 
@@ -229,20 +297,26 @@ export default function AdminMercadoMigrarOfertas() {
         {!cicloDestino && (
           <Card className="border-2 border-primary/20">
             <CardHeader>
-              <CardTitle className="text-primary">Selecione o Ciclo de Destino</CardTitle>
+              <CardTitle className="text-primary">
+                Selecione o Ciclo de Destino
+              </CardTitle>
               <CardDescription>
-                Escolha um ciclo ativo do seu mercado para onde deseja migrar as ofertas
+                Escolha um ciclo ativo do seu mercado para onde deseja migrar as
+                ofertas
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Select value={destinoSelecionadoId} onValueChange={setDestinoSelecionadoId}>
+              <Select
+                value={destinoSelecionadoId}
+                onValueChange={setDestinoSelecionadoId}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione o ciclo de destino (Ativo)" />
                 </SelectTrigger>
                 <SelectContent>
                   {ciclosAtivos.map((ciclo) => (
                     <SelectItem key={ciclo.id} value={ciclo.id}>
-                      {ciclo.nome} • {ciclo.periodo}
+                      {ciclo.nome} • {formatarPeriodo(ciclo)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -258,12 +332,15 @@ export default function AdminMercadoMigrarOfertas() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-lg text-primary">Ciclo de Destino</CardTitle>
+                    <CardTitle className="text-lg text-primary">
+                      Ciclo de Destino
+                    </CardTitle>
                     <CardDescription className="text-base mt-2">
-                      {cicloDestino.nome} • {cicloDestino.periodo}
+                      {cicloDestino.nome} • {formatarPeriodo(cicloDestino)}
                     </CardDescription>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Mercado: {cicloDestino.mercados?.[0]?.nome || 'Mercado Central'}
+                      Mercado:{" "}
+                      {cicloDestino.mercados?.[0]?.nome || "Mercado Central"}
                     </p>
                   </div>
                   <Badge variant="success">{cicloDestino.status}</Badge>
@@ -274,9 +351,12 @@ export default function AdminMercadoMigrarOfertas() {
             {/* Seleção de Ciclos de Origem */}
             <Card className="border-2 border-primary/20">
               <CardHeader>
-                <CardTitle className="text-primary">Selecione os ciclos que deseja migrar as sobras</CardTitle>
+                <CardTitle className="text-primary">
+                  Selecione os ciclos que deseja migrar as sobras
+                </CardTitle>
                 <CardDescription>
-                  Você pode selecionar múltiplos ciclos finalizados do seu mercado
+                  Você pode selecionar múltiplos ciclos finalizados do seu
+                  mercado
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -290,9 +370,9 @@ export default function AdminMercadoMigrarOfertas() {
                       <Card
                         key={ciclo.id}
                         className={`cursor-pointer transition-all hover:shadow-md ${
-                          ciclosOrigemIds.includes(ciclo.id) 
-                            ? 'border-primary border-2 bg-primary/5' 
-                            : 'border hover:border-primary/50'
+                          ciclosOrigemIds.includes(ciclo.id)
+                            ? "border-primary border-2 bg-primary/5"
+                            : "border hover:border-primary/50"
                         }`}
                         onClick={() => handleToggleCicloOrigem(ciclo.id)}
                       >
@@ -300,11 +380,17 @@ export default function AdminMercadoMigrarOfertas() {
                           <div className="flex items-center gap-4">
                             <Checkbox
                               checked={ciclosOrigemIds.includes(ciclo.id)}
-                              onCheckedChange={() => handleToggleCicloOrigem(ciclo.id)}
+                              onCheckedChange={() =>
+                                handleToggleCicloOrigem(ciclo.id)
+                              }
                             />
                             <div className="flex-1">
-                              <CardTitle className="text-base font-semibold">{ciclo.nome}</CardTitle>
-                              <CardDescription className="text-sm">{ciclo.periodo}</CardDescription>
+                              <CardTitle className="text-base font-semibold">
+                                {ciclo.nome}
+                              </CardTitle>
+                              <CardDescription className="text-sm">
+                                {formatarPeriodo(ciclo)}
+                              </CardDescription>
                             </div>
                             <Badge variant="warning">{ciclo.status}</Badge>
                           </div>
@@ -340,7 +426,9 @@ export default function AdminMercadoMigrarOfertas() {
             <CardHeader>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <CardTitle className="text-primary">Alimentos que sobraram</CardTitle>
+                  <CardTitle className="text-primary">
+                    Alimentos que sobraram
+                  </CardTitle>
                   <CardDescription>
                     Selecione os alimentos e quantidades que deseja migrar
                   </CardDescription>
@@ -392,30 +480,49 @@ export default function AdminMercadoMigrarOfertas() {
                   {produtosFiltrados.map((produto) => (
                     <TableRow
                       key={produto.id}
-                      className={produto.sobraram === 0 ? 'opacity-50' : ''}
+                      className={produto.sobraram === 0 ? "opacity-50" : ""}
                     >
                       <TableCell>
                         <Checkbox
                           checked={produto.selecionado}
                           disabled={produto.sobraram === 0}
-                          onCheckedChange={(checked) => handleToggleProduto(produto.id, checked as boolean)}
+                          onCheckedChange={(checked) =>
+                            handleToggleProduto(produto.id, checked as boolean)
+                          }
                         />
                       </TableCell>
-                      <TableCell className="font-medium">{produto.produto}</TableCell>
+                      <TableCell className="font-medium">
+                        {produto.produto}
+                      </TableCell>
                       <TableCell>{produto.fornecedor}</TableCell>
                       <TableCell>{produto.unidade}</TableCell>
-                      <TableCell className="text-right">{produto.ofertados}</TableCell>
-                      <TableCell className="text-right">{produto.pedidos}</TableCell>
-                      <TableCell className="text-right font-semibold">{produto.sobraram}</TableCell>
-                      <TableCell className="text-right">{formatBRL(produto.valor)}</TableCell>
+                      <TableCell className="text-right">
+                        {produto.ofertados}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {produto.pedidos}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        {produto.sobraram}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatBRL(produto.valor)}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Input
                           type="number"
                           min="1"
                           max={produto.sobraram}
                           value={produto.qtdMigrar}
-                          disabled={produto.sobraram === 0 || !produto.selecionado}
-                          onChange={(e) => handleQtdMigrarChange(produto.id, Number(e.target.value))}
+                          disabled={
+                            produto.sobraram === 0 || !produto.selecionado
+                          }
+                          onChange={(e) =>
+                            handleQtdMigrarChange(
+                              produto.id,
+                              Number(e.target.value),
+                            )
+                          }
                           className="w-20 text-right mx-auto"
                         />
                       </TableCell>
@@ -429,16 +536,28 @@ export default function AdminMercadoMigrarOfertas() {
                 <div className="mt-6 p-4 bg-muted rounded-lg">
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <p className="text-sm text-muted-foreground">Itens Selecionados</p>
-                      <p className="text-2xl font-bold text-primary">{totalItens}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Itens Selecionados
+                      </p>
+                      <p className="text-2xl font-bold text-primary">
+                        {totalItens}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Quantidade Total</p>
-                      <p className="text-2xl font-bold text-primary">{totalQtd}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Quantidade Total
+                      </p>
+                      <p className="text-2xl font-bold text-primary">
+                        {totalQtd}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Valor Total</p>
-                      <p className="text-2xl font-bold text-success">{formatBRL(totalValor)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Valor Total
+                      </p>
+                      <p className="text-2xl font-bold text-success">
+                        {formatBRL(totalValor)}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -447,7 +566,7 @@ export default function AdminMercadoMigrarOfertas() {
               <div className="mt-6 flex justify-between gap-4">
                 <Button
                   variant="outline"
-                  onClick={() => navigate('/adminmercado/ciclo-index')}
+                  onClick={() => navigate("/adminmercado/ciclo-index")}
                   className="border-primary text-primary hover:bg-primary/10"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
