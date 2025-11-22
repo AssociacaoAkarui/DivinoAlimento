@@ -351,6 +351,12 @@ type Mutation {
         input: AtualizarQuantidadeProdutoInput!
     ): OfertaProduto!
     removerProdutoOferta(ofertaProdutoId: ID!): Boolean!
+    criarPrecoMercado(input: CriarPrecoMercadoInput!): PrecoMercado!
+    atualizarPrecoMercado(
+        id: ID!
+        input: AtualizarPrecoMercadoInput!
+    ): PrecoMercado!
+    deletarPrecoMercado(id: ID!): Boolean!
 }
 
 type Query {
@@ -383,6 +389,10 @@ type Query {
     buscarMercado(id: ID!): Mercado!
     listarMercadosAtivos: [Mercado!]!
     listarMercadosPorResponsavel(responsavelId: Int!): [Mercado!]!
+    listarPrecosMercado(mercadoId: Int!): [PrecoMercado!]!
+    listarPrecosProduto(produtoId: Int!): [PrecoMercado!]!
+    buscarPrecoMercado(id: ID!): PrecoMercado
+    buscarPrecoProdutoMercado(produtoId: Int!, mercadoId: Int!): PrecoMercado
 }
 
 type OfertaProduto {
@@ -424,4 +434,28 @@ input AdicionarProdutoOfertaInput {
 input AtualizarQuantidadeProdutoInput {
     quantidade: Float!
     valorOferta: Float
+}
+
+type PrecoMercado {
+    id: ID!
+    produtoId: Int!
+    produto: Produto
+    mercadoId: Int!
+    mercado: Mercado
+    preco: Float!
+    status: String!
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CriarPrecoMercadoInput {
+    produtoId: Int!
+    mercadoId: Int!
+    preco: Float!
+    status: String
+}
+
+input AtualizarPrecoMercadoInput {
+    preco: Float
+    status: String
 }

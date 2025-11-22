@@ -7,10 +7,13 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "responsavelId",
         as: "responsavel",
       });
-
       Mercado.hasMany(models.PontoEntrega, {
         foreignKey: "mercadoId",
         as: "pontosEntrega",
+      });
+      Mercado.hasMany(models.PrecoMercado, {
+        foreignKey: "mercadoId",
+        as: "precosMercados",
       });
     }
   }
@@ -61,7 +64,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Mercado",
-    }
+    },
   );
 
   return Mercado;

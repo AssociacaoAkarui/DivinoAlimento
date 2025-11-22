@@ -149,6 +149,43 @@ INSERT INTO "PontoEntregas" (id, nome, endereco, bairro, cidade, estado, cep, "m
 SELECT 4, 'Ponto Entrega Zona Oeste', 'Rua Cardeal Arcoverde, 200', 'Pinheiros', 'Sao Paulo', 'SP', '05407-000', 3, 'ativo', CURRENT_DATE, CURRENT_DATE
 WHERE NOT EXISTS (SELECT 1 FROM "PontoEntregas" WHERE id = 4);
 
+-- UC006: PrecoMercados (precos especificos por mercado)
+INSERT INTO "PrecoMercados" (id, "produtoId", "mercadoId", preco, status, "createdAt", "updatedAt")
+SELECT 1, 1, 1, 9.00, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PrecoMercados" WHERE "produtoId" = 1 AND "mercadoId" = 1);
+
+INSERT INTO "PrecoMercados" (id, "produtoId", "mercadoId", preco, status, "createdAt", "updatedAt")
+SELECT 2, 2, 1, 13.50, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PrecoMercados" WHERE "produtoId" = 2 AND "mercadoId" = 1);
+
+INSERT INTO "PrecoMercados" (id, "produtoId", "mercadoId", preco, status, "createdAt", "updatedAt")
+SELECT 3, 3, 1, 3.00, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PrecoMercados" WHERE "produtoId" = 3 AND "mercadoId" = 1);
+
+INSERT INTO "PrecoMercados" (id, "produtoId", "mercadoId", preco, status, "createdAt", "updatedAt")
+SELECT 4, 1, 2, 8.50, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PrecoMercados" WHERE "produtoId" = 1 AND "mercadoId" = 2);
+
+INSERT INTO "PrecoMercados" (id, "produtoId", "mercadoId", preco, status, "createdAt", "updatedAt")
+SELECT 5, 2, 2, 12.00, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PrecoMercados" WHERE "produtoId" = 2 AND "mercadoId" = 2);
+
+INSERT INTO "PrecoMercados" (id, "produtoId", "mercadoId", preco, status, "createdAt", "updatedAt")
+SELECT 6, 4, 2, 2.80, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PrecoMercados" WHERE "produtoId" = 4 AND "mercadoId" = 2);
+
+INSERT INTO "PrecoMercados" (id, "produtoId", "mercadoId", preco, status, "createdAt", "updatedAt")
+SELECT 7, 1, 3, 9.50, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PrecoMercados" WHERE "produtoId" = 1 AND "mercadoId" = 3);
+
+INSERT INTO "PrecoMercados" (id, "produtoId", "mercadoId", preco, status, "createdAt", "updatedAt")
+SELECT 8, 3, 3, 3.20, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PrecoMercados" WHERE "produtoId" = 3 AND "mercadoId" = 3);
+
+INSERT INTO "PrecoMercados" (id, "produtoId", "mercadoId", preco, status, "createdAt", "updatedAt")
+SELECT 9, 4, 3, 2.50, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PrecoMercados" WHERE "produtoId" = 4 AND "mercadoId" = 3);
+
 -- UC010: Ciclos (ciclos de comercializacao)
 INSERT INTO "Ciclos" (id, nome, "ofertaInicio", "ofertaFim", "pontoEntregaId", "itensAdicionaisInicio", "itensAdicionaisFim", "retiradaConsumidorInicio", "retiradaConsumidorFim", observacao, status, "createdAt", "updatedAt")
 SELECT 1, '1o Ciclo de Novembro 2025', '2025-11-01 08:00:00', '2025-11-15 18:00:00', 1, '2025-11-05 08:00:00', '2025-11-10 18:00:00', '2025-11-16 08:00:00', '2025-11-17 18:00:00', 'Primeiro ciclo de novembro', 'oferta', CURRENT_DATE, CURRENT_DATE

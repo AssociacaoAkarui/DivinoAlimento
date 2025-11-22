@@ -14,6 +14,7 @@ const {
   OfertaService,
   PontoEntregaService,
   MercadoService,
+  PrecoMercadoService,
 } = require("../src/services/services.js");
 
 async function requiredAuthenticated(context) {
@@ -527,6 +528,68 @@ const rootValue = {
     return result;
   },
 
+  listarPrecosMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const precos = await context.precoMercadoService.listarPrecosPorMercado(
+      args.mercadoId,
+    );
+    return precos;
+  },
+
+  listarPrecosProduto: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const precos = await context.precoMercadoService.listarPrecosPorProduto(
+      args.produtoId,
+    );
+    return precos;
+  },
+
+  buscarPrecoMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const preco = await context.precoMercadoService.buscarPreco(args.id);
+    return preco;
+  },
+
+  buscarPrecoProdutoMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const preco = await context.precoMercadoService.buscarPrecoProdutoMercado(
+      args.produtoId,
+      args.mercadoId,
+    );
+    return preco;
+  },
+
+  criarPrecoMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const preco = await context.precoMercadoService.criarPreco(args.input);
+    return preco;
+  },
+
+  atualizarPrecoMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const preco = await context.precoMercadoService.atualizarPreco(
+      args.id,
+      args.input,
+    );
+    return preco;
+  },
+
+  deletarPrecoMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    await context.precoMercadoService.deletarPreco(args.id);
+    return true;
+  },
+
   // Oferta resolvers
   buscarOferta: async (args, context) => {
     await requiredAuthenticated(context);
@@ -614,6 +677,7 @@ const cicloService = new CicloService();
 const ofertaService = new OfertaService();
 const pontoEntregaService = new PontoEntregaService();
 const mercadoService = new MercadoService();
+const precoMercadoService = new PrecoMercadoService();
 
 const API = {
   rootValue,
@@ -628,6 +692,7 @@ const API = {
     ofertaService,
     pontoEntregaService,
     mercadoService,
+    precoMercadoService,
   },
   buildContext(sessionToken) {
     return {
@@ -640,6 +705,7 @@ const API = {
       ofertaService,
       pontoEntregaService,
       mercadoService,
+      precoMercadoService,
       sessionToken,
     };
   },

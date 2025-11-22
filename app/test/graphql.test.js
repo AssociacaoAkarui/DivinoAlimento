@@ -4590,3 +4590,239 @@ describe("Mercado GraphQL", function () {
     );
   });
 });
+
+describe("PrecoMercado GraphQL", function () {
+  const {
+    CategoriaProdutosService,
+    ProdutoService,
+    MercadoService,
+    PrecoMercadoService,
+  } = require("../src/services/services.js");
+
+  let adminSession;
+  let mercadoId;
+  let produtoId;
+
+  beforeEach(async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "admin-token-preco";
+      },
+    });
+    await usuarioService.create(
+      { email: "admin@example.com", senha: "password" },
+      { perfis: ["admin"] },
+    );
+    adminSession = await usuarioService.login("admin@example.com", "password");
+
+    const categoriaProdutosService = new CategoriaProdutosService();
+    const categoria = await categoriaProdutosService.criarCategoria({
+      nome: "Frutas",
+      status: "ativo",
+    });
+
+    const produtoService = new ProdutoService();
+    const produto = await produtoService.criarProduto({
+      nome: "Banana",
+      medida: "kg",
+      pesoGrama: 1000,
+      valorReferencia: 5.0,
+      categoriaId: categoria.id,
+      status: "ativo",
+    });
+    produtoId = produto.id;
+
+    const mercadoService = new MercadoService();
+    const mercado = await mercadoService.criarMercado({
+      nome: "Mercado Teste",
+      tipo: "cesta",
+      responsavelId: adminSession.usuarioId,
+      valorMaximoCesta: 100,
+      status: "ativo",
+    });
+    mercadoId = mercado.id;
+  });
+
+  it("admin user can create preco for produto in mercado", async function () {
+    const mutation = `
+      mutation CriarPrecoMercado($input: CriarPrecoMercadoInput!) {
+        criarPrecoMercado(input: $input) {
+          id
+          produtoId
+          mercadoId
+          preco
+          status
+        }
+      }
+    `;
+
+    const variables = {
+      input: {
+        produtoId: produtoId,
+        mercadoId: mercadoId,
+        preco: 8.5,
+        status: "ativo",
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarPrecoMercado.preco).to.equal(8.5);
+    expect(result.data.criarPrecoMercado.produtoId).to.equal(produtoId);
+    expect(result.data.criarPrecoMercado.mercadoId).to.equal(mercadoId);
+  });
+
+  it("admin user can list precos by mercado", async function () {
+    const precoMercadoService = new PrecoMercadoService();
+    await precoMercadoService.criarPreco({
+      produtoId: produtoId,
+      mercadoId: mercadoId,
+      preco: 8.5,
+      status: "ativo",
+    });
+
+    const query = `
+      query ListarPrecosMercado($mercadoId: Int!) {
+        listarPrecosMercado(mercadoId: $mercadoId) {
+          id
+          preco
+          produto {
+            nome
+          }
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: { mercadoId },
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarPrecosMercado).to.have.lengthOf(1);
+    expect(result.data.listarPrecosMercado[0].preco).to.equal(8.5);
+    expect(result.data.listarPrecosMercado[0].produto.nome).to.equal("Banana");
+  });
+
+  it("admin user can update preco", async function () {
+    const precoMercadoService = new PrecoMercadoService();
+    const preco = await precoMercadoService.criarPreco({
+      produtoId: produtoId,
+      mercadoId: mercadoId,
+      preco: 8.5,
+      status: "ativo",
+    });
+
+    const mutation = `
+      mutation AtualizarPrecoMercado($id: ID!, $input: AtualizarPrecoMercadoInput!) {
+        atualizarPrecoMercado(id: $id, input: $input) {
+          id
+          preco
+          status
+        }
+      }
+    `;
+
+    const variables = {
+      id: preco.id.toString(),
+      input: {
+        preco: 9.0,
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.atualizarPrecoMercado.preco).to.equal(9.0);
+  });
+
+  it("admin user can delete preco", async function () {
+    const precoMercadoService = new PrecoMercadoService();
+    const preco = await precoMercadoService.criarPreco({
+      produtoId: produtoId,
+      mercadoId: mercadoId,
+      preco: 8.5,
+      status: "ativo",
+    });
+
+    const mutation = `
+      mutation DeletarPrecoMercado($id: ID!) {
+        deletarPrecoMercado(id: $id)
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: { id: preco.id.toString() },
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.deletarPrecoMercado).to.be.true;
+
+    const precoDeleted = await precoMercadoService.buscarPreco(preco.id);
+    expect(precoDeleted).to.be.null;
+  });
+
+  it("error when creating duplicate preco for same produto and mercado", async function () {
+    const precoMercadoService = new PrecoMercadoService();
+    await precoMercadoService.criarPreco({
+      produtoId: produtoId,
+      mercadoId: mercadoId,
+      preco: 8.5,
+      status: "ativo",
+    });
+
+    const mutation = `
+      mutation CriarPrecoMercado($input: CriarPrecoMercadoInput!) {
+        criarPrecoMercado(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const variables = {
+      input: {
+        produtoId: produtoId,
+        mercadoId: mercadoId,
+        preco: 10.0,
+        status: "ativo",
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.not.be.undefined;
+    expect(result.errors[0].message).to.match(/Já existe um preço cadastrado/i);
+  });
+});
