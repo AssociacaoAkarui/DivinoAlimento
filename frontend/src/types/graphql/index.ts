@@ -74,6 +74,11 @@ export type AtualizarPontoEntregaInput = {
   status?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type AtualizarPrecoMercadoInput = {
+  preco?: InputMaybe<Scalars['Float']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type AtualizarProdutoComercializavelInput = {
   medida?: InputMaybe<Scalars['String']['input']>;
   pesoKg?: InputMaybe<Scalars['Float']['input']>;
@@ -181,6 +186,13 @@ export type CriarPontoEntregaInput = {
   status: Scalars['String']['input'];
 };
 
+export type CriarPrecoMercadoInput = {
+  mercadoId: Scalars['Int']['input'];
+  preco: Scalars['Float']['input'];
+  produtoId: Scalars['Int']['input'];
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CriarProdutoComercializavelInput = {
   medida: Scalars['String']['input'];
   pesoKg: Scalars['Float']['input'];
@@ -269,6 +281,7 @@ export type Mutation = {
   atualizarCiclo: Ciclo;
   atualizarMercado: Mercado;
   atualizarPontoEntrega: PontoEntrega;
+  atualizarPrecoMercado: PrecoMercado;
   atualizarProduto: Produto;
   atualizarProdutoComercializavel: ProdutoComercializavel;
   atualizarQuantidadeProdutoOferta: OfertaProduto;
@@ -278,6 +291,7 @@ export type Mutation = {
   criarMercado: Mercado;
   criarOferta: Oferta;
   criarPontoEntrega: PontoEntrega;
+  criarPrecoMercado: PrecoMercado;
   criarProduto: Produto;
   criarProdutoComercializavel: ProdutoComercializavel;
   criarSubmissaoProduto: SubmissaoProduto;
@@ -286,6 +300,7 @@ export type Mutation = {
   deletarCiclo: Scalars['Boolean']['output'];
   deletarMercado: Scalars['Boolean']['output'];
   deletarPontoEntrega: Scalars['Boolean']['output'];
+  deletarPrecoMercado: Scalars['Boolean']['output'];
   deletarProduto: Scalars['Boolean']['output'];
   deletarProdutoComercializavel: Scalars['Boolean']['output'];
   deletarSubmissaoProduto: Scalars['Boolean']['output'];
@@ -329,6 +344,12 @@ export type MutationAtualizarMercadoArgs = {
 export type MutationAtualizarPontoEntregaArgs = {
   id: Scalars['ID']['input'];
   input: AtualizarPontoEntregaInput;
+};
+
+
+export type MutationAtualizarPrecoMercadoArgs = {
+  id: Scalars['ID']['input'];
+  input: AtualizarPrecoMercadoInput;
 };
 
 
@@ -381,6 +402,11 @@ export type MutationCriarPontoEntregaArgs = {
 };
 
 
+export type MutationCriarPrecoMercadoArgs = {
+  input: CriarPrecoMercadoInput;
+};
+
+
 export type MutationCriarProdutoArgs = {
   input: CriarProdutoInput;
 };
@@ -417,6 +443,11 @@ export type MutationDeletarMercadoArgs = {
 
 
 export type MutationDeletarPontoEntregaArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeletarPrecoMercadoArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -500,6 +531,19 @@ export type PontoEntregaInput = {
   status?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type PrecoMercado = {
+  __typename?: 'PrecoMercado';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  mercado?: Maybe<Mercado>;
+  mercadoId: Scalars['Int']['output'];
+  preco: Scalars['Float']['output'];
+  produto?: Maybe<Produto>;
+  produtoId: Scalars['Int']['output'];
+  status: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
 export type Produto = {
   __typename?: 'Produto';
   categoria?: Maybe<CategoriaProdutos>;
@@ -533,6 +577,8 @@ export type Query = {
   buscarMercado: Mercado;
   buscarOferta: Oferta;
   buscarPontoEntrega: PontoEntrega;
+  buscarPrecoMercado?: Maybe<PrecoMercado>;
+  buscarPrecoProdutoMercado?: Maybe<PrecoMercado>;
   buscarProduto: Produto;
   buscarProdutoComercializavel: ProdutoComercializavel;
   buscarSubmissaoProduto: SubmissaoProduto;
@@ -547,6 +593,8 @@ export type Query = {
   listarOfertasPorUsuario: Array<Oferta>;
   listarPontosEntrega: Array<PontoEntrega>;
   listarPontosEntregaAtivos: Array<PontoEntrega>;
+  listarPrecosMercado: Array<PrecoMercado>;
+  listarPrecosProduto: Array<PrecoMercado>;
   listarProdutos: Array<Produto>;
   listarProdutosComercializaveis: Array<ProdutoComercializavel>;
   listarProdutosComercializaveisPorProduto: Array<ProdutoComercializavel>;
@@ -580,6 +628,17 @@ export type QueryBuscarOfertaArgs = {
 
 export type QueryBuscarPontoEntregaArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryBuscarPrecoMercadoArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryBuscarPrecoProdutoMercadoArgs = {
+  mercadoId: Scalars['Int']['input'];
+  produtoId: Scalars['Int']['input'];
 };
 
 
@@ -621,6 +680,16 @@ export type QueryListarOfertasPorCicloArgs = {
 
 export type QueryListarOfertasPorUsuarioArgs = {
   usuarioId: Scalars['Int']['input'];
+};
+
+
+export type QueryListarPrecosMercadoArgs = {
+  mercadoId: Scalars['Int']['input'];
+};
+
+
+export type QueryListarPrecosProdutoArgs = {
+  produtoId: Scalars['Int']['input'];
 };
 
 
@@ -1054,6 +1123,57 @@ export type DeletarMercadoMutationVariables = Exact<{
 
 
 export type DeletarMercadoMutation = { __typename?: 'Mutation', deletarMercado: boolean };
+
+export type ListarPrecosMercadoQueryVariables = Exact<{
+  mercadoId: Scalars['Int']['input'];
+}>;
+
+
+export type ListarPrecosMercadoQuery = { __typename?: 'Query', listarPrecosMercado: Array<{ __typename?: 'PrecoMercado', id: string, produtoId: number, mercadoId: number, preco: number, status: string, createdAt: string, updatedAt: string, produto?: { __typename?: 'Produto', id: string, nome: string, medida?: string | null } | null }> };
+
+export type ListarPrecosProdutoQueryVariables = Exact<{
+  produtoId: Scalars['Int']['input'];
+}>;
+
+
+export type ListarPrecosProdutoQuery = { __typename?: 'Query', listarPrecosProduto: Array<{ __typename?: 'PrecoMercado', id: string, produtoId: number, mercadoId: number, preco: number, status: string, createdAt: string, updatedAt: string, mercado?: { __typename?: 'Mercado', id: string, nome: string, tipo: string } | null }> };
+
+export type BuscarPrecoMercadoQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarPrecoMercadoQuery = { __typename?: 'Query', buscarPrecoMercado?: { __typename?: 'PrecoMercado', id: string, produtoId: number, mercadoId: number, preco: number, status: string, createdAt: string, updatedAt: string, produto?: { __typename?: 'Produto', id: string, nome: string, medida?: string | null } | null, mercado?: { __typename?: 'Mercado', id: string, nome: string, tipo: string } | null } | null };
+
+export type BuscarPrecoProdutoMercadoQueryVariables = Exact<{
+  produtoId: Scalars['Int']['input'];
+  mercadoId: Scalars['Int']['input'];
+}>;
+
+
+export type BuscarPrecoProdutoMercadoQuery = { __typename?: 'Query', buscarPrecoProdutoMercado?: { __typename?: 'PrecoMercado', id: string, produtoId: number, mercadoId: number, preco: number, status: string } | null };
+
+export type CriarPrecoMercadoMutationVariables = Exact<{
+  input: CriarPrecoMercadoInput;
+}>;
+
+
+export type CriarPrecoMercadoMutation = { __typename?: 'Mutation', criarPrecoMercado: { __typename?: 'PrecoMercado', id: string, produtoId: number, mercadoId: number, preco: number, status: string } };
+
+export type AtualizarPrecoMercadoMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: AtualizarPrecoMercadoInput;
+}>;
+
+
+export type AtualizarPrecoMercadoMutation = { __typename?: 'Mutation', atualizarPrecoMercado: { __typename?: 'PrecoMercado', id: string, produtoId: number, mercadoId: number, preco: number, status: string } };
+
+export type DeletarPrecoMercadoMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeletarPrecoMercadoMutation = { __typename?: 'Mutation', deletarPrecoMercado: boolean };
 
 
 export const LoginDocument = gql`
@@ -1875,6 +1995,103 @@ export const DeletarMercadoDocument = gql`
   deletarMercado(id: $id)
 }
     `;
+export const ListarPrecosMercadoDocument = gql`
+    query ListarPrecosMercado($mercadoId: Int!) {
+  listarPrecosMercado(mercadoId: $mercadoId) {
+    id
+    produtoId
+    produto {
+      id
+      nome
+      medida
+    }
+    mercadoId
+    preco
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const ListarPrecosProdutoDocument = gql`
+    query ListarPrecosProduto($produtoId: Int!) {
+  listarPrecosProduto(produtoId: $produtoId) {
+    id
+    produtoId
+    mercadoId
+    mercado {
+      id
+      nome
+      tipo
+    }
+    preco
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const BuscarPrecoMercadoDocument = gql`
+    query BuscarPrecoMercado($id: ID!) {
+  buscarPrecoMercado(id: $id) {
+    id
+    produtoId
+    produto {
+      id
+      nome
+      medida
+    }
+    mercadoId
+    mercado {
+      id
+      nome
+      tipo
+    }
+    preco
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const BuscarPrecoProdutoMercadoDocument = gql`
+    query BuscarPrecoProdutoMercado($produtoId: Int!, $mercadoId: Int!) {
+  buscarPrecoProdutoMercado(produtoId: $produtoId, mercadoId: $mercadoId) {
+    id
+    produtoId
+    mercadoId
+    preco
+    status
+  }
+}
+    `;
+export const CriarPrecoMercadoDocument = gql`
+    mutation CriarPrecoMercado($input: CriarPrecoMercadoInput!) {
+  criarPrecoMercado(input: $input) {
+    id
+    produtoId
+    mercadoId
+    preco
+    status
+  }
+}
+    `;
+export const AtualizarPrecoMercadoDocument = gql`
+    mutation AtualizarPrecoMercado($id: ID!, $input: AtualizarPrecoMercadoInput!) {
+  atualizarPrecoMercado(id: $id, input: $input) {
+    id
+    produtoId
+    mercadoId
+    preco
+    status
+  }
+}
+    `;
+export const DeletarPrecoMercadoDocument = gql`
+    mutation DeletarPrecoMercado($id: ID!) {
+  deletarPrecoMercado(id: $id)
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
@@ -2050,6 +2267,27 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     DeletarMercado(variables: DeletarMercadoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarMercadoMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeletarMercadoMutation>({ document: DeletarMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarMercado', 'mutation', variables);
+    },
+    ListarPrecosMercado(variables: ListarPrecosMercadoQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarPrecosMercadoQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarPrecosMercadoQuery>({ document: ListarPrecosMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarPrecosMercado', 'query', variables);
+    },
+    ListarPrecosProduto(variables: ListarPrecosProdutoQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarPrecosProdutoQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarPrecosProdutoQuery>({ document: ListarPrecosProdutoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarPrecosProduto', 'query', variables);
+    },
+    BuscarPrecoMercado(variables: BuscarPrecoMercadoQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarPrecoMercadoQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarPrecoMercadoQuery>({ document: BuscarPrecoMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarPrecoMercado', 'query', variables);
+    },
+    BuscarPrecoProdutoMercado(variables: BuscarPrecoProdutoMercadoQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarPrecoProdutoMercadoQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarPrecoProdutoMercadoQuery>({ document: BuscarPrecoProdutoMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarPrecoProdutoMercado', 'query', variables);
+    },
+    CriarPrecoMercado(variables: CriarPrecoMercadoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarPrecoMercadoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarPrecoMercadoMutation>({ document: CriarPrecoMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarPrecoMercado', 'mutation', variables);
+    },
+    AtualizarPrecoMercado(variables: AtualizarPrecoMercadoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AtualizarPrecoMercadoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AtualizarPrecoMercadoMutation>({ document: AtualizarPrecoMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AtualizarPrecoMercado', 'mutation', variables);
+    },
+    DeletarPrecoMercado(variables: DeletarPrecoMercadoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarPrecoMercadoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeletarPrecoMercadoMutation>({ document: DeletarPrecoMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarPrecoMercado', 'mutation', variables);
     }
   };
 }
