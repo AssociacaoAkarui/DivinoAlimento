@@ -71,6 +71,9 @@ import AdminMercadoRelatorioConsumidores from "./pages/adminmercado/AdminMercado
 import AdminMercadoRelatorioConsumidoresResultado from "./pages/adminmercado/AdminMercadoRelatorioConsumidoresResultado";
 import AdminMercadoRelatorioFornecedoresCiclo from "./pages/adminmercado/AdminMercadoRelatorioFornecedoresCiclo";
 import AdminMercadoRelatorioConsumidoresCiclo from "./pages/adminmercado/AdminMercadoRelatorioConsumidoresCiclo";
+import AdminMercadoPontosEntrega from "./pages/adminmercado/AdminMercadoPontosEntrega";
+import AdminMercadoPontoEntregaNovo from "./pages/adminmercado/AdminMercadoPontoEntregaNovo";
+import AdminMercadoPontoEntregaEditar from "./pages/adminmercado/AdminMercadoPontoEntregaEditar";
 
 const queryClient = new QueryClient();
 
@@ -335,6 +338,30 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <AdminMercadoRelatorioConsumidoresCiclo />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/adminmercado/pontos-entrega"
+            element={
+              <ProtectedRoute>
+                <AdminMercadoPontosEntrega />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/adminmercado/pontos-entrega/novo"
+            element={
+              <ProtectedRoute>
+                <AdminMercadoPontoEntregaNovo />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/adminmercado/pontos-entrega/:id"
+            element={
+              <ProtectedRoute>
+                <AdminMercadoPontoEntregaEditar />
               </ProtectedRoute>
             }
           />
