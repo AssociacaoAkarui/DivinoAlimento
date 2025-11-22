@@ -4173,3 +4173,420 @@ describe("PontoEntrega GraphQL", function () {
     );
   });
 });
+
+describe("Mercado GraphQL", function () {
+  let adminSession;
+
+  beforeEach(async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "admin-token-mercado";
+      },
+    });
+    await usuarioService.create(
+      { email: "admin@example.com", senha: "password" },
+      { perfis: ["admin"] },
+    );
+    adminSession = await usuarioService.login("admin@example.com", "password");
+  });
+
+  it("admin user can create mercado tipo cesta", async function () {
+    const mutation = `
+      mutation CriarMercado($input: CriarMercadoInput!) {
+        criarMercado(input: $input) {
+          id
+          nome
+          tipo
+          responsavelId
+          taxaAdministrativa
+          valorMaximoCesta
+          status
+          pontosEntrega {
+            id
+            nome
+            status
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      input: {
+        nome: "Mercado Central",
+        tipo: "cesta",
+        responsavelId: adminSession.usuarioId,
+        taxaAdministrativa: 5.5,
+        valorMaximoCesta: 150.0,
+        status: "ativo",
+        pontosEntrega: [
+          { nome: "Centro", status: "ativo" },
+          { nome: "Zona Norte", status: "ativo" },
+        ],
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarMercado.nome).to.equal("Mercado Central");
+    expect(result.data.criarMercado.tipo).to.equal("cesta");
+    expect(result.data.criarMercado.valorMaximoCesta).to.equal(150.0);
+    expect(result.data.criarMercado.pontosEntrega).to.have.lengthOf(2);
+    expect(result.data.criarMercado.pontosEntrega[0].nome).to.equal("Centro");
+  });
+
+  it("admin user can create mercado tipo lote", async function () {
+    const mutation = `
+      mutation CriarMercado($input: CriarMercadoInput!) {
+        criarMercado(input: $input) {
+          id
+          nome
+          tipo
+          status
+        }
+      }
+    `;
+
+    const variables = {
+      input: {
+        nome: "Mercado Lote 1",
+        tipo: "lote",
+        responsavelId: adminSession.usuarioId,
+        taxaAdministrativa: 3.0,
+        status: "ativo",
+        pontosEntrega: [{ nome: "Ponto Principal", status: "ativo" }],
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarMercado.nome).to.equal("Mercado Lote 1");
+    expect(result.data.criarMercado.tipo).to.equal("lote");
+  });
+
+  it("admin user can list mercados", async function () {
+    const mutationCesta = `
+      mutation CriarMercado($input: CriarMercadoInput!) {
+        criarMercado(input: $input) {
+          id
+        }
+      }
+    `;
+
+    await graphql({
+      schema: APIGraphql.schema,
+      source: mutationCesta,
+      rootValue: APIGraphql.rootValue,
+      contextValue: APIGraphql.buildContext(adminSession.token),
+      variableValues: {
+        input: {
+          nome: "Mercado 1",
+          tipo: "cesta",
+          responsavelId: adminSession.usuarioId,
+          valorMaximoCesta: 100,
+          status: "ativo",
+          pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+        },
+      },
+    });
+
+    await graphql({
+      schema: APIGraphql.schema,
+      source: mutationCesta,
+      rootValue: APIGraphql.rootValue,
+      contextValue: APIGraphql.buildContext(adminSession.token),
+      variableValues: {
+        input: {
+          nome: "Mercado 2",
+          tipo: "lote",
+          responsavelId: adminSession.usuarioId,
+          status: "ativo",
+          pontosEntrega: [{ nome: "Ponto 2", status: "ativo" }],
+        },
+      },
+    });
+
+    const query = `
+      query {
+        listarMercados {
+          id
+          nome
+          tipo
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarMercados).to.have.lengthOf(2);
+    const nomes = result.data.listarMercados.map((m) => m.nome).sort();
+    expect(nomes).to.deep.equal(["Mercado 1", "Mercado 2"]);
+  });
+
+  it("admin user can find mercado by id", async function () {
+    const mutation = `
+      mutation CriarMercado($input: CriarMercadoInput!) {
+        criarMercado(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const createResult = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: APIGraphql.buildContext(adminSession.token),
+      variableValues: {
+        input: {
+          nome: "Mercado Teste",
+          tipo: "cesta",
+          responsavelId: adminSession.usuarioId,
+          valorMaximoCesta: 200,
+          status: "ativo",
+          pontosEntrega: [{ nome: "Centro", status: "ativo" }],
+        },
+      },
+    });
+
+    const mercadoId = createResult.data.criarMercado.id;
+
+    const query = `
+      query BuscarMercado($id: ID!) {
+        buscarMercado(id: $id) {
+          id
+          nome
+          tipo
+          valorMaximoCesta
+          responsavel {
+            id
+            nome
+          }
+          pontosEntrega {
+            nome
+          }
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: { id: mercadoId },
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.buscarMercado.nome).to.equal("Mercado Teste");
+    expect(result.data.buscarMercado.valorMaximoCesta).to.equal(200);
+    expect(result.data.buscarMercado.pontosEntrega).to.have.lengthOf(1);
+  });
+
+  it("admin user can update mercado", async function () {
+    const mutation = `
+      mutation CriarMercado($input: CriarMercadoInput!) {
+        criarMercado(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const createResult = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: APIGraphql.buildContext(adminSession.token),
+      variableValues: {
+        input: {
+          nome: "Mercado Original",
+          tipo: "cesta",
+          responsavelId: adminSession.usuarioId,
+          valorMaximoCesta: 100,
+          taxaAdministrativa: 5,
+          status: "ativo",
+          pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+        },
+      },
+    });
+
+    const mercadoId = createResult.data.criarMercado.id;
+
+    const updateMutation = `
+      mutation AtualizarMercado($id: ID!, $input: AtualizarMercadoInput!) {
+        atualizarMercado(id: $id, input: $input) {
+          id
+          nome
+          valorMaximoCesta
+          taxaAdministrativa
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: updateMutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: {
+        id: mercadoId,
+        input: {
+          nome: "Mercado Atualizado",
+          valorMaximoCesta: 250,
+          taxaAdministrativa: 7.5,
+        },
+      },
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.atualizarMercado.nome).to.equal("Mercado Atualizado");
+    expect(result.data.atualizarMercado.valorMaximoCesta).to.equal(250);
+    expect(result.data.atualizarMercado.taxaAdministrativa).to.equal(7.5);
+  });
+
+  it("admin user can delete mercado", async function () {
+    const mutation = `
+      mutation CriarMercado($input: CriarMercadoInput!) {
+        criarMercado(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const createResult = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: APIGraphql.buildContext(adminSession.token),
+      variableValues: {
+        input: {
+          nome: "Mercado Para Deletar",
+          tipo: "cesta",
+          responsavelId: adminSession.usuarioId,
+          valorMaximoCesta: 150,
+          status: "ativo",
+          pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+        },
+      },
+    });
+
+    const mercadoId = createResult.data.criarMercado.id;
+
+    const deleteMutation = `
+      mutation DeletarMercado($id: ID!) {
+        deletarMercado(id: $id)
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: deleteMutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: { id: mercadoId },
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.deletarMercado).to.be.true;
+  });
+
+  it("admin user can list mercados ativos", async function () {
+    await graphql({
+      schema: APIGraphql.schema,
+      source: `mutation { criarMercado(input: { nome: "Ativo 1", tipo: "cesta", responsavelId: ${adminSession.usuarioId}, valorMaximoCesta: 100, status: "ativo", pontosEntrega: [{ nome: "P1", status: "ativo" }] }) { id } }`,
+      rootValue: APIGraphql.rootValue,
+      contextValue: APIGraphql.buildContext(adminSession.token),
+    });
+
+    await graphql({
+      schema: APIGraphql.schema,
+      source: `mutation { criarMercado(input: { nome: "Inativo 1", tipo: "lote", responsavelId: ${adminSession.usuarioId}, status: "inativo", pontosEntrega: [{ nome: "P2", status: "ativo" }] }) { id } }`,
+      rootValue: APIGraphql.rootValue,
+      contextValue: APIGraphql.buildContext(adminSession.token),
+    });
+
+    const query = `
+      query {
+        listarMercadosAtivos {
+          id
+          nome
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarMercadosAtivos).to.have.lengthOf(1);
+    expect(result.data.listarMercadosAtivos[0].nome).to.equal("Ativo 1");
+    expect(result.data.listarMercadosAtivos[0].status).to.equal("ativo");
+  });
+
+  it("error when creating mercado tipo cesta without valorMaximoCesta", async function () {
+    const mutation = `
+      mutation CriarMercado($input: CriarMercadoInput!) {
+        criarMercado(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const variables = {
+      input: {
+        nome: "Mercado Sem Valor",
+        tipo: "cesta",
+        responsavelId: adminSession.usuarioId,
+        status: "ativo",
+        pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.not.be.undefined;
+    expect(result.errors[0].message).to.match(
+      /valorMaximoCesta é obrigatório/i,
+    );
+  });
+});

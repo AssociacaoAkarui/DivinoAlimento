@@ -119,18 +119,35 @@ INSERT INTO "SubmissaoProdutos" (id, "fornecedorId", "nomeProduto", descricao, "
 SELECT 4, 2, 'Pepino Japonês', 'Pepino com sabor suave', '/placeholder.svg', 6.00, 'kg', 'reprovado', 'Produto fora dos padrões de qualidade', CURRENT_DATE, CURRENT_DATE
 WHERE NOT EXISTS (SELECT 1 FROM "SubmissaoProdutos" WHERE id = 4);
 
--- UC010: PontoEntregas (pontos de entrega)
-INSERT INTO "PontoEntregas" (id, nome, endereco, bairro, cidade, estado, cep, status, "createdAt", "updatedAt")
-SELECT 1, 'Centro Comunitario Centro', 'Rua das Flores, 100', 'Centro', 'Sao Paulo', 'SP', '01000-000', 'ativo', CURRENT_DATE, CURRENT_DATE
+-- UC005: Mercados (mercados com pontos de entrega)
+INSERT INTO "Mercados" (id, nome, tipo, "responsavelId", "taxaAdministrativa", "valorMaximoCesta", status, "createdAt", "updatedAt")
+SELECT 1, 'Mercado Central', 'cesta', 1, 5.00, 150.00, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Mercados" WHERE id = 1);
+
+INSERT INTO "Mercados" (id, nome, tipo, "responsavelId", "taxaAdministrativa", "valorMaximoCesta", status, "createdAt", "updatedAt")
+SELECT 2, 'Feira Livre', 'venda_direta', 6, NULL, NULL, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Mercados" WHERE id = 2);
+
+INSERT INTO "Mercados" (id, nome, tipo, "responsavelId", "taxaAdministrativa", "valorMaximoCesta", status, "createdAt", "updatedAt")
+SELECT 3, 'Mercado Zona Sul', 'lote', 1, 3.50, NULL, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Mercados" WHERE id = 3);
+
+-- UC012: PontoEntregas (pontos de entrega vinculados a mercados)
+INSERT INTO "PontoEntregas" (id, nome, endereco, bairro, cidade, estado, cep, "mercadoId", status, "createdAt", "updatedAt")
+SELECT 1, 'Centro Comunitario Centro', 'Rua das Flores, 100', 'Centro', 'Sao Paulo', 'SP', '01000-000', 1, 'ativo', CURRENT_DATE, CURRENT_DATE
 WHERE NOT EXISTS (SELECT 1 FROM "PontoEntregas" WHERE id = 1);
 
-INSERT INTO "PontoEntregas" (id, nome, endereco, bairro, cidade, estado, cep, status, "createdAt", "updatedAt")
-SELECT 2, 'Associacao Zona Norte', 'Av. Brasil, 500', 'Santana', 'Sao Paulo', 'SP', '02000-000', 'ativo', CURRENT_DATE, CURRENT_DATE
+INSERT INTO "PontoEntregas" (id, nome, endereco, bairro, cidade, estado, cep, "mercadoId", status, "createdAt", "updatedAt")
+SELECT 2, 'Associacao Zona Norte', 'Av. Brasil, 500', 'Santana', 'Sao Paulo', 'SP', '02000-000', 1, 'ativo', CURRENT_DATE, CURRENT_DATE
 WHERE NOT EXISTS (SELECT 1 FROM "PontoEntregas" WHERE id = 2);
 
-INSERT INTO "PontoEntregas" (id, nome, endereco, bairro, cidade, estado, cep, status, "createdAt", "updatedAt")
-SELECT 3, 'Feira Livre Zona Sul', 'Praca da Arvore, 50', 'Saude', 'Sao Paulo', 'SP', '04000-000', 'ativo', CURRENT_DATE, CURRENT_DATE
+INSERT INTO "PontoEntregas" (id, nome, endereco, bairro, cidade, estado, cep, "mercadoId", status, "createdAt", "updatedAt")
+SELECT 3, 'Feira Livre Zona Sul', 'Praca da Arvore, 50', 'Saude', 'Sao Paulo', 'SP', '04000-000', 2, 'ativo', CURRENT_DATE, CURRENT_DATE
 WHERE NOT EXISTS (SELECT 1 FROM "PontoEntregas" WHERE id = 3);
+
+INSERT INTO "PontoEntregas" (id, nome, endereco, bairro, cidade, estado, cep, "mercadoId", status, "createdAt", "updatedAt")
+SELECT 4, 'Ponto Entrega Zona Oeste', 'Rua Cardeal Arcoverde, 200', 'Pinheiros', 'Sao Paulo', 'SP', '05407-000', 3, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PontoEntregas" WHERE id = 4);
 
 -- UC010: Ciclos (ciclos de comercializacao)
 INSERT INTO "Ciclos" (id, nome, "ofertaInicio", "ofertaFim", "pontoEntregaId", "itensAdicionaisInicio", "itensAdicionaisFim", "retiradaConsumidorInicio", "retiradaConsumidorFim", observacao, status, "createdAt", "updatedAt")

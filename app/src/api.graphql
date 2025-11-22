@@ -57,6 +57,49 @@ type CategoriaProdutos {
     observacao: String
 }
 
+type Mercado {
+    id: ID!
+    nome: String!
+    tipo: String!
+    responsavelId: Int!
+    responsavel: Usuario
+    taxaAdministrativa: Float
+    valorMaximoCesta: Float
+    status: String!
+    pontosEntrega: [PontoEntrega!]
+    createdAt: String!
+    updatedAt: String!
+}
+
+input PontoEntregaInput {
+    nome: String!
+    endereco: String
+    bairro: String
+    cidade: String
+    estado: String
+    cep: String
+    status: String
+}
+
+input CriarMercadoInput {
+    nome: String!
+    tipo: String!
+    responsavelId: Int!
+    taxaAdministrativa: Float
+    valorMaximoCesta: Float
+    status: String
+    pontosEntrega: [PontoEntregaInput!]
+}
+
+input AtualizarMercadoInput {
+    nome: String
+    tipo: String
+    responsavelId: Int
+    taxaAdministrativa: Float
+    valorMaximoCesta: Float
+    status: String
+}
+
 input CriarCategoriaProdutosInput {
     nome: String!
     status: String!
@@ -285,6 +328,9 @@ type Mutation {
         id: ID!
         motivoReprovacao: String!
     ): SubmissaoProduto!
+    criarMercado(input: CriarMercadoInput!): Mercado!
+    atualizarMercado(id: ID!, input: AtualizarMercadoInput!): Mercado!
+    deletarMercado(id: ID!): Boolean!
     deletarSubmissaoProduto(id: ID!): Boolean!
     criarCiclo(input: CriarCicloInput!): Ciclo!
     atualizarCiclo(id: ID!, input: AtualizarCicloInput!): Ciclo!
@@ -333,6 +379,10 @@ type Query {
     buscarOferta(id: ID!): Oferta!
     listarOfertasPorCiclo(cicloId: Int!): [Oferta!]!
     listarOfertasPorUsuario(usuarioId: Int!): [Oferta!]!
+    listarMercados: [Mercado!]!
+    buscarMercado(id: ID!): Mercado!
+    listarMercadosAtivos: [Mercado!]!
+    listarMercadosPorResponsavel(responsavelId: Int!): [Mercado!]!
 }
 
 type OfertaProduto {

@@ -13,6 +13,7 @@ const {
   CicloService,
   OfertaService,
   PontoEntregaService,
+  MercadoService,
 } = require("../src/services/services.js");
 
 async function requiredAuthenticated(context) {
@@ -467,6 +468,65 @@ const rootValue = {
     return result;
   },
 
+  // Mercado resolvers
+  listarMercados: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const mercados = await context.mercadoService.listarMercados();
+    return mercados;
+  },
+
+  buscarMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const mercado = await context.mercadoService.buscarPorId(args.id);
+    return mercado;
+  },
+
+  listarMercadosAtivos: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const mercados = await context.mercadoService.listarMercadosAtivos();
+    return mercados;
+  },
+
+  listarMercadosPorResponsavel: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const mercados = await context.mercadoService.listarMercadosPorResponsavel(
+      args.responsavelId,
+    );
+    return mercados;
+  },
+
+  criarMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { input } = args;
+    const mercado = await context.mercadoService.criarMercado(input);
+    return mercado;
+  },
+
+  atualizarMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { id, input } = args;
+    const mercado = await context.mercadoService.atualizarMercado(id, input);
+    return mercado;
+  },
+
+  deletarMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const result = await context.mercadoService.deletarMercado(args.id);
+    return result;
+  },
+
   // Oferta resolvers
   buscarOferta: async (args, context) => {
     await requiredAuthenticated(context);
@@ -553,6 +613,7 @@ const submissaoProdutoService = new SubmissaoProdutoService();
 const cicloService = new CicloService();
 const ofertaService = new OfertaService();
 const pontoEntregaService = new PontoEntregaService();
+const mercadoService = new MercadoService();
 
 const API = {
   rootValue,
@@ -566,6 +627,7 @@ const API = {
     cicloService,
     ofertaService,
     pontoEntregaService,
+    mercadoService,
   },
   buildContext(sessionToken) {
     return {
@@ -577,6 +639,7 @@ const API = {
       cicloService,
       ofertaService,
       pontoEntregaService,
+      mercadoService,
       sessionToken,
     };
   },

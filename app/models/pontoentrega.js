@@ -8,7 +8,10 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      PontoEntrega.belongsTo(models.Mercado, {
+        foreignKey: "mercadoId",
+        as: "mercado",
+      });
     }
   }
   PontoEntrega.init(
@@ -20,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
       estado: DataTypes.STRING,
       cep: DataTypes.STRING,
       status: DataTypes.STRING,
+      mercadoId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
     },
     {
       sequelize,

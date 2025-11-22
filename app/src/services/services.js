@@ -4,6 +4,7 @@ const {
   Ciclo,
   PontoEntrega,
   Cesta,
+  Mercado,
   CicloEntregas,
   CicloCestas,
   CicloProdutos,
@@ -1725,6 +1726,8 @@ class SubmissaoProdutoService {
   }
 }
 
+const MercadoService = require("./mercado-service");
+
 module.exports = {
   CicloService,
   ProdutoService,
@@ -1738,4 +1741,5 @@ module.exports = {
   UsuarioService,
   CryptoUUIDService,
   CategoriaProdutosService,
+  MercadoService,
 };
