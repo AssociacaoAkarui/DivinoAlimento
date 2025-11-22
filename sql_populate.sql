@@ -45,7 +45,7 @@ SELECT 3, 'João Consumidor', 'João', '11977777777', 'Nubank', '0001', '11111-1
 WHERE NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE id = 3);
 
 INSERT INTO "Usuarios" (id, nome, nomeoficial, celular, banco, agencia, conta, "chavePix", email, cientepolitica, senha, perfis, status, "createdAt", "updatedAt")
-SELECT 4, 'Maria Multi', 'Maria Produtos', '11966666666', 'Santander', '4321', '54321-0', '12345678901', 'multi@example.com', 'sim', 'multi123', ARRAY['admin','fornecedor'::"enum_Usuarios_perfis"], 'ativo', CURRENT_DATE, CURRENT_DATE
+SELECT 4, 'Maria Multi', 'Maria Produtos', '11966666666', 'Santander', '4321', '54321-0', '12345678901', 'multi@example.com', 'sim', 'multi123', ARRAY['admin','fornecedor', 'adminmercado', 'consumidor' ::"enum_Usuarios_perfis"], 'ativo', CURRENT_DATE, CURRENT_DATE
 WHERE NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE id = 4);
 
 INSERT INTO "Usuarios" (id, nome, nomeoficial, celular, banco, agencia, conta, "chavePix", email, cientepolitica, senha, perfis, status, "createdAt", "updatedAt")
@@ -198,3 +198,15 @@ WHERE NOT EXISTS (SELECT 1 FROM "Ciclos" WHERE id = 2);
 INSERT INTO "Ciclos" (id, nome, "ofertaInicio", "ofertaFim", "pontoEntregaId", observacao, status, "createdAt", "updatedAt")
 SELECT 3, 'Ciclo de Outubro 2025', '2025-10-01 08:00:00', '2025-10-15 18:00:00', 1, 'Ciclo finalizado de outubro', 'finalizado', CURRENT_DATE, CURRENT_DATE
 WHERE NOT EXISTS (SELECT 1 FROM "Ciclos" WHERE id = 3);
+
+-- Reset sequences after manual ID inserts (fixes "duplicate key" errors)
+SELECT setval('"CategoriaProdutos_id_seq"', COALESCE((SELECT MAX(id) FROM "CategoriaProdutos"), 1));
+SELECT setval('"Cesta_id_seq"', COALESCE((SELECT MAX(id) FROM "Cesta"), 1));
+SELECT setval('"Usuarios_id_seq"', COALESCE((SELECT MAX(id) FROM "Usuarios"), 1));
+SELECT setval('"Produtos_id_seq"', COALESCE((SELECT MAX(id) FROM "Produtos"), 1));
+SELECT setval('"ProdutoComercializavels_id_seq"', COALESCE((SELECT MAX(id) FROM "ProdutoComercializavels"), 1));
+SELECT setval('"SubmissaoProdutos_id_seq"', COALESCE((SELECT MAX(id) FROM "SubmissaoProdutos"), 1));
+SELECT setval('"Mercados_id_seq"', COALESCE((SELECT MAX(id) FROM "Mercados"), 1));
+SELECT setval('"PontoEntregas_id_seq"', COALESCE((SELECT MAX(id) FROM "PontoEntregas"), 1));
+SELECT setval('"PrecoMercados_id_seq"', COALESCE((SELECT MAX(id) FROM "PrecoMercados"), 1));
+SELECT setval('"Ciclos_id_seq"', COALESCE((SELECT MAX(id) FROM "Ciclos"), 1));
