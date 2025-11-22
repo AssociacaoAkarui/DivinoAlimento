@@ -1,25 +1,25 @@
-export type Gender = 'male' | 'female' | 'nonbinary' | 'unspecified';
-export type AppRole = 'consumidor' | 'fornecedor' | 'admin' | 'admin_mercado';
+export type Gender = "male" | "female" | "nonbinary" | "unspecified";
+export type AppRole = "consumidor" | "fornecedor" | "admin" | "adminmercado";
 
 const neutralLabels = {
-  consumidor: 'Consumidor(a)',
-  fornecedor: 'Fornecedor(a)',
-  admin: 'Administrador(a)',
-  admin_mercado: 'Administrador(a) de mercado',
+  consumidor: "Consumidor(a)",
+  fornecedor: "Fornecedor(a)",
+  admin: "Administrador(a)",
+  adminmercado: "Administrador(a) de mercado",
 };
 
 const maleLabels = {
-  consumidor: 'Consumidor',
-  fornecedor: 'Fornecedor',
-  admin: 'Administrador',
-  admin_mercado: 'Administrador de mercado',
+  consumidor: "Consumidor",
+  fornecedor: "Fornecedor",
+  admin: "Administrador",
+  adminmercado: "Administrador de mercado",
 };
 
 const femaleLabels = {
-  consumidor: 'Consumidora',
-  fornecedor: 'Fornecedora',
-  admin: 'Administradora',
-  admin_mercado: 'Administradora de mercado',
+  consumidor: "Consumidora",
+  fornecedor: "Fornecedora",
+  admin: "Administradora",
+  adminmercado: "Administradora de mercado",
 };
 
 /**
@@ -28,9 +28,12 @@ const femaleLabels = {
  * @param gender - O gênero do usuário
  * @returns String com o rótulo formatado
  */
-export function roleLabel(role: AppRole, gender: Gender = 'unspecified'): string {
-  if (gender === 'male') return maleLabels[role];
-  if (gender === 'female') return femaleLabels[role];
+export function roleLabel(
+  role: AppRole,
+  gender: Gender = "unspecified",
+): string {
+  if (gender === "male") return maleLabels[role];
+  if (gender === "female") return femaleLabels[role];
   return neutralLabels[role]; // nonbinary/unspecified
 }
 
@@ -39,10 +42,10 @@ export function roleLabel(role: AppRole, gender: Gender = 'unspecified'): string
  */
 export function roleDescription(role: AppRole): string {
   const descriptions = {
-    consumidor: 'Receba cestas e alimentos orgânicos.',
-    fornecedor: 'Gestão de alimentos e vendas para estabelecimentos.',
-    admin: 'Gestão completa da plataforma e todos os mercados.',
-    admin_mercado: 'Gestão específica de um mercado e seus fornecedores.',
+    consumidor: "Receba cestas e alimentos orgânicos.",
+    fornecedor: "Gestão de alimentos e vendas para estabelecimentos.",
+    admin: "Gestão completa da plataforma e todos os mercados.",
+    adminmercado: "Gestão específica de um mercado e seus fornecedores.",
   };
   return descriptions[role];
 }
@@ -54,7 +57,11 @@ export function roleDescription(role: AppRole): string {
  * @param gender - O gênero do usuário
  * @returns String com o título formatado para uso em metas/SEO
  */
-export function getPageTitle(role: AppRole, page: string, gender: Gender = 'unspecified'): string {
+export function getPageTitle(
+  role: AppRole,
+  page: string,
+  gender: Gender = "unspecified",
+): string {
   const roleText = roleLabel(role, gender);
   return `${roleText} – ${page}`;
 }

@@ -25,8 +25,10 @@ const getDefaultRoute = (role: UserRole): string => {
       return "/fornecedor/loja";
     case "admin":
       return "/admin/dashboard";
-    case "admin_mercado":
+    case "adminmercado":
       return "/adminmercado/dashboard";
+    default:
+      return "/dashboard";
   }
 };
 
@@ -45,8 +47,10 @@ const getRoleIcon = (role: UserRole) => {
       return Store;
     case "admin":
       return Shield;
-    case "admin_mercado":
+    case "adminmercado":
       return Building2;
+    default:
+      return ShoppingBasket; // fallback icon
   }
 };
 

@@ -1,7 +1,7 @@
-import React from 'react';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { useAuth, UserRole } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,37 +9,42 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ShoppingBasket, Store, Shield, UserCheck, ChevronDown } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { roleLabel } from '@/utils/labels';
+} from "@/components/ui/dropdown-menu";
+import {
+  ShoppingBasket,
+  Store,
+  Shield,
+  UserCheck,
+  ChevronDown,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { roleLabel } from "@/utils/labels";
 
 const getDefaultRoute = (role: UserRole): string => {
   switch (role) {
-    case 'consumidor':
-      return '/dashboard';
-    case 'fornecedor':
-      return '/fornecedor/loja';
-    case 'admin':
-      return '/admin/dashboard';
-    case 'admin_mercado':
-      return '/admin-mercado/dashboard';
+    case "consumidor":
+      return "/dashboard";
+    case "fornecedor":
+      return "/fornecedor/loja";
+    case "admin":
+      return "/admin/dashboard";
+    case "adminmercado":
+      return "/admin-mercado/dashboard";
   }
 };
 
 const getRoleIcon = (role: UserRole) => {
   switch (role) {
-    case 'consumidor':
+    case "consumidor":
       return <ShoppingBasket className="w-4 h-4" />;
-    case 'fornecedor':
+    case "fornecedor":
       return <Store className="w-4 h-4" />;
-    case 'admin':
+    case "admin":
       return <Shield className="w-4 h-4" />;
-    case 'admin_mercado':
+    case "adminmercado":
       return <UserCheck className="w-4 h-4" />;
   }
 };
-
 
 export const ProfileSwitcher: React.FC = () => {
   const { user, activeRole, switchRole } = useAuth();
@@ -53,12 +58,12 @@ export const ProfileSwitcher: React.FC = () => {
   const handleSwitchRole = (role: UserRole) => {
     switchRole(role);
     const newRoute = getDefaultRoute(role);
-    
+
     toast({
       title: "Perfil alterado",
       description: `Você está agora como ${roleLabel(role, user.gender)}`,
     });
-    
+
     navigate(newRoute);
   };
 
@@ -84,7 +89,9 @@ export const ProfileSwitcher: React.FC = () => {
             {getRoleIcon(role)}
             <span>{roleLabel(role, user.gender)}</span>
             {role === activeRole && (
-              <span className="ml-auto text-xs text-muted-foreground">Ativo</span>
+              <span className="ml-auto text-xs text-muted-foreground">
+                Ativo
+              </span>
             )}
           </DropdownMenuItem>
         ))}

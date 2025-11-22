@@ -22,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserRoleModal } from "./UserRoleModal";
 
-type UserRole = "consumidor" | "fornecedor" | "admin" | "admin_mercado";
+type UserRole = "consumidor" | "fornecedor" | "admin" | "adminmercado";
 
 const getDefaultRoute = (role: UserRole): string => {
   switch (role) {
@@ -32,7 +32,7 @@ const getDefaultRoute = (role: UserRole): string => {
       return "/fornecedor/loja";
     case "admin":
       return "/admin/dashboard";
-    case "admin_mercado":
+    case "adminmercado":
       return "/admin-mercado/dashboard";
   }
 };
@@ -45,7 +45,7 @@ const getRoleIcon = (role: UserRole) => {
       return <Store className="w-4 h-4" />;
     case "admin":
       return <Shield className="w-4 h-4" />;
-    case "admin_mercado":
+    case "adminmercado":
       return <UserCheck className="w-4 h-4" />;
   }
 };
@@ -58,7 +58,7 @@ const getRoleLabel = (role: UserRole): string => {
       return "Fornecedor";
     case "admin":
       return "Administrador";
-    case "admin_mercado":
+    case "adminmercado":
       return "Administrador de Mercado";
   }
 };

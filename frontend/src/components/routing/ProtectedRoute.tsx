@@ -41,7 +41,7 @@ const ROUTE_PERMISSIONS: Record<string, string[]> = {
     "/usuario/1",
     "/usuario",
   ],
-  admin_mercado: [
+  adminmercado: [
     "/adminmercado/*",
     "/adminmercado/relatorios/fornecedores-ciclo",
     "/adminmercado/relatorios/consumidores-ciclo",
@@ -80,7 +80,7 @@ const getDefaultRoute = (role: UserRole): string => {
       return "/fornecedor/loja";
     case "admin":
       return "/admin/dashboard";
-    case "admin_mercado":
+    case "adminmercado":
       return "/adminmercado/dashboard";
   }
 };

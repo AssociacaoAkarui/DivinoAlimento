@@ -195,7 +195,6 @@ export function getRedirectRoute(activeRole: string): string {
   const routes: Record<string, string> = {
     consumidor: "/dashboard",
     fornecedor: "/fornecedor/loja",
-    admin_mercado: "/adminmercado/dashboard",
     adminmercado: "/adminmercado/dashboard",
     admin: "/admin/dashboard",
   };

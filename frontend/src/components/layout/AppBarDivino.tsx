@@ -32,7 +32,7 @@ export const AppBarDivino = ({
       case "fornecedor":
         navigate("/fornecedor/loja");
         break;
-      case "admin_mercado":
+      case "adminmercado":
         navigate("/adminmercado/dashboard");
         break;
       case "admin":
@@ -52,7 +52,7 @@ export const AppBarDivino = ({
       case "fornecedor":
         navigate("/fornecedor/loja");
         break;
-      case "admin_mercado":
+      case "adminmercado":
         navigate("/adminmercado/dashboard");
         break;
       case "admin":

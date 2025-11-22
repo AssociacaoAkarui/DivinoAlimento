@@ -49,7 +49,7 @@ const getDefaultRoute = (role: UserRole): string => {
       return "/fornecedor/loja";
     case "admin":
       return "/admin/dashboard";
-    case "admin_mercado":
+    case "adminmercado":
       return "/admin-mercado/dashboard";
   }
 };
@@ -179,7 +179,7 @@ const Register = () => {
       if (data.profiles.consumidor) selectedRoles.push("consumidor");
       if (data.profiles.fornecedor) selectedRoles.push("fornecedor");
       if (data.profiles.adminGeral) selectedRoles.push("admin");
-      if (data.profiles.adminMercado) selectedRoles.push("admin_mercado");
+      if (data.profiles.adminMercado) selectedRoles.push("adminmercado");
 
       // Registrar usuário com roles e gênero
       await registerUser(
@@ -605,7 +605,7 @@ const Register = () => {
                                 );
                               }
                             }}
-                            aria-label={`Selecionar perfil: ${roleLabel("admin_mercado", watchedValues.gender)}`}
+                            aria-label={`Selecionar perfil: ${roleLabel("adminmercado", watchedValues.gender)}`}
                           >
                             <FormField
                               control={form.control}
@@ -623,13 +623,13 @@ const Register = () => {
                                     <UserCheck className="w-5 h-5 max-[767px]:w-[20px] max-[767px]:h-[20px] min-[1200px]:w-[22px] min-[1200px]:h-[22px] text-warning flex-shrink-0" />
                                     <FormLabel className="cursor-pointer font-semibold text-base max-[767px]:text-[15px] min-[1200px]:text-[17px] leading-[1.25] whitespace-normal break-words hyphens-auto m-0">
                                       {roleLabel(
-                                        "admin_mercado",
+                                        "adminmercado",
                                         watchedValues.gender,
                                       )}
                                     </FormLabel>
                                   </div>
                                   <p className="text-[14px] max-[767px]:text-[13px] min-[1200px]:text-[15px] text-[#606C76] leading-[1.45] whitespace-normal break-words hyphens-auto line-clamp-2 min-[1200px]:line-clamp-3 ml-[34px] max-[767px]:ml-[30px]">
-                                    {roleDescription("admin_mercado")}
+                                    {roleDescription("adminmercado")}
                                   </p>
                                 </FormItem>
                               )}
