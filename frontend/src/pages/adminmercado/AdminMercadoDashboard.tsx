@@ -11,6 +11,7 @@ import {
   ShoppingBag,
   Settings,
   Package,
+  MapPin,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,6 +37,12 @@ const AdminMercadoDashboard = () => {
       description: "Gerencie os dados do mercado que administra.",
       icon: Store,
       route: "/adminmercado/mercados",
+    },
+    {
+      title: "Pontos de Entrega",
+      description: "Gerencie os pontos de entrega para distribuição.",
+      icon: MapPin,
+      route: "/adminmercado/pontos-entrega",
     },
     {
       title: "Gerenciar Preços por Mercado",

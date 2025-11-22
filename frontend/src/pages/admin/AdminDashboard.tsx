@@ -5,7 +5,6 @@ import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
 import {
   Store,
   Package,
-
   ShoppingCart,
   FileText,
   Settings,
@@ -17,6 +16,7 @@ import {
   ShoppingBag,
   ReceiptText,
   Wallet,
+  MapPin,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
@@ -36,6 +36,12 @@ const AdminDashboard = () => {
       description: "Gerenciar mercados e pontos de venda",
       icon: Store,
       route: "/admin/mercados",
+    },
+    {
+      title: "Pontos de Entrega",
+      description: "Gerenciar pontos de entrega para distribuição",
+      icon: MapPin,
+      route: "/adminmercado/pontos-entrega",
     },
     {
       title: "Gestão Preço por Mercado",
