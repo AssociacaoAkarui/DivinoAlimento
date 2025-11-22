@@ -3802,3 +3802,374 @@ describe("Oferta GraphQL", function () {
     expect(result.data.removerProdutoOferta).to.be.true;
   });
 });
+
+describe("PontoEntrega GraphQL", function () {
+  let adminSession;
+
+  beforeEach(async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "admin-token-pontoentrega";
+      },
+    });
+    await usuarioService.create(
+      { email: "admin@example.com", senha: "password" },
+      { perfis: ["admin"] },
+    );
+    adminSession = await usuarioService.login("admin@example.com", "password");
+  });
+
+  it("admin user can create ponto de entrega", async function () {
+    const mutation = `
+      mutation CriarPontoEntrega($input: CriarPontoEntregaInput!) {
+        criarPontoEntrega(input: $input) {
+          id
+          nome
+          endereco
+          bairro
+          cidade
+          estado
+          cep
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        input: {
+          nome: "Centro - Praça Principal",
+          endereco: "Rua das Flores, 123",
+          bairro: "Centro",
+          cidade: "São Paulo",
+          estado: "SP",
+          cep: "01310-100",
+          status: "ativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarPontoEntrega.nome).to.equal(
+      "Centro - Praça Principal",
+    );
+    expect(result.data.criarPontoEntrega.endereco).to.equal(
+      "Rua das Flores, 123",
+    );
+    expect(result.data.criarPontoEntrega.bairro).to.equal("Centro");
+    expect(result.data.criarPontoEntrega.cidade).to.equal("São Paulo");
+    expect(result.data.criarPontoEntrega.estado).to.equal("SP");
+    expect(result.data.criarPontoEntrega.cep).to.equal("01310-100");
+    expect(result.data.criarPontoEntrega.status).to.equal("ativo");
+  });
+
+  it("admin user can list all pontos de entrega", async function () {
+    const { PontoEntrega } = require("../models/index.js");
+    await PontoEntrega.create({
+      nome: "Ponto A",
+      endereco: "Endereço A",
+      status: "ativo",
+    });
+    await PontoEntrega.create({
+      nome: "Ponto B",
+      endereco: "Endereço B",
+      status: "inativo",
+    });
+
+    const query = `
+      query ListarPontosEntrega {
+        listarPontosEntrega {
+          id
+          nome
+          endereco
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarPontosEntrega).to.have.lengthOf(2);
+    const nomes = result.data.listarPontosEntrega.map((p) => p.nome).sort();
+    expect(nomes).to.deep.equal(["Ponto A", "Ponto B"]);
+  });
+
+  it("admin user can list only active pontos de entrega", async function () {
+    const { PontoEntrega } = require("../models/index.js");
+    await PontoEntrega.create({
+      nome: "Ponto Ativo",
+      endereco: "Endereço A",
+      status: "ativo",
+    });
+    await PontoEntrega.create({
+      nome: "Ponto Inativo",
+      endereco: "Endereço B",
+      status: "inativo",
+    });
+
+    const query = `
+      query ListarPontosEntregaAtivos {
+        listarPontosEntregaAtivos {
+          id
+          nome
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarPontosEntregaAtivos).to.have.lengthOf(1);
+    expect(result.data.listarPontosEntregaAtivos[0].nome).to.equal(
+      "Ponto Ativo",
+    );
+    expect(result.data.listarPontosEntregaAtivos[0].status).to.equal("ativo");
+  });
+
+  it("admin user can find ponto de entrega by id", async function () {
+    const { PontoEntrega } = require("../models/index.js");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 456",
+      bairro: "Bairro Teste",
+      cidade: "Cidade Teste",
+      estado: "MG",
+      cep: "30000-000",
+      status: "ativo",
+    });
+
+    const query = `
+      query BuscarPontoEntrega($id: ID!) {
+        buscarPontoEntrega(id: $id) {
+          id
+          nome
+          endereco
+          bairro
+          cidade
+          estado
+          cep
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      variableValues: { id: pontoEntrega.id },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.buscarPontoEntrega.nome).to.equal("Ponto Teste");
+    expect(result.data.buscarPontoEntrega.bairro).to.equal("Bairro Teste");
+    expect(result.data.buscarPontoEntrega.cidade).to.equal("Cidade Teste");
+  });
+
+  it("error finding non-existent ponto de entrega", async function () {
+    const query = `
+      query BuscarPontoEntrega($id: ID!) {
+        buscarPontoEntrega(id: $id) {
+          id
+          nome
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      variableValues: { id: 99999 },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.exist;
+    expect(result.errors[0].message).to.match(/não encontrado|not found/i);
+  });
+
+  it("admin user can update ponto de entrega", async function () {
+    const { PontoEntrega } = require("../models/index.js");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Original",
+      endereco: "Endereço Original",
+      status: "ativo",
+    });
+
+    const mutation = `
+      mutation AtualizarPontoEntrega($id: ID!, $input: AtualizarPontoEntregaInput!) {
+        atualizarPontoEntrega(id: $id, input: $input) {
+          id
+          nome
+          endereco
+          bairro
+          cidade
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: {
+        id: pontoEntrega.id,
+        input: {
+          nome: "Ponto Atualizado",
+          endereco: "Endereço Atualizado",
+          bairro: "Bairro Novo",
+          cidade: "Cidade Nova",
+          status: "inativo",
+        },
+      },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.atualizarPontoEntrega.nome).to.equal("Ponto Atualizado");
+    expect(result.data.atualizarPontoEntrega.endereco).to.equal(
+      "Endereço Atualizado",
+    );
+    expect(result.data.atualizarPontoEntrega.bairro).to.equal("Bairro Novo");
+    expect(result.data.atualizarPontoEntrega.cidade).to.equal("Cidade Nova");
+    expect(result.data.atualizarPontoEntrega.status).to.equal("inativo");
+  });
+
+  it("admin user can delete ponto de entrega", async function () {
+    const { PontoEntrega } = require("../models/index.js");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto a Deletar",
+      endereco: "Endereço",
+      status: "ativo",
+    });
+
+    const mutation = `
+      mutation DeletarPontoEntrega($id: ID!) {
+        deletarPontoEntrega(id: $id)
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      variableValues: { id: pontoEntrega.id },
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.deletarPontoEntrega).to.be.true;
+
+    const deletedPonto = await PontoEntrega.findByPk(pontoEntrega.id);
+    expect(deletedPonto).to.be.null;
+  });
+
+  it("non-admin user cannot list pontos de entrega", async function () {
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "fornecedor-token-pe";
+      },
+    });
+    await usuarioService.create(
+      { email: "fornecedor@example.com", senha: "password" },
+      { perfis: ["fornecedor"] },
+    );
+    const fornecedorSession = await usuarioService.login(
+      "fornecedor@example.com",
+      "password",
+    );
+
+    const query = `
+      query ListarPontosEntrega {
+        listarPontosEntrega {
+          id
+          nome
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(fornecedorSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.exist;
+    expect(result.errors[0].message).to.equal("Admin required");
+  });
+
+  it("non-admin user can list active pontos de entrega", async function () {
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "fornecedor-token-pe-ativos";
+      },
+    });
+    await usuarioService.create(
+      { email: "fornecedor2@example.com", senha: "password" },
+      { perfis: ["fornecedor"] },
+    );
+    const fornecedorSession = await usuarioService.login(
+      "fornecedor2@example.com",
+      "password",
+    );
+
+    const { PontoEntrega } = require("../models/index.js");
+    await PontoEntrega.create({
+      nome: "Ponto Disponível",
+      endereco: "Endereço",
+      status: "ativo",
+    });
+
+    const query = `
+      query ListarPontosEntregaAtivos {
+        listarPontosEntregaAtivos {
+          id
+          nome
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(fornecedorSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarPontosEntregaAtivos).to.have.lengthOf(1);
+    expect(result.data.listarPontosEntregaAtivos[0].nome).to.equal(
+      "Ponto Disponível",
+    );
+  });
+});

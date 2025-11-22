@@ -12,6 +12,7 @@ const {
   SubmissaoProdutoService,
   CicloService,
   OfertaService,
+  PontoEntregaService,
 } = require("../src/services/services.js");
 
 async function requiredAuthenticated(context) {
@@ -410,6 +411,62 @@ const rootValue = {
     return result;
   },
 
+  // PontoEntrega resolvers
+  listarPontosEntrega: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const pontosEntrega = await context.pontoEntregaService.listarTodos();
+    return pontosEntrega;
+  },
+
+  listarPontosEntregaAtivos: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pontosEntrega =
+      await context.pontoEntregaService.listarPontosDeEntregaAtivos();
+    return pontosEntrega;
+  },
+
+  buscarPontoEntrega: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const pontoEntrega =
+      await context.pontoEntregaService.buscarPontoEntregaPorId(args.id);
+    return pontoEntrega;
+  },
+
+  criarPontoEntrega: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { input } = args;
+    const pontoEntrega =
+      await context.pontoEntregaService.criarPontoEntrega(input);
+    return pontoEntrega;
+  },
+
+  atualizarPontoEntrega: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { id, input } = args;
+    const pontoEntrega =
+      await context.pontoEntregaService.atualizarPontoEntrega(id, input);
+    return pontoEntrega;
+  },
+
+  deletarPontoEntrega: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const result = await context.pontoEntregaService.deletarPontoEntrega(
+      args.id,
+    );
+    return result;
+  },
+
   // Oferta resolvers
   buscarOferta: async (args, context) => {
     await requiredAuthenticated(context);
@@ -495,6 +552,7 @@ const produtoComercializavelService = new ProdutoComercializavelService();
 const submissaoProdutoService = new SubmissaoProdutoService();
 const cicloService = new CicloService();
 const ofertaService = new OfertaService();
+const pontoEntregaService = new PontoEntregaService();
 
 const API = {
   rootValue,
@@ -507,6 +565,7 @@ const API = {
     submissaoProdutoService,
     cicloService,
     ofertaService,
+    pontoEntregaService,
   },
   buildContext(sessionToken) {
     return {
@@ -517,6 +576,7 @@ const API = {
       submissaoProdutoService,
       cicloService,
       ofertaService,
+      pontoEntregaService,
       sessionToken,
     };
   },

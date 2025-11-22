@@ -669,7 +669,15 @@ class ComposicaoService {
 class PontoEntregaService {
   async criarPontoEntrega(dados) {
     try {
-      const allowedFields = ["nome", "endereco", "status"];
+      const allowedFields = [
+        "nome",
+        "endereco",
+        "bairro",
+        "cidade",
+        "estado",
+        "cep",
+        "status",
+      ];
       const payloadSeguro = filterPayload(PontoEntrega, dados, allowedFields);
       return await PontoEntrega.create(payloadSeguro);
     } catch (error) {
@@ -699,7 +707,15 @@ class PontoEntregaService {
   async atualizarPontoEntrega(id, dados) {
     try {
       const pontoEntrega = await this.buscarPontoEntregaPorId(id);
-      const allowedFields = ["nome", "endereco", "status"];
+      const allowedFields = [
+        "nome",
+        "endereco",
+        "bairro",
+        "cidade",
+        "estado",
+        "cep",
+        "status",
+      ];
       const payloadSeguro = filterPayload(PontoEntrega, dados, allowedFields);
       await pontoEntrega.update(payloadSeguro);
       return pontoEntrega;
@@ -713,10 +729,36 @@ class PontoEntregaService {
   async deletarPontoEntrega(id) {
     try {
       const pontoEntrega = await this.buscarPontoEntregaPorId(id);
+
+      const ciclosAssociados = await Ciclo.count({
+        where: { pontoEntregaId: id },
+      });
+
+      if (ciclosAssociados > 0) {
+        throw new ServiceError(
+          `Ponto de entrega possui ${ciclosAssociados} ciclo(s) associado(s). Remova as associações antes de excluir.`,
+        );
+      }
+
       await pontoEntrega.destroy();
       return true;
     } catch (error) {
+      if (error instanceof ServiceError) {
+        throw error;
+      }
       throw new ServiceError("Falha ao deletar ponto de entrega.", {
+        cause: error,
+      });
+    }
+  }
+
+  async listarTodos() {
+    try {
+      return await PontoEntrega.findAll({
+        order: [["nome", "ASC"]],
+      });
+    } catch (error) {
+      throw new ServiceError("Falha ao listar pontos de entrega.", {
         cause: error,
       });
     }
@@ -724,7 +766,10 @@ class PontoEntregaService {
 
   async listarPontosDeEntregaAtivos() {
     try {
-      return await PontoEntrega.findAll({ where: { status: "ativo" } });
+      return await PontoEntrega.findAll({
+        where: { status: "ativo" },
+        order: [["nome", "ASC"]],
+      });
     } catch (error) {
       throw new ServiceError("Falha ao listar pontos de entrega ativos.", {
         cause: error,
