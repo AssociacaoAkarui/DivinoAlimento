@@ -1,9 +1,15 @@
-import { useState, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
 import { ArrowLeft, Search, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -25,66 +31,113 @@ import {
 import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
 import { toast } from "@/hooks/use-toast";
-import { produtosReferencia } from "@/data/produtos-referencia";
-import { mercadosLocais } from "@/data/mercados-locais";
 import { formatBRL, formatBRLInput, parseBRLToNumber } from "@/utils/currency";
-import { RoleTitle } from '@/components/layout/RoleTitle';
+import { RoleTitle } from "@/components/layout/RoleTitle";
+import {
+  useBuscarMercado,
+  useListarProdutos,
+  useListarPrecosMercado,
+  useCriarPrecoMercado,
+  useAtualizarPrecoMercado,
+} from "@/hooks/graphql";
+import {
+  formatPrecoSimple,
+  formatCreateSuccessMessage,
+  formatUpdateSuccessMessage,
+  formatCreateError,
+  formatUpdateError,
+} from "@/lib/precomercado-formatters";
+import {
+  preparePrecoMercadoForBackend,
+  validatePreco,
+} from "@/lib/precomercado-helpers";
 
 interface ProdutoPreco {
   id: string;
+  produtoId: number;
   nome: string;
-  unidade: string;
-  precoBase: number;
+  medida: string;
+  valorReferencia: number;
   precoMercado: string;
+  precoId?: string;
   modified: boolean;
 }
 
 export default function AdminMercadoPrecosGestao() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
-  const mercado = mercadosLocais.find(m => m.id === id);
-  
-  const [searchTerm, setSearchTerm] = useState("");
-  const [produtos, setProdutos] = useState<ProdutoPreco[]>(
-    produtosReferencia.map(p => ({
-      id: p.id,
-      nome: p.nome,
-      unidade: p.unidade,
-      precoBase: p.preco_referencia,
-      precoMercado: p.preco_referencia.toFixed(2).replace('.', ','),
-      modified: false,
-    }))
+  const mercadoId = id ? parseInt(id) : 0;
+
+  const { data: mercadoData, isLoading: mercadoLoading } = useBuscarMercado(
+    String(mercadoId),
   );
+  const mercado = mercadoData?.buscarMercado;
+  const { data: produtosData, isLoading: produtosLoading } =
+    useListarProdutos();
+  const {
+    data: precosData,
+    isLoading: precosLoading,
+    refetch: refetchPrecos,
+  } = useListarPrecosMercado(mercadoId);
+
+  const criarPrecoMutation = useCriarPrecoMercado();
+  const atualizarPrecoMutation = useAtualizarPrecoMercado();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [produtos, setProdutos] = useState<ProdutoPreco[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+  // Initialize produtos when data is loaded
+  useEffect(() => {
+    if (produtosData && !produtosLoading) {
+      const precosMap = new Map(
+        (precosData || []).map((preco: any) => [preco.produtoId, preco]),
+      );
+
+      const produtosComPreco = produtosData.map((p: any) => {
+        const precoExistente = precosMap.get(parseInt(p.id));
+        return {
+          id: p.id,
+          produtoId: parseInt(p.id),
+          nome: p.nome,
+          medida: p.medida || "unidade",
+          valorReferencia: parseFloat(p.valorReferencia) || 0,
+          precoMercado: precoExistente
+            ? formatPrecoSimple(parseFloat(precoExistente.preco))
+            : formatPrecoSimple(parseFloat(p.valorReferencia) || 0),
+          precoId: precoExistente?.id,
+          modified: false,
+        };
+      });
+
+      setProdutos(produtosComPreco);
+    }
+  }, [produtosData, precosData, produtosLoading, precosLoading]);
+
   const filteredProdutos = useMemo(() => {
-    return produtos.filter(p =>
-      p.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    return produtos.filter((p) =>
+      p.nome.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [produtos, searchTerm]);
 
-  const hasModifications = produtos.some(p => p.modified);
+  const hasModifications = produtos.some((p) => p.modified);
 
   const handlePriceChange = (id: string, value: string) => {
-    // Aplicar formatação brasileira
     const formatted = formatBRLInput(value);
-    setProdutos(prev =>
-      prev.map(p =>
-        p.id === id
-          ? { ...p, precoMercado: formatted, modified: true }
-          : p
-      )
+    setProdutos((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, precoMercado: formatted, modified: true } : p,
+      ),
     );
   };
 
-  const handleSaveSingle = (id: string) => {
-    const produto = produtos.find(p => p.id === id);
+  const handleSaveSingle = async (id: string) => {
+    const produto = produtos.find((p) => p.id === id);
     if (!produto) return;
 
     const precoNumerico = parseBRLToNumber(produto.precoMercado);
-    
-    if (!produto.precoMercado || isNaN(precoNumerico) || precoNumerico <= 0) {
+
+    if (!validatePreco(precoNumerico)) {
       toast({
         title: "Erro",
         description: "Insira um valor válido para atualizar o preço",
@@ -93,30 +146,80 @@ export default function AdminMercadoPrecosGestao() {
       return;
     }
 
-    setProdutos(prev =>
-      prev.map(p =>
-        p.id === id
-          ? { ...p, modified: false }
-          : p
-      )
-    );
+    try {
+      if (produto.precoId) {
+        // Update existing price
+        await atualizarPrecoMutation.mutateAsync({
+          id: produto.precoId,
+          input: {
+            preco: precoNumerico,
+            status: "ativo",
+          },
+        });
 
-    toast({
-      title: "Sucesso",
-      description: `Preço atualizado com sucesso para ${produto.nome}`,
-    });
+        toast({
+          title: "Sucesso",
+          description: formatUpdateSuccessMessage(produto.nome),
+        });
+      } else {
+        // Create new price
+        const input = preparePrecoMercadoForBackend({
+          produtoId: produto.produtoId,
+          mercadoId: mercadoId,
+          preco: precoNumerico,
+          status: "ativo",
+        });
+
+        const result = await criarPrecoMutation.mutateAsync({ input });
+
+        // Update local state with the new precoId
+        setProdutos((prev) =>
+          prev.map((p) =>
+            p.id === id ? { ...p, precoId: result.id, modified: false } : p,
+          ),
+        );
+
+        toast({
+          title: "Sucesso",
+          description: formatCreateSuccessMessage(
+            produto.nome,
+            mercado?.nome || "",
+          ),
+        });
+
+        // Refetch to get updated data
+        await refetchPrecos();
+        return;
+      }
+
+      setProdutos((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, modified: false } : p)),
+      );
+      await refetchPrecos();
+    } catch (error) {
+      const errorMessage = produto.precoId
+        ? formatUpdateError(error)
+        : formatCreateError(error);
+
+      toast({
+        title: "Erro",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveAll = () => {
-    const invalidProducts = produtos.filter(p => {
+    const invalidProducts = produtos.filter((p) => {
       const preco = parseBRLToNumber(p.precoMercado);
-      return p.modified && (!p.precoMercado || isNaN(preco) || preco <= 0);
+      return p.modified && !validatePreco(preco);
     });
 
     if (invalidProducts.length > 0) {
       toast({
         title: "Erro",
-        description: "Alguns produtos possuem preços inválidos. Corrija antes de salvar.",
+        description:
+          "Alguns produtos possuem preços inválidos. Corrija antes de salvar.",
         variant: "destructive",
       });
       return;
@@ -125,22 +228,67 @@ export default function AdminMercadoPrecosGestao() {
     setShowConfirmDialog(true);
   };
 
-  const confirmSaveAll = () => {
-    setProdutos(prev =>
-      prev.map(p => ({ ...p, modified: false }))
-    );
+  const confirmSaveAll = async () => {
+    const modifiedProducts = produtos.filter((p) => p.modified);
 
-    toast({
-      title: "Sucesso",
-      description: "Todos os preços foram atualizados com sucesso",
-    });
+    try {
+      for (const produto of modifiedProducts) {
+        const precoNumerico = parseBRLToNumber(produto.precoMercado);
 
-    setShowConfirmDialog(false);
+        if (produto.precoId) {
+          await atualizarPrecoMutation.mutateAsync({
+            id: produto.precoId,
+            input: {
+              preco: precoNumerico,
+              status: "ativo",
+            },
+          });
+        } else {
+          const input = preparePrecoMercadoForBackend({
+            produtoId: produto.produtoId,
+            mercadoId: mercadoId,
+            preco: precoNumerico,
+            status: "ativo",
+          });
+          await criarPrecoMutation.mutateAsync({ input });
+        }
+      }
+
+      setProdutos((prev) => prev.map((p) => ({ ...p, modified: false })));
+
+      toast({
+        title: "Sucesso",
+        description: "Todos os preços foram atualizados com sucesso",
+      });
+
+      setShowConfirmDialog(false);
+      await refetchPrecos();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar os preços. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancel = () => {
     navigate("/adminmercado/precos");
   };
+
+  if (mercadoLoading || produtosLoading || precosLoading) {
+    return (
+      <ResponsiveLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Carregando...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
 
   if (!mercado) {
     return (
@@ -149,7 +297,10 @@ export default function AdminMercadoPrecosGestao() {
           <Card>
             <CardContent className="pt-6">
               <p className="text-muted-foreground">Mercado não encontrado</p>
-              <Button onClick={() => navigate("/adminmercado/precos")} className="mt-4">
+              <Button
+                onClick={() => navigate("/adminmercado/precos")}
+                className="mt-4"
+              >
                 Voltar para Mercados
               </Button>
             </CardContent>
@@ -162,8 +313,8 @@ export default function AdminMercadoPrecosGestao() {
   return (
     <ResponsiveLayout
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon-sm"
           onClick={() => navigate("/adminmercado/precos")}
           className="text-primary-foreground hover:bg-primary-hover"
@@ -177,9 +328,13 @@ export default function AdminMercadoPrecosGestao() {
         {/* Header */}
         <div className="flex flex-col">
           <div>
-            <RoleTitle page={`Gestão de Preços – ${mercado.nome}`} className="text-2xl md:text-3xl" />
+            <RoleTitle
+              page={`Gestão de Preços – ${mercado.nome}`}
+              className="text-2xl md:text-3xl"
+            />
             <p className="text-muted-foreground">
-              Defina preços específicos para este mercado com base nos produtos comercializáveis cadastrados
+              Defina preços específicos para este mercado com base nos produtos
+              cadastrados
             </p>
           </div>
         </div>
@@ -207,7 +362,7 @@ export default function AdminMercadoPrecosGestao() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome do Produto</TableHead>
+                  <TableHead>Nome do Alimento</TableHead>
                   <TableHead>Unidade</TableHead>
                   <TableHead>Preço Base</TableHead>
                   <TableHead>Preço do Mercado</TableHead>
@@ -217,15 +372,19 @@ export default function AdminMercadoPrecosGestao() {
               <TableBody>
                 {filteredProdutos.map((produto) => (
                   <TableRow key={produto.id}>
-                    <TableCell className="font-medium">{produto.nome}</TableCell>
-                    <TableCell>{produto.unidade}</TableCell>
-                    <TableCell>{formatBRL(produto.precoBase)}</TableCell>
+                    <TableCell className="font-medium">
+                      {produto.nome}
+                    </TableCell>
+                    <TableCell>{produto.medida}</TableCell>
+                    <TableCell>{formatBRL(produto.valorReferencia)}</TableCell>
                     <TableCell>
                       <Input
                         type="text"
                         inputMode="decimal"
                         value={produto.precoMercado}
-                        onChange={(e) => handlePriceChange(produto.id, e.target.value)}
+                        onChange={(e) =>
+                          handlePriceChange(produto.id, e.target.value)
+                        }
                         className="w-32"
                         placeholder="0,00"
                       />
@@ -252,21 +411,27 @@ export default function AdminMercadoPrecosGestao() {
             <Card key={produto.id}>
               <CardHeader>
                 <CardTitle className="text-lg">{produto.nome}</CardTitle>
-                <CardDescription>Unidade: {produto.unidade}</CardDescription>
+                <CardDescription>Unidade: {produto.medida}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Preço Base</p>
-                    <p className="text-lg font-semibold">{formatBRL(produto.precoBase)}</p>
+                    <p className="text-lg font-semibold">
+                      {formatBRL(produto.valorReferencia)}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Preço do Mercado</p>
+                    <p className="text-sm text-muted-foreground">
+                      Preço do Mercado
+                    </p>
                     <Input
                       type="text"
                       inputMode="decimal"
                       value={produto.precoMercado}
-                      onChange={(e) => handlePriceChange(produto.id, e.target.value)}
+                      onChange={(e) =>
+                        handlePriceChange(produto.id, e.target.value)
+                      }
                       placeholder="0,00"
                       className="mt-1"
                     />
@@ -287,10 +452,7 @@ export default function AdminMercadoPrecosGestao() {
 
         {/* Action Buttons */}
         <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 flex gap-2 justify-end md:relative md:border-0 md:p-0">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-          >
+          <Button variant="outline" onClick={handleCancel}>
             <X className="mr-2 h-4 w-4" />
             Cancelar
           </Button>
@@ -311,7 +473,8 @@ export default function AdminMercadoPrecosGestao() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar atualização</AlertDialogTitle>
             <AlertDialogDescription>
-              Deseja confirmar atualização dos preços? Esta ação irá salvar todos os preços modificados.
+              Deseja confirmar atualização dos preços? Esta ação irá salvar
+              todos os preços modificados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

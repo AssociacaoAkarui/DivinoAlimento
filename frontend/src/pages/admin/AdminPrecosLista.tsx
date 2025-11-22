@@ -1,5 +1,5 @@
-import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 import { RoleTitle } from "@/components/layout/RoleTitle";
 import { ArrowLeft, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,10 +26,23 @@ import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
 import { FiltersBar } from "@/components/admin/FiltersBar";
 import { FiltersPanel } from "@/components/admin/FiltersPanel";
 import { useFilters } from "@/hooks/useFilters";
-import { mercadosLocais } from "@/data/mercados-locais";
+import { useListarMercados } from "@/hooks/graphql";
+import {
+  formatTipoMercado,
+  formatStatusMercado,
+  formatResponsavelDisplay,
+  getStatusMercadoBadgeColor,
+} from "@/lib/mercado-formatters";
+import {
+  filterMercadosBySearch,
+  filterMercadosByStatus,
+  filterMercadosByTipo,
+} from "@/lib/mercado-helpers";
 
 export default function AdminPrecosLista() {
   const navigate = useNavigate();
+  const { data: mercadosData, isLoading, error } = useListarMercados();
+
   const {
     filters,
     debouncedSearch,
@@ -44,27 +57,89 @@ export default function AdminPrecosLista() {
   } = useFilters("/admin/precos");
 
   const filteredMercados = useMemo(() => {
-    let result = [...mercadosLocais];
+    if (!mercadosData?.listarMercados) return [];
+
+    let result = [...mercadosData.listarMercados];
 
     // Aplicar busca com debounce
     if (debouncedSearch) {
-      result = result.filter((m) =>
-        m.nome.toLowerCase().includes(debouncedSearch.toLowerCase()),
-      );
+      result = filterMercadosBySearch(result, debouncedSearch);
     }
 
     // Aplicar filtro de status
     if (filters.status.length > 0) {
-      result = result.filter((m) => filters.status.includes(m.status));
+      result = result.filter((m: any) => filters.status.includes(m.status));
     }
 
     // Aplicar filtro de tipo
     if (filters.tipo.length > 0) {
-      result = result.filter((m) => filters.tipo.includes(m.tipo));
+      // Mapear os valores do filtro para os tipos do backend
+      const tipoMap: Record<string, string> = {
+        Cestas: "cesta",
+        Lote: "lote",
+        "Venda Direta": "venda_direta",
+      };
+      const tiposBackend = filters.tipo.map((t: string) => tipoMap[t] || t);
+      result = result.filter((m: any) => tiposBackend.includes(m.tipo));
     }
 
     return result;
-  }, [filters, debouncedSearch]);
+  }, [mercadosData, filters, debouncedSearch]);
+
+  if (isLoading) {
+    return (
+      <ResponsiveLayout
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate("/admin/dashboard")}
+            className="text-primary-foreground hover:bg-primary-hover"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        }
+        headerContent={<UserMenuLarge />}
+      >
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Carregando mercados...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ResponsiveLayout
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate("/admin/dashboard")}
+            className="text-primary-foreground hover:bg-primary-hover"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        }
+        headerContent={<UserMenuLarge />}
+      >
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <p className="text-muted-foreground">Erro ao carregar mercados</p>
+              <Button onClick={() => window.location.reload()}>
+                Tentar novamente
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
 
   return (
     <ResponsiveLayout
@@ -126,20 +201,22 @@ export default function AdminPrecosLista() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredMercados.map((mercado) => (
+                {filteredMercados.map((mercado: any) => (
                   <TableRow key={mercado.id}>
                     <TableCell className="font-medium">
                       {mercado.nome}
                     </TableCell>
-                    <TableCell>{mercado.tipo}</TableCell>
-                    <TableCell>{mercado.administrador || "—"}</TableCell>
+                    <TableCell>{formatTipoMercado(mercado.tipo)}</TableCell>
+                    <TableCell>
+                      {formatResponsavelDisplay(mercado.responsavel)}
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={
                           mercado.status === "ativo" ? "default" : "secondary"
                         }
                       >
-                        {mercado.status === "ativo" ? "Ativo" : "Inativo"}
+                        {formatStatusMercado(mercado.status)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -161,20 +238,22 @@ export default function AdminPrecosLista() {
 
         {/* Mobile Cards */}
         <div className="md:hidden space-y-4">
-          {filteredMercados.map((mercado) => (
+          {filteredMercados.map((mercado: any) => (
             <Card key={mercado.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-lg">{mercado.nome}</CardTitle>
-                    <CardDescription>{mercado.tipo}</CardDescription>
+                    <CardDescription>
+                      {formatTipoMercado(mercado.tipo)}
+                    </CardDescription>
                   </div>
                   <Badge
                     variant={
                       mercado.status === "ativo" ? "default" : "secondary"
                     }
                   >
-                    {mercado.status === "ativo" ? "Ativo" : "Inativo"}
+                    {formatStatusMercado(mercado.status)}
                   </Badge>
                 </div>
               </CardHeader>
@@ -184,7 +263,7 @@ export default function AdminPrecosLista() {
                     Administrador Responsável
                   </p>
                   <p className="text-sm font-medium">
-                    {mercado.administrador || "—"}
+                    {formatResponsavelDisplay(mercado.responsavel)}
                   </p>
                 </div>
                 <Button
@@ -245,7 +324,6 @@ export default function AdminPrecosLista() {
             ))}
           </div>
         </div>
-
         <div className="space-y-4">
           <Label>Tipo de Mercado</Label>
           <div className="space-y-2">

@@ -72,8 +72,10 @@ export default function AdminPrecos() {
 
   const mercadoId = id ? parseInt(id) : 0;
 
-  const { data: mercado, isLoading: mercadoLoading } =
-    useBuscarMercado(mercadoId);
+  const { data: mercadoData, isLoading: mercadoLoading } = useBuscarMercado(
+    String(mercadoId),
+  );
+  const mercado = mercadoData?.buscarMercado;
   const { data: produtosData, isLoading: produtosLoading } =
     useListarProdutos();
   const {
