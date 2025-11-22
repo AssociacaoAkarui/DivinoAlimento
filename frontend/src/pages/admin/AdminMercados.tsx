@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -45,63 +45,39 @@ import {
   Edit,
   Save,
   User,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { RoleTitle } from "@/components/layout/RoleTitle";
-
-// Mock data
-const _mockProducts = [
-  { id: 1, name: "Tomate Orgânico", price: 7.5 },
-  { id: 2, name: "Alface Hidropônica", price: 1.5 },
-  { id: 3, name: "Cenoura Baby", price: 8.0 },
-  { id: 4, name: "Brócolis", price: 6.0 },
-];
-
-const mockMarketAdministrators = [
-  { id: 1, name: "João Silva", email: "joao.silva@admin.com" },
-  { id: 2, name: "Maria Santos", email: "maria.santos@admin.com" },
-  { id: 3, name: "Pedro Costa", email: "pedro.costa@admin.com" },
-  { id: 4, name: "Ana Paula", email: "ana.paula@admin.com" },
-];
+import {
+  useListarMercados,
+  useListarUsuarios,
+  useCriarMercado,
+  useAtualizarMercado,
+  useDeletarMercado,
+} from "@/hooks/graphql";
+import {
+  filterMercadosBySearch,
+  filterMercadosByStatus,
+  filterMercadosByTipo,
+  prepareMercadoForBackend,
+  getTotalPontosEntrega,
+} from "@/lib/mercado-helpers";
+import {
+  formatTipoMercado,
+  formatStatusMercado,
+  formatCreateSuccessMessage,
+  formatUpdateSuccessMessage,
+  formatDeleteSuccessMessage,
+  formatCreateError,
+  formatUpdateError,
+} from "@/lib/mercado-formatters";
 
 const marketTypeOptions = [
   { value: "cesta", label: "Cesta" },
   { value: "lote", label: "Lote" },
   { value: "venda_direta", label: "Venda Direta" },
-];
-
-type MarketType = {
-  id: number;
-  name: string;
-  deliveryPoints: string[];
-  type: string;
-  valorMaximoCesta?: number | null;
-  administratorId: number;
-  administrativeFee: number | null;
-  status: "ativo" | "inativo";
-};
-
-const mockMarkets: MarketType[] = [
-  {
-    id: 1,
-    name: "Mercado Central",
-    deliveryPoints: ["Centro", "Zona Norte"],
-    type: "cesta",
-    valorMaximoCesta: 150.0,
-    administratorId: 1,
-    administrativeFee: 5,
-    status: "ativo",
-  },
-  {
-    id: 2,
-    name: "Feira Livre",
-    deliveryPoints: ["Bairro Alto", "Vila Nova"],
-    type: "venda_direta",
-    administratorId: 2,
-    administrativeFee: null,
-    status: "ativo",
-  },
 ];
 
 const AdminMercados = () => {
@@ -120,10 +96,17 @@ const AdminMercados = () => {
     setIsOpen,
   } = useFilters("/admin/mercados");
 
-  const [markets, setMarkets] = useState<MarketType[]>(mockMarkets);
-  const [selectedMarket, setSelectedMarket] = useState<MarketType | null>(null);
+  const { data: mercadosData, isLoading: mercadosLoading } =
+    useListarMercados();
+  const { data: usuariosData, isLoading: usuariosLoading } =
+    useListarUsuarios();
+  const criarMercadoMutation = useCriarMercado();
+  const atualizarMercadoMutation = useAtualizarMercado();
+  const deletarMercadoMutation = useDeletarMercado();
+
+  const [selectedMarket, setSelectedMarket] = useState<any>(null);
   const [isEditingMarket, setIsEditingMarket] = useState(false);
-  const [editData, setEditData] = useState<MarketType | null>(null);
+  const [editData, setEditData] = useState<any>(null);
   const [newMarket, setNewMarket] = useState({
     name: "",
     deliveryPoints: [] as string[],
@@ -138,6 +121,38 @@ const AdminMercados = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [marketToDelete, setMarketToDelete] = useState<number | null>(null);
 
+  const markets = useMemo(() => {
+    if (!mercadosData?.listarMercados) return [];
+    return mercadosData.listarMercados.map((m: any) => ({
+      id: m.id,
+      name: m.nome,
+      deliveryPoints: m.pontosEntrega?.map((p: any) => p.nome) || [],
+      type: m.tipo,
+      valorMaximoCesta: m.valorMaximoCesta,
+      administratorId: m.responsavelId,
+      administratorName: m.responsavel?.nome || "",
+      administrativeFee: m.taxaAdministrativa,
+      status: m.status,
+      pontosEntrega: m.pontosEntrega || [],
+    }));
+  }, [mercadosData]);
+
+  const marketAdministrators = !usuariosData
+    ? []
+    : (Array.isArray(usuariosData)
+        ? usuariosData
+        : usuariosData.listarUsuarios || []
+      )
+        .filter(
+          (u: any) =>
+            u.perfis?.includes("admin") || u.perfis?.includes("adminmercado"),
+        )
+        .map((u: any) => ({
+          id: parseInt(u.id),
+          name: u.nome,
+          email: u.email,
+        }));
+
   const addDeliveryPoint = () => {
     if (!currentDeliveryPoint.trim()) {
       toast({
@@ -147,13 +162,11 @@ const AdminMercados = () => {
       });
       return;
     }
-
     setNewMarket((prev) => ({
       ...prev,
       deliveryPoints: [...prev.deliveryPoints, currentDeliveryPoint.trim()],
     }));
     setCurrentDeliveryPoint("");
-
     toast({
       title: "Ponto adicionado",
       description: "O ponto de entrega foi adicionado à lista",
@@ -167,37 +180,58 @@ const AdminMercados = () => {
     }));
   };
 
-  const getAdministratorName = (id: number | null) => {
-    if (!id) return "";
+  const getAdministratorName = (market: any) => {
+    if (market?.administratorName) {
+      return market.administratorName;
+    }
+    if (!market?.administratorId) return "";
     return (
-      mockMarketAdministrators.find((admin) => admin.id === id)?.name || ""
+      marketAdministrators.find((admin) => admin.id === market.administratorId)
+        ?.name || ""
     );
   };
 
   const getMarketTypeLabel = (type: string) => {
-    return (
-      marketTypeOptions.find((option) => option.value === type)?.label || ""
-    );
+    return formatTipoMercado(type);
   };
 
-  const startEditMarket = (market: (typeof mockMarkets)[0]) => {
+  const startEditMarket = (market: any) => {
     setEditData({ ...market });
     setIsEditingMarket(true);
   };
 
-  const saveEditMarket = () => {
+  const saveEditMarket = async () => {
     if (!editData) return;
 
-    setMarkets((prev) =>
-      prev.map((m) => (m.id === editData.id ? editData : m)),
-    );
-    setSelectedMarket(editData);
-    setIsEditingMarket(false);
+    try {
+      const payload = {
+        id: editData.id.toString(),
+        input: {
+          nome: editData.name,
+          tipo: editData.type,
+          responsavelId: editData.administratorId,
+          taxaAdministrativa: editData.administrativeFee,
+          valorMaximoCesta:
+            editData.type === "cesta" ? editData.valorMaximoCesta : null,
+          status: editData.status,
+        },
+      };
 
-    toast({
-      title: "Sucesso",
-      description: "Mercado atualizado com sucesso",
-    });
+      await atualizarMercadoMutation.mutateAsync(payload);
+
+      setSelectedMarket(editData);
+      setIsEditingMarket(false);
+      toast({
+        title: "Sucesso",
+        description: formatUpdateSuccessMessage(editData.name),
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: formatUpdateError(error),
+        variant: "destructive",
+      });
+    }
   };
 
   const cancelEditMarket = () => {
@@ -208,34 +242,54 @@ const AdminMercados = () => {
   const filteredMarkets = useMemo(() => {
     let result = [...markets];
 
-    // Aplicar busca com debounce
     if (debouncedSearch) {
-      result = result.filter(
-        (market) =>
-          market.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          market.deliveryPoints.some((point) =>
-            point.toLowerCase().includes(debouncedSearch.toLowerCase()),
-          ),
-      );
+      result = filterMercadosBySearch(
+        result.map((m) => ({
+          nome: m.name,
+          pontosEntrega: m.pontosEntrega,
+          status: m.status,
+          tipo: m.type,
+        })),
+        debouncedSearch,
+      )
+        .map((filtered) => {
+          return markets.find((m) => m.name === filtered.nome);
+        })
+        .filter(Boolean) as any[];
     }
 
-    // Aplicar filtro de status
     if (filters.status.length > 0) {
-      result = result.filter((market) =>
-        filters.status.includes(market.status),
-      );
+      result = filterMercadosByStatus(
+        result.map((m) => ({
+          status: m.status,
+          nome: m.name,
+        })),
+        filters.status,
+      )
+        .map((filtered) => {
+          return markets.find((m) => m.name === filtered.nome);
+        })
+        .filter(Boolean) as any[];
     }
 
-    // Aplicar filtro de tipo
     if (filters.tipo.length > 0) {
-      result = result.filter((market) => filters.tipo.includes(market.type));
+      result = filterMercadosByTipo(
+        result.map((m) => ({
+          tipo: m.type,
+          nome: m.name,
+        })),
+        filters.tipo,
+      )
+        .map((filtered) => {
+          return markets.find((m) => m.name === filtered.nome);
+        })
+        .filter(Boolean) as any[];
     }
 
     return result;
   }, [markets, filters, debouncedSearch]);
 
-  const saveMarket = () => {
-    // Validações
+  const saveMarket = async () => {
     if (!newMarket.name.trim()) {
       toast({
         title: "Erro",
@@ -244,7 +298,6 @@ const AdminMercados = () => {
       });
       return;
     }
-
     if (!newMarket.type) {
       toast({
         title: "Erro",
@@ -253,7 +306,6 @@ const AdminMercados = () => {
       });
       return;
     }
-
     if (
       newMarket.type === "cesta" &&
       (!newMarket.valorMaximoCesta || newMarket.valorMaximoCesta <= 0)
@@ -265,7 +317,6 @@ const AdminMercados = () => {
       });
       return;
     }
-
     if (!newMarket.administratorId) {
       toast({
         title: "Erro",
@@ -299,36 +350,45 @@ const AdminMercados = () => {
       return;
     }
 
-    const market = {
-      id: markets.length + 1,
-      name: newMarket.name,
-      deliveryPoints: validDeliveryPoints,
-      type: newMarket.type,
-      valorMaximoCesta:
-        newMarket.type === "cesta" ? newMarket.valorMaximoCesta : undefined,
-      administratorId: newMarket.administratorId,
-      administrativeFee: newMarket.administrativeFee,
-      status: newMarket.status,
-    };
+    try {
+      const formData = {
+        nome: newMarket.name,
+        tipo: newMarket.type,
+        responsavelId: newMarket.administratorId,
+        taxaAdministrativa: newMarket.administrativeFee,
+        valorMaximoCesta:
+          newMarket.type === "cesta" ? newMarket.valorMaximoCesta : null,
+        status: newMarket.status,
+        pontosEntrega: validDeliveryPoints,
+      };
 
-    setMarkets([...markets, market]);
-    setNewMarket({
-      name: "",
-      deliveryPoints: [],
-      type: "",
-      valorMaximoCesta: null,
-      administratorId: null,
-      administrativeFee: null,
-      status: "ativo",
-    });
-    setCurrentDeliveryPoint("");
-    setIsDialogOpen(false);
-    setSelectedMarket(market);
+      const payload = prepareMercadoForBackend(formData);
 
-    toast({
-      title: "Sucesso",
-      description: "Mercado criado com sucesso",
-    });
+      await criarMercadoMutation.mutateAsync({ input: payload });
+
+      setNewMarket({
+        name: "",
+        deliveryPoints: [],
+        type: "",
+        valorMaximoCesta: null,
+        administratorId: null,
+        administrativeFee: null,
+        status: "ativo",
+      });
+      setCurrentDeliveryPoint("");
+      setIsDialogOpen(false);
+
+      toast({
+        title: "Sucesso",
+        description: formatCreateSuccessMessage(newMarket.name),
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: formatCreateError(error),
+        variant: "destructive",
+      });
+    }
   };
 
   const confirmDeleteMarket = (marketId: number) => {
@@ -336,24 +396,59 @@ const AdminMercados = () => {
     setDeleteDialogOpen(true);
   };
 
-  const deleteMarket = () => {
+  const deleteMarket = async () => {
     if (marketToDelete === null) return;
 
-    setMarkets((prev) => prev.filter((m) => m.id !== marketToDelete));
+    try {
+      await deletarMercadoMutation.mutateAsync({
+        id: marketToDelete.toString(),
+      });
 
-    if (selectedMarket?.id === marketToDelete) {
-      setSelectedMarket(null);
-      setIsEditingMarket(false);
+      if (selectedMarket?.id === marketToDelete) {
+        setSelectedMarket(null);
+        setIsEditingMarket(false);
+      }
+
+      const deletedMarket = markets.find((m) => m.id === marketToDelete);
+      toast({
+        title: "Sucesso",
+        description: formatDeleteSuccessMessage(
+          deletedMarket?.name || "Mercado",
+        ),
+      });
+
+      setDeleteDialogOpen(false);
+      setMarketToDelete(null);
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir mercado",
+        variant: "destructive",
+      });
     }
-
-    toast({
-      title: "Sucesso",
-      description: "Mercado excluído com sucesso",
-    });
-
-    setDeleteDialogOpen(false);
-    setMarketToDelete(null);
   };
+
+  if (mercadosLoading || usuariosLoading) {
+    return (
+      <ResponsiveLayout
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate("/admin/dashboard")}
+            className="text-primary-foreground hover:bg-primary-hover"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        }
+        headerContent={<UserMenuLarge />}
+      >
+        <div className="flex items-center justify-center h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </ResponsiveLayout>
+    );
+  }
 
   return (
     <ResponsiveLayout
@@ -370,7 +465,6 @@ const AdminMercados = () => {
       headerContent={<UserMenuLarge />}
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 lg:p-0">
-        {/* Page Header - Desktop 12 col */}
         <div className="lg:col-span-12 mb-4 lg:mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div className="text-left mb-4 lg:mb-0">
@@ -382,8 +476,6 @@ const AdminMercados = () => {
                 Gerencie mercados e pontos de entrega
               </p>
             </div>
-
-            {/* Desktop Stats */}
             <div className="hidden lg:grid lg:grid-cols-2 gap-4">
               <Card className="text-center bg-primary/10">
                 <CardContent className="p-4">
@@ -398,9 +490,10 @@ const AdminMercados = () => {
               <Card className="text-center bg-accent/10">
                 <CardContent className="p-4">
                   <div className="text-2xl font-bold text-accent">
-                    {markets.reduce(
-                      (acc, m) => acc + m.deliveryPoints.length,
-                      0,
+                    {getTotalPontosEntrega(
+                      markets.map((m) => ({
+                        pontosEntrega: m.pontosEntrega,
+                      })),
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -412,10 +505,8 @@ const AdminMercados = () => {
           </div>
         </div>
 
-        {/* Left Panel - Markets List (Desktop 4 col) */}
         <div className="lg:col-span-4">
           <div className="lg:sticky lg:top-6 space-y-4">
-            {/* Search and Filters */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base lg:text-lg">
@@ -423,7 +514,6 @@ const AdminMercados = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Filtros e Busca */}
                 <FiltersBar
                   searchValue={filters.search}
                   onSearchChange={(value) => updateFilter("search", value)}
@@ -434,8 +524,6 @@ const AdminMercados = () => {
                   hasActiveFilters={hasActiveFilters()}
                   filtersOpen={isOpen}
                 />
-
-                {/* Add Button for Desktop and Mobile */}
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="w-full">
@@ -447,7 +535,6 @@ const AdminMercados = () => {
               </CardContent>
             </Card>
 
-            {/* Markets List */}
             <div className="space-y-3 max-h-[60vh] overflow-y-auto">
               {filteredMarkets.map((market) => (
                 <Card
@@ -487,17 +574,15 @@ const AdminMercados = () => {
                                   : ""
                               }
                             >
-                              {market.status === "ativo" ? "Ativo" : "Inativo"}
+                              {formatStatusMercado(market.status)}
                             </Badge>
                           </div>
                         </div>
-
                         {selectedMarket?.id === market.id && (
                           <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
                         )}
                       </div>
                     </div>
-
                     <div className="flex space-x-2 pt-3 border-t">
                       <Button
                         variant="outline"
@@ -528,7 +613,6 @@ const AdminMercados = () => {
                   </CardContent>
                 </Card>
               ))}
-
               {filteredMarkets.length === 0 && (
                 <Card>
                   <CardContent className="p-8 text-center space-y-4">
@@ -550,7 +634,6 @@ const AdminMercados = () => {
           </div>
         </div>
 
-        {/* Right Panel - Market Details/Edit (Desktop 8 col) */}
         <div className="lg:col-span-8">
           {selectedMarket ? (
             <Card>
@@ -564,7 +647,6 @@ const AdminMercados = () => {
                     Detalhes e configurações do mercado
                   </p>
                 </div>
-
                 {!isEditingMarket ? (
                   <div className="flex space-x-2">
                     <Button
@@ -594,16 +676,12 @@ const AdminMercados = () => {
                   </div>
                 )}
               </CardHeader>
-
               <CardContent className="space-y-6">
-                {/* Market Information */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Basic Info */}
                   <div className="space-y-4">
                     <h4 className="font-medium text-foreground">
                       Informações Básicas
                     </h4>
-
                     <div>
                       <Label htmlFor="marketName">Nome do Mercado</Label>
                       <Input
@@ -614,7 +692,7 @@ const AdminMercados = () => {
                             : selectedMarket.name
                         }
                         onChange={(e) =>
-                          setEditData((prev) =>
+                          setEditData((prev: any) =>
                             prev ? { ...prev, name: e.target.value } : null,
                           )
                         }
@@ -622,7 +700,6 @@ const AdminMercados = () => {
                         className="mt-2"
                       />
                     </div>
-
                     <div>
                       <Label>Tipo de Mercado</Label>
                       {isEditingMarket ? (
@@ -630,7 +707,7 @@ const AdminMercados = () => {
                           <RadioGroup
                             value={editData?.type || ""}
                             onValueChange={(value: string) =>
-                              setEditData((prev) =>
+                              setEditData((prev: any) =>
                                 prev ? { ...prev, type: value } : null,
                               )
                             }
@@ -653,7 +730,6 @@ const AdminMercados = () => {
                               </div>
                             ))}
                           </RadioGroup>
-
                           {editData?.type === "cesta" && (
                             <div className="mt-4 space-y-2">
                               <Label htmlFor="edit-valorMaximoCesta">
@@ -676,7 +752,7 @@ const AdminMercados = () => {
                                     ",",
                                     ".",
                                   );
-                                  setEditData((prev) =>
+                                  setEditData((prev: any) =>
                                     prev
                                       ? {
                                           ...prev,
@@ -709,14 +785,13 @@ const AdminMercados = () => {
                         </div>
                       )}
                     </div>
-
                     <div>
                       <Label>Administrador(a) Responsável</Label>
                       {isEditingMarket ? (
                         <Select
                           value={editData?.administratorId?.toString() || ""}
                           onValueChange={(value) =>
-                            setEditData((prev) =>
+                            setEditData((prev: any) =>
                               prev
                                 ? { ...prev, administratorId: parseInt(value) }
                                 : null,
@@ -727,7 +802,7 @@ const AdminMercados = () => {
                             <SelectValue placeholder="Selecione o administrador" />
                           </SelectTrigger>
                           <SelectContent>
-                            {mockMarketAdministrators.map((admin) => (
+                            {marketAdministrators.map((admin) => (
                               <SelectItem
                                 key={admin.id}
                                 value={admin.id.toString()}
@@ -745,15 +820,12 @@ const AdminMercados = () => {
                           <div className="flex items-center space-x-2">
                             <User className="w-4 h-4 text-muted-foreground" />
                             <span className="text-sm font-medium">
-                              {getAdministratorName(
-                                selectedMarket.administratorId,
-                              )}
+                              {getAdministratorName(selectedMarket)}
                             </span>
                           </div>
                         </div>
                       )}
                     </div>
-
                     <div>
                       <Label>Taxa Administrativa (%)</Label>
                       {isEditingMarket ? (
@@ -761,7 +833,7 @@ const AdminMercados = () => {
                           type="number"
                           value={editData?.administrativeFee || ""}
                           onChange={(e) =>
-                            setEditData((prev) =>
+                            setEditData((prev: any) =>
                               prev
                                 ? {
                                     ...prev,
@@ -788,14 +860,13 @@ const AdminMercados = () => {
                         </div>
                       )}
                     </div>
-
                     <div>
                       <Label>Status</Label>
                       {isEditingMarket ? (
                         <RadioGroup
                           value={editData?.status || "ativo"}
                           onValueChange={(value: "ativo" | "inativo") =>
-                            setEditData((prev) =>
+                            setEditData((prev: any) =>
                               prev ? { ...prev, status: value } : null,
                             )
                           }
@@ -849,67 +920,64 @@ const AdminMercados = () => {
                                   : "text-muted-foreground"
                               }`}
                             >
-                              {selectedMarket.status === "ativo"
-                                ? "Ativo"
-                                : "Inativo"}
+                              {formatStatusMercado(selectedMarket.status)}
                             </span>
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
-
-                  {/* Delivery Points */}
                   <div className="space-y-4">
                     <h4 className="font-medium text-foreground">
                       Pontos de Entrega
                     </h4>
-
                     {isEditingMarket ? (
                       <div className="space-y-2">
-                        {editData?.deliveryPoints.map((point, index) => (
-                          <div key={index} className="flex gap-2">
-                            <Input
-                              value={point}
-                              onChange={(e) => {
-                                const newPoints = [
-                                  ...(editData?.deliveryPoints || []),
-                                ];
-                                newPoints[index] = e.target.value;
-                                setEditData((prev) =>
-                                  prev
-                                    ? { ...prev, deliveryPoints: newPoints }
-                                    : null,
-                                );
-                              }}
-                              placeholder="Nome do ponto de entrega"
-                            />
-                            {editData?.deliveryPoints.length > 1 && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  const newPoints =
-                                    editData?.deliveryPoints.filter(
-                                      (_, i) => i !== index,
-                                    ) || [];
-                                  setEditData((prev) =>
+                        {editData?.deliveryPoints.map(
+                          (point: string, index: number) => (
+                            <div key={index} className="flex gap-2">
+                              <Input
+                                value={point}
+                                onChange={(e) => {
+                                  const newPoints = [
+                                    ...(editData?.deliveryPoints || []),
+                                  ];
+                                  newPoints[index] = e.target.value;
+                                  setEditData((prev: any) =>
                                     prev
                                       ? { ...prev, deliveryPoints: newPoints }
                                       : null,
                                   );
                                 }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        ))}
+                                placeholder="Nome do ponto de entrega"
+                              />
+                              {editData?.deliveryPoints.length > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    const newPoints =
+                                      editData?.deliveryPoints.filter(
+                                        (_: any, i: number) => i !== index,
+                                      ) || [];
+                                    setEditData((prev: any) =>
+                                      prev
+                                        ? { ...prev, deliveryPoints: newPoints }
+                                        : null,
+                                    );
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                          ),
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setEditData((prev) =>
+                            setEditData((prev: any) =>
                               prev
                                 ? {
                                     ...prev,
@@ -928,21 +996,21 @@ const AdminMercados = () => {
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {selectedMarket.deliveryPoints.map((point, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg"
-                          >
-                            <MapPin className="w-4 h-4 text-accent" />
-                            <span className="text-sm">{point}</span>
-                          </div>
-                        ))}
+                        {selectedMarket.deliveryPoints.map(
+                          (point: string, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg"
+                            >
+                              <MapPin className="w-4 h-4 text-accent" />
+                              <span className="text-sm">{point}</span>
+                            </div>
+                          ),
+                        )}
                       </div>
                     )}
                   </div>
                 </div>
-
-                {/* Statistics - Desktop Only */}
                 <div className="hidden lg:block">
                   <Separator />
                   <div className="grid grid-cols-2 gap-4 pt-4">
@@ -997,25 +1065,19 @@ const AdminMercados = () => {
         </div>
       </div>
 
-      {/* New Market Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-[min(1280px,95vw)] max-h-[85vh] flex flex-col p-0">
-          {/* Fixed Header */}
           <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
             <DialogTitle className="text-xl font-semibold">
               Novo Mercado
             </DialogTitle>
           </DialogHeader>
-
-          {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-full">
-              {/* Left Column - Basic Information */}
               <div className="space-y-4 min-w-0">
                 <h4 className="font-semibold text-foreground border-b pb-2 mb-4">
                   Informações Básicas
                 </h4>
-
                 <div className="space-y-2">
                   <Label
                     htmlFor="newMarketName"
@@ -1036,7 +1098,6 @@ const AdminMercados = () => {
                     className="h-11"
                   />
                 </div>
-
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">
                     Tipo de Mercado *
@@ -1066,7 +1127,6 @@ const AdminMercados = () => {
                     ))}
                   </RadioGroup>
                 </div>
-
                 {newMarket.type === "cesta" && (
                   <div className="space-y-2">
                     <Label
@@ -1095,7 +1155,6 @@ const AdminMercados = () => {
                     />
                   </div>
                 )}
-
                 <div className="space-y-2">
                   <Label
                     htmlFor="administrator"
@@ -1116,7 +1175,7 @@ const AdminMercados = () => {
                       <SelectValue placeholder="Selecione o administrador" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockMarketAdministrators.map((admin) => (
+                      {marketAdministrators.map((admin) => (
                         <SelectItem key={admin.id} value={admin.id.toString()}>
                           <div className="flex items-center space-x-2">
                             <User className="w-4 h-4" />
@@ -1127,7 +1186,6 @@ const AdminMercados = () => {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="space-y-2">
                   <Label
                     htmlFor="administrativeFee"
@@ -1154,7 +1212,6 @@ const AdminMercados = () => {
                     className="h-11"
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Status *</Label>
                   <RadioGroup
@@ -1185,13 +1242,10 @@ const AdminMercados = () => {
                   </RadioGroup>
                 </div>
               </div>
-
-              {/* Right Column - Delivery Points */}
               <div className="space-y-4 min-w-0">
                 <h4 className="font-semibold text-foreground border-b pb-2 mb-4">
                   Locais de Entrega
                 </h4>
-
                 <div className="space-y-3">
                   <div className="flex gap-2">
                     <Input
@@ -1207,7 +1261,6 @@ const AdminMercados = () => {
                       }}
                     />
                   </div>
-
                   <Button
                     type="button"
                     variant="outline"
@@ -1217,8 +1270,6 @@ const AdminMercados = () => {
                     <Plus className="w-4 h-4 mr-2" />
                     Adicionar Ponto
                   </Button>
-
-                  {/* Display added delivery points */}
                   {newMarket.deliveryPoints.length > 0 && (
                     <div className="space-y-2 mt-4">
                       <Label className="text-sm font-medium">
@@ -1247,8 +1298,6 @@ const AdminMercados = () => {
               </div>
             </div>
           </div>
-
-          {/* Fixed Footer */}
           <div className="flex-shrink-0 px-4 py-4 border-t bg-background shadow-lg">
             <div className="flex justify-end space-x-3">
               <Button
@@ -1272,8 +1321,13 @@ const AdminMercados = () => {
               <Button
                 onClick={saveMarket}
                 className="px-6 h-12 bg-primary hover:bg-primary/90"
+                disabled={criarMercadoMutation.isPending}
               >
-                <Plus className="w-4 h-4 mr-2" />
+                {criarMercadoMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4 mr-2" />
+                )}
                 Criar Mercado
               </Button>
             </div>
@@ -1281,7 +1335,6 @@ const AdminMercados = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1303,7 +1356,6 @@ const AdminMercados = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Painel de Filtros */}
       <FiltersPanel
         open={isOpen}
         onOpenChange={setIsOpen}
@@ -1330,7 +1382,6 @@ const AdminMercados = () => {
             ))}
           </div>
         </div>
-
         <div className="space-y-4">
           <Label>Tipo de Mercado</Label>
           <div className="space-y-2">
