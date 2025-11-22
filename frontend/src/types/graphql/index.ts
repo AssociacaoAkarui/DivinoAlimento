@@ -55,6 +55,15 @@ export type AtualizarCicloInput = {
   status?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type AtualizarMercadoInput = {
+  nome?: InputMaybe<Scalars['String']['input']>;
+  responsavelId?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  taxaAdministrativa?: InputMaybe<Scalars['Float']['input']>;
+  tipo?: InputMaybe<Scalars['String']['input']>;
+  valorMaximoCesta?: InputMaybe<Scalars['Float']['input']>;
+};
+
 export type AtualizarPontoEntregaInput = {
   bairro?: InputMaybe<Scalars['String']['input']>;
   cep?: InputMaybe<Scalars['String']['input']>;
@@ -146,6 +155,16 @@ export type CriarCicloInput = {
   retiradaConsumidorInicio?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CriarMercadoInput = {
+  nome: Scalars['String']['input'];
+  pontosEntrega?: InputMaybe<Array<PontoEntregaInput>>;
+  responsavelId: Scalars['Int']['input'];
+  status?: InputMaybe<Scalars['String']['input']>;
+  taxaAdministrativa?: InputMaybe<Scalars['Float']['input']>;
+  tipo: Scalars['String']['input'];
+  valorMaximoCesta?: InputMaybe<Scalars['Float']['input']>;
+};
+
 export type CriarOfertaInput = {
   cicloId: Scalars['Int']['input'];
   observacao?: InputMaybe<Scalars['String']['input']>;
@@ -227,12 +246,28 @@ export type LogoutResponse = {
   success: Scalars['Boolean']['output'];
 };
 
+export type Mercado = {
+  __typename?: 'Mercado';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  nome: Scalars['String']['output'];
+  pontosEntrega?: Maybe<Array<PontoEntrega>>;
+  responsavel?: Maybe<Usuario>;
+  responsavelId: Scalars['Int']['output'];
+  status: Scalars['String']['output'];
+  taxaAdministrativa?: Maybe<Scalars['Float']['output']>;
+  tipo: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  valorMaximoCesta?: Maybe<Scalars['Float']['output']>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   adicionarProdutoOferta: OfertaProduto;
   aprovarSubmissaoProduto: SubmissaoProduto;
   atualizarCategoria: CategoriaProdutos;
   atualizarCiclo: Ciclo;
+  atualizarMercado: Mercado;
   atualizarPontoEntrega: PontoEntrega;
   atualizarProduto: Produto;
   atualizarProdutoComercializavel: ProdutoComercializavel;
@@ -240,6 +275,7 @@ export type Mutation = {
   atualizarUsuario: Usuario;
   criarCategoria: CategoriaProdutos;
   criarCiclo: Ciclo;
+  criarMercado: Mercado;
   criarOferta: Oferta;
   criarPontoEntrega: PontoEntrega;
   criarProduto: Produto;
@@ -248,6 +284,7 @@ export type Mutation = {
   criarUsuario: Usuario;
   deletarCategoria: DeletarCategoriaResponse;
   deletarCiclo: Scalars['Boolean']['output'];
+  deletarMercado: Scalars['Boolean']['output'];
   deletarPontoEntrega: Scalars['Boolean']['output'];
   deletarProduto: Scalars['Boolean']['output'];
   deletarProdutoComercializavel: Scalars['Boolean']['output'];
@@ -280,6 +317,12 @@ export type MutationAtualizarCategoriaArgs = {
 export type MutationAtualizarCicloArgs = {
   id: Scalars['ID']['input'];
   input: AtualizarCicloInput;
+};
+
+
+export type MutationAtualizarMercadoArgs = {
+  id: Scalars['ID']['input'];
+  input: AtualizarMercadoInput;
 };
 
 
@@ -323,6 +366,11 @@ export type MutationCriarCicloArgs = {
 };
 
 
+export type MutationCriarMercadoArgs = {
+  input: CriarMercadoInput;
+};
+
+
 export type MutationCriarOfertaArgs = {
   input: CriarOfertaInput;
 };
@@ -359,6 +407,11 @@ export type MutationDeletarCategoriaArgs = {
 
 
 export type MutationDeletarCicloArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeletarMercadoArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -437,6 +490,16 @@ export type PontoEntrega = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
+export type PontoEntregaInput = {
+  bairro?: InputMaybe<Scalars['String']['input']>;
+  cep?: InputMaybe<Scalars['String']['input']>;
+  cidade?: InputMaybe<Scalars['String']['input']>;
+  endereco?: InputMaybe<Scalars['String']['input']>;
+  estado?: InputMaybe<Scalars['String']['input']>;
+  nome: Scalars['String']['input'];
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Produto = {
   __typename?: 'Produto';
   categoria?: Maybe<CategoriaProdutos>;
@@ -467,6 +530,7 @@ export type Query = {
   __typename?: 'Query';
   buscarCategoria: CategoriaProdutos;
   buscarCiclo: Ciclo;
+  buscarMercado: Mercado;
   buscarOferta: Oferta;
   buscarPontoEntrega: PontoEntrega;
   buscarProduto: Produto;
@@ -476,6 +540,9 @@ export type Query = {
   healthcheck: HealthCheck;
   listarCategorias: Array<CategoriaProdutos>;
   listarCiclos: ListarCiclosResponse;
+  listarMercados: Array<Mercado>;
+  listarMercadosAtivos: Array<Mercado>;
+  listarMercadosPorResponsavel: Array<Mercado>;
   listarOfertasPorCiclo: Array<Oferta>;
   listarOfertasPorUsuario: Array<Oferta>;
   listarPontosEntrega: Array<PontoEntrega>;
@@ -497,6 +564,11 @@ export type QueryBuscarCategoriaArgs = {
 
 
 export type QueryBuscarCicloArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryBuscarMercadoArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -534,6 +606,11 @@ export type QueryBuscarUsuarioArgs = {
 export type QueryListarCiclosArgs = {
   cursor?: InputMaybe<Scalars['String']['input']>;
   limite?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryListarMercadosPorResponsavelArgs = {
+  responsavelId: Scalars['Int']['input'];
 };
 
 
@@ -931,6 +1008,52 @@ export type DeletarPontoEntregaMutationVariables = Exact<{
 
 
 export type DeletarPontoEntregaMutation = { __typename?: 'Mutation', deletarPontoEntrega: boolean };
+
+export type ListarMercadosQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListarMercadosQuery = { __typename?: 'Query', listarMercados: Array<{ __typename?: 'Mercado', id: string, nome: string, tipo: string, responsavelId: number, taxaAdministrativa?: number | null, valorMaximoCesta?: number | null, status: string, createdAt: string, updatedAt: string, responsavel?: { __typename?: 'Usuario', id: string, nome: string, email: string } | null, pontosEntrega?: Array<{ __typename?: 'PontoEntrega', id: string, nome: string, endereco?: string | null, bairro?: string | null, cidade?: string | null, estado?: string | null, cep?: string | null, status: string }> | null }> };
+
+export type BuscarMercadoQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarMercadoQuery = { __typename?: 'Query', buscarMercado: { __typename?: 'Mercado', id: string, nome: string, tipo: string, responsavelId: number, taxaAdministrativa?: number | null, valorMaximoCesta?: number | null, status: string, createdAt: string, updatedAt: string, responsavel?: { __typename?: 'Usuario', id: string, nome: string, email: string } | null, pontosEntrega?: Array<{ __typename?: 'PontoEntrega', id: string, nome: string, endereco?: string | null, bairro?: string | null, cidade?: string | null, estado?: string | null, cep?: string | null, status: string }> | null } };
+
+export type ListarMercadosAtivosQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListarMercadosAtivosQuery = { __typename?: 'Query', listarMercadosAtivos: Array<{ __typename?: 'Mercado', id: string, nome: string, tipo: string, responsavelId: number, taxaAdministrativa?: number | null, valorMaximoCesta?: number | null, status: string, responsavel?: { __typename?: 'Usuario', id: string, nome: string, email: string } | null, pontosEntrega?: Array<{ __typename?: 'PontoEntrega', id: string, nome: string }> | null }> };
+
+export type ListarMercadosPorResponsavelQueryVariables = Exact<{
+  responsavelId: Scalars['Int']['input'];
+}>;
+
+
+export type ListarMercadosPorResponsavelQuery = { __typename?: 'Query', listarMercadosPorResponsavel: Array<{ __typename?: 'Mercado', id: string, nome: string, tipo: string, responsavelId: number, taxaAdministrativa?: number | null, valorMaximoCesta?: number | null, status: string, responsavel?: { __typename?: 'Usuario', id: string, nome: string, email: string } | null, pontosEntrega?: Array<{ __typename?: 'PontoEntrega', id: string, nome: string }> | null }> };
+
+export type CriarMercadoMutationVariables = Exact<{
+  input: CriarMercadoInput;
+}>;
+
+
+export type CriarMercadoMutation = { __typename?: 'Mutation', criarMercado: { __typename?: 'Mercado', id: string, nome: string, tipo: string, responsavelId: number, taxaAdministrativa?: number | null, valorMaximoCesta?: number | null, status: string, pontosEntrega?: Array<{ __typename?: 'PontoEntrega', id: string, nome: string, status: string }> | null } };
+
+export type AtualizarMercadoMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: AtualizarMercadoInput;
+}>;
+
+
+export type AtualizarMercadoMutation = { __typename?: 'Mutation', atualizarMercado: { __typename?: 'Mercado', id: string, nome: string, tipo: string, responsavelId: number, taxaAdministrativa?: number | null, valorMaximoCesta?: number | null, status: string } };
+
+export type DeletarMercadoMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeletarMercadoMutation = { __typename?: 'Mutation', deletarMercado: boolean };
 
 
 export const LoginDocument = gql`
@@ -1612,6 +1735,146 @@ export const DeletarPontoEntregaDocument = gql`
   deletarPontoEntrega(id: $id)
 }
     `;
+export const ListarMercadosDocument = gql`
+    query ListarMercados {
+  listarMercados {
+    id
+    nome
+    tipo
+    responsavelId
+    responsavel {
+      id
+      nome
+      email
+    }
+    taxaAdministrativa
+    valorMaximoCesta
+    status
+    pontosEntrega {
+      id
+      nome
+      endereco
+      bairro
+      cidade
+      estado
+      cep
+      status
+    }
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const BuscarMercadoDocument = gql`
+    query BuscarMercado($id: ID!) {
+  buscarMercado(id: $id) {
+    id
+    nome
+    tipo
+    responsavelId
+    responsavel {
+      id
+      nome
+      email
+    }
+    taxaAdministrativa
+    valorMaximoCesta
+    status
+    pontosEntrega {
+      id
+      nome
+      endereco
+      bairro
+      cidade
+      estado
+      cep
+      status
+    }
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const ListarMercadosAtivosDocument = gql`
+    query ListarMercadosAtivos {
+  listarMercadosAtivos {
+    id
+    nome
+    tipo
+    responsavelId
+    responsavel {
+      id
+      nome
+      email
+    }
+    taxaAdministrativa
+    valorMaximoCesta
+    status
+    pontosEntrega {
+      id
+      nome
+    }
+  }
+}
+    `;
+export const ListarMercadosPorResponsavelDocument = gql`
+    query ListarMercadosPorResponsavel($responsavelId: Int!) {
+  listarMercadosPorResponsavel(responsavelId: $responsavelId) {
+    id
+    nome
+    tipo
+    responsavelId
+    responsavel {
+      id
+      nome
+      email
+    }
+    taxaAdministrativa
+    valorMaximoCesta
+    status
+    pontosEntrega {
+      id
+      nome
+    }
+  }
+}
+    `;
+export const CriarMercadoDocument = gql`
+    mutation CriarMercado($input: CriarMercadoInput!) {
+  criarMercado(input: $input) {
+    id
+    nome
+    tipo
+    responsavelId
+    taxaAdministrativa
+    valorMaximoCesta
+    status
+    pontosEntrega {
+      id
+      nome
+      status
+    }
+  }
+}
+    `;
+export const AtualizarMercadoDocument = gql`
+    mutation AtualizarMercado($id: ID!, $input: AtualizarMercadoInput!) {
+  atualizarMercado(id: $id, input: $input) {
+    id
+    nome
+    tipo
+    responsavelId
+    taxaAdministrativa
+    valorMaximoCesta
+    status
+  }
+}
+    `;
+export const DeletarMercadoDocument = gql`
+    mutation DeletarMercado($id: ID!) {
+  deletarMercado(id: $id)
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
@@ -1766,6 +2029,27 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     DeletarPontoEntrega(variables: DeletarPontoEntregaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarPontoEntregaMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeletarPontoEntregaMutation>({ document: DeletarPontoEntregaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarPontoEntrega', 'mutation', variables);
+    },
+    ListarMercados(variables?: ListarMercadosQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarMercadosQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarMercadosQuery>({ document: ListarMercadosDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarMercados', 'query', variables);
+    },
+    BuscarMercado(variables: BuscarMercadoQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarMercadoQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarMercadoQuery>({ document: BuscarMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarMercado', 'query', variables);
+    },
+    ListarMercadosAtivos(variables?: ListarMercadosAtivosQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarMercadosAtivosQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarMercadosAtivosQuery>({ document: ListarMercadosAtivosDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarMercadosAtivos', 'query', variables);
+    },
+    ListarMercadosPorResponsavel(variables: ListarMercadosPorResponsavelQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarMercadosPorResponsavelQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarMercadosPorResponsavelQuery>({ document: ListarMercadosPorResponsavelDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarMercadosPorResponsavel', 'query', variables);
+    },
+    CriarMercado(variables: CriarMercadoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarMercadoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarMercadoMutation>({ document: CriarMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarMercado', 'mutation', variables);
+    },
+    AtualizarMercado(variables: AtualizarMercadoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AtualizarMercadoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AtualizarMercadoMutation>({ document: AtualizarMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AtualizarMercado', 'mutation', variables);
+    },
+    DeletarMercado(variables: DeletarMercadoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarMercadoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeletarMercadoMutation>({ document: DeletarMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarMercado', 'mutation', variables);
     }
   };
 }

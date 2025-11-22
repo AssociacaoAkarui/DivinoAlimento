@@ -749,3 +749,150 @@ export const DELETAR_PONTO_ENTREGA_MUTATION = gql`
     deletarPontoEntrega(id: $id)
   }
 `;
+
+export const LISTAR_MERCADOS_QUERY = gql`
+  query ListarMercados {
+    listarMercados {
+      id
+      nome
+      tipo
+      responsavelId
+      responsavel {
+        id
+        nome
+        email
+      }
+      taxaAdministrativa
+      valorMaximoCesta
+      status
+      pontosEntrega {
+        id
+        nome
+        endereco
+        bairro
+        cidade
+        estado
+        cep
+        status
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const BUSCAR_MERCADO_QUERY = gql`
+  query BuscarMercado($id: ID!) {
+    buscarMercado(id: $id) {
+      id
+      nome
+      tipo
+      responsavelId
+      responsavel {
+        id
+        nome
+        email
+      }
+      taxaAdministrativa
+      valorMaximoCesta
+      status
+      pontosEntrega {
+        id
+        nome
+        endereco
+        bairro
+        cidade
+        estado
+        cep
+        status
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const LISTAR_MERCADOS_ATIVOS_QUERY = gql`
+  query ListarMercadosAtivos {
+    listarMercadosAtivos {
+      id
+      nome
+      tipo
+      responsavelId
+      responsavel {
+        id
+        nome
+        email
+      }
+      taxaAdministrativa
+      valorMaximoCesta
+      status
+      pontosEntrega {
+        id
+        nome
+      }
+    }
+  }
+`;
+
+export const LISTAR_MERCADOS_POR_RESPONSAVEL_QUERY = gql`
+  query ListarMercadosPorResponsavel($responsavelId: Int!) {
+    listarMercadosPorResponsavel(responsavelId: $responsavelId) {
+      id
+      nome
+      tipo
+      responsavelId
+      responsavel {
+        id
+        nome
+        email
+      }
+      taxaAdministrativa
+      valorMaximoCesta
+      status
+      pontosEntrega {
+        id
+        nome
+      }
+    }
+  }
+`;
+
+export const CRIAR_MERCADO_MUTATION = gql`
+  mutation CriarMercado($input: CriarMercadoInput!) {
+    criarMercado(input: $input) {
+      id
+      nome
+      tipo
+      responsavelId
+      taxaAdministrativa
+      valorMaximoCesta
+      status
+      pontosEntrega {
+        id
+        nome
+        status
+      }
+    }
+  }
+`;
+
+export const ATUALIZAR_MERCADO_MUTATION = gql`
+  mutation AtualizarMercado($id: ID!, $input: AtualizarMercadoInput!) {
+    atualizarMercado(id: $id, input: $input) {
+      id
+      nome
+      tipo
+      responsavelId
+      taxaAdministrativa
+      valorMaximoCesta
+      status
+    }
+  }
+`;
+
+export const DELETAR_MERCADO_MUTATION = gql`
+  mutation DeletarMercado($id: ID!) {
+    deletarMercado(id: $id)
+  }
+`;

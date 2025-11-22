@@ -92,6 +92,13 @@ import {
   CRIAR_PONTO_ENTREGA_MUTATION,
   ATUALIZAR_PONTO_ENTREGA_MUTATION,
   DELETAR_PONTO_ENTREGA_MUTATION,
+  LISTAR_MERCADOS_QUERY,
+  BUSCAR_MERCADO_QUERY,
+  LISTAR_MERCADOS_ATIVOS_QUERY,
+  LISTAR_MERCADOS_POR_RESPONSAVEL_QUERY,
+  CRIAR_MERCADO_MUTATION,
+  ATUALIZAR_MERCADO_MUTATION,
+  DELETAR_MERCADO_MUTATION,
 } from "../graphql/operations";
 
 // Ciclo interfaces
@@ -255,6 +262,137 @@ export function useSystemInformation() {
       return graphqlClientSecure(token).request<SystemInformationQuery>(
         SystemInformationDocument,
       );
+    },
+  });
+}
+
+export function useListarMercados() {
+  return useQuery({
+    queryKey: ["listar_mercados"],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(LISTAR_MERCADOS_QUERY);
+    },
+  });
+}
+
+export function useBuscarMercado(id: string) {
+  return useQuery({
+    queryKey: ["buscar_mercado", id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(BUSCAR_MERCADO_QUERY, {
+        id,
+      });
+    },
+    enabled: !!id,
+  });
+}
+
+export function useListarMercadosAtivos() {
+  return useQuery({
+    queryKey: ["listar_mercados_ativos"],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        LISTAR_MERCADOS_ATIVOS_QUERY,
+      );
+    },
+  });
+}
+
+export function useListarMercadosPorResponsavel(responsavelId: number) {
+  return useQuery({
+    queryKey: ["listar_mercados_por_responsavel", responsavelId],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        LISTAR_MERCADOS_POR_RESPONSAVEL_QUERY,
+        { responsavelId },
+      );
+    },
+    enabled: !!responsavelId,
+  });
+}
+
+export function useCriarMercado() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        CRIAR_MERCADO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_mercados"] });
+      queryClient.invalidateQueries({ queryKey: ["listar_mercados_ativos"] });
+      queryClient.invalidateQueries({
+        queryKey: ["listar_mercados_por_responsavel"],
+      });
+    },
+  });
+}
+
+export function useAtualizarMercado() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        ATUALIZAR_MERCADO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_mercados"] });
+      queryClient.invalidateQueries({ queryKey: ["buscar_mercado"] });
+      queryClient.invalidateQueries({ queryKey: ["listar_mercados_ativos"] });
+      queryClient.invalidateQueries({
+        queryKey: ["listar_mercados_por_responsavel"],
+      });
+    },
+  });
+}
+
+export function useDeletarMercado() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        DELETAR_MERCADO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_mercados"] });
+      queryClient.invalidateQueries({ queryKey: ["listar_mercados_ativos"] });
+      queryClient.invalidateQueries({
+        queryKey: ["listar_mercados_por_responsavel"],
+      });
     },
   });
 }
