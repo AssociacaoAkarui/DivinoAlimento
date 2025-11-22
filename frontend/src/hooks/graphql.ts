@@ -86,6 +86,12 @@ import {
   ADICIONAR_PRODUTO_OFERTA_MUTATION,
   ATUALIZAR_QUANTIDADE_PRODUTO_OFERTA_MUTATION,
   REMOVER_PRODUTO_OFERTA_MUTATION,
+  LISTAR_PONTOS_ENTREGA_QUERY,
+  LISTAR_PONTOS_ENTREGA_ATIVOS_QUERY,
+  BUSCAR_PONTO_ENTREGA_QUERY,
+  CRIAR_PONTO_ENTREGA_MUTATION,
+  ATUALIZAR_PONTO_ENTREGA_MUTATION,
+  DELETAR_PONTO_ENTREGA_MUTATION,
 } from "../graphql/operations";
 
 // Ciclo interfaces
@@ -1293,6 +1299,170 @@ export function useRemoverProdutoOferta() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["buscar_oferta"],
+      });
+    },
+  });
+}
+
+// PontoEntrega hooks
+export interface PontoEntrega {
+  id: string;
+  nome: string;
+  endereco?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CriarPontoEntregaInput {
+  nome: string;
+  endereco?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  status: string;
+}
+
+export interface AtualizarPontoEntregaInput {
+  nome?: string;
+  endereco?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  status?: string;
+}
+
+export function useListarPontosEntrega() {
+  return useQuery<{ listarPontosEntrega: PontoEntrega[] }>({
+    queryKey: ["listar_pontos_entrega"],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        LISTAR_PONTOS_ENTREGA_QUERY,
+      );
+    },
+  });
+}
+
+export function useListarPontosEntregaAtivos() {
+  return useQuery<{ listarPontosEntregaAtivos: PontoEntrega[] }>({
+    queryKey: ["listar_pontos_entrega_ativos"],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        LISTAR_PONTOS_ENTREGA_ATIVOS_QUERY,
+      );
+    },
+  });
+}
+
+export function useBuscarPontoEntrega(id: string | undefined) {
+  return useQuery<{ buscarPontoEntrega: PontoEntrega }>({
+    queryKey: ["buscar_ponto_entrega", id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        BUSCAR_PONTO_ENTREGA_QUERY,
+        { id },
+      );
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCriarPontoEntrega() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { criarPontoEntrega: PontoEntrega },
+    Error,
+    { input: CriarPontoEntregaInput }
+  >({
+    mutationFn: async (variables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        CRIAR_PONTO_ENTREGA_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listar_pontos_entrega"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["listar_pontos_entrega_ativos"],
+      });
+    },
+  });
+}
+
+export function useAtualizarPontoEntrega() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { atualizarPontoEntrega: PontoEntrega },
+    Error,
+    { id: string; input: AtualizarPontoEntregaInput }
+  >({
+    mutationFn: async (variables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        ATUALIZAR_PONTO_ENTREGA_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listar_pontos_entrega"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["listar_pontos_entrega_ativos"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["buscar_ponto_entrega"],
+      });
+    },
+  });
+}
+
+export function useDeletarPontoEntrega() {
+  const queryClient = useQueryClient();
+  return useMutation<{ deletarPontoEntrega: boolean }, Error, { id: string }>({
+    mutationFn: async (variables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        DELETAR_PONTO_ENTREGA_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listar_pontos_entrega"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["listar_pontos_entrega_ativos"],
       });
     },
   });

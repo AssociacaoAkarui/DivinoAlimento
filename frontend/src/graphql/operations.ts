@@ -686,3 +686,92 @@ export const REMOVER_PRODUTO_OFERTA_MUTATION = gql`
     removerProdutoOferta(ofertaProdutoId: $ofertaProdutoId)
   }
 `;
+
+// PontoEntrega operations
+export const LISTAR_PONTOS_ENTREGA_QUERY = gql`
+  query ListarPontosEntrega {
+    listarPontosEntrega {
+      id
+      nome
+      endereco
+      bairro
+      cidade
+      estado
+      cep
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const LISTAR_PONTOS_ENTREGA_ATIVOS_QUERY = gql`
+  query ListarPontosEntregaAtivos {
+    listarPontosEntregaAtivos {
+      id
+      nome
+      endereco
+      bairro
+      cidade
+      estado
+      cep
+      status
+    }
+  }
+`;
+
+export const BUSCAR_PONTO_ENTREGA_QUERY = gql`
+  query BuscarPontoEntrega($id: ID!) {
+    buscarPontoEntrega(id: $id) {
+      id
+      nome
+      endereco
+      bairro
+      cidade
+      estado
+      cep
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const CRIAR_PONTO_ENTREGA_MUTATION = gql`
+  mutation CriarPontoEntrega($input: CriarPontoEntregaInput!) {
+    criarPontoEntrega(input: $input) {
+      id
+      nome
+      endereco
+      bairro
+      cidade
+      estado
+      cep
+      status
+    }
+  }
+`;
+
+export const ATUALIZAR_PONTO_ENTREGA_MUTATION = gql`
+  mutation AtualizarPontoEntrega(
+    $id: ID!
+    $input: AtualizarPontoEntregaInput!
+  ) {
+    atualizarPontoEntrega(id: $id, input: $input) {
+      id
+      nome
+      endereco
+      bairro
+      cidade
+      estado
+      cep
+      status
+    }
+  }
+`;
+
+export const DELETAR_PONTO_ENTREGA_MUTATION = gql`
+  mutation DeletarPontoEntrega($id: ID!) {
+    deletarPontoEntrega(id: $id)
+  }
+`;
