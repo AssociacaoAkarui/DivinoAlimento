@@ -896,3 +896,110 @@ export const DELETAR_MERCADO_MUTATION = gql`
     deletarMercado(id: $id)
   }
 `;
+
+export const LISTAR_PRECOS_MERCADO_QUERY = gql`
+  query ListarPrecosMercado($mercadoId: Int!) {
+    listarPrecosMercado(mercadoId: $mercadoId) {
+      id
+      produtoId
+      produto {
+        id
+        nome
+        medida
+      }
+      mercadoId
+      preco
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const LISTAR_PRECOS_PRODUTO_QUERY = gql`
+  query ListarPrecosProduto($produtoId: Int!) {
+    listarPrecosProduto(produtoId: $produtoId) {
+      id
+      produtoId
+      mercadoId
+      mercado {
+        id
+        nome
+        tipo
+      }
+      preco
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const BUSCAR_PRECO_MERCADO_QUERY = gql`
+  query BuscarPrecoMercado($id: ID!) {
+    buscarPrecoMercado(id: $id) {
+      id
+      produtoId
+      produto {
+        id
+        nome
+        medida
+      }
+      mercadoId
+      mercado {
+        id
+        nome
+        tipo
+      }
+      preco
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const BUSCAR_PRECO_PRODUTO_MERCADO_QUERY = gql`
+  query BuscarPrecoProdutoMercado($produtoId: Int!, $mercadoId: Int!) {
+    buscarPrecoProdutoMercado(produtoId: $produtoId, mercadoId: $mercadoId) {
+      id
+      produtoId
+      mercadoId
+      preco
+      status
+    }
+  }
+`;
+
+export const CRIAR_PRECO_MERCADO_MUTATION = gql`
+  mutation CriarPrecoMercado($input: CriarPrecoMercadoInput!) {
+    criarPrecoMercado(input: $input) {
+      id
+      produtoId
+      mercadoId
+      preco
+      status
+    }
+  }
+`;
+
+export const ATUALIZAR_PRECO_MERCADO_MUTATION = gql`
+  mutation AtualizarPrecoMercado(
+    $id: ID!
+    $input: AtualizarPrecoMercadoInput!
+  ) {
+    atualizarPrecoMercado(id: $id, input: $input) {
+      id
+      produtoId
+      mercadoId
+      preco
+      status
+    }
+  }
+`;
+
+export const DELETAR_PRECO_MERCADO_MUTATION = gql`
+  mutation DeletarPrecoMercado($id: ID!) {
+    deletarPrecoMercado(id: $id)
+  }
+`;

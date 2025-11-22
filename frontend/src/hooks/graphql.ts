@@ -99,6 +99,13 @@ import {
   CRIAR_MERCADO_MUTATION,
   ATUALIZAR_MERCADO_MUTATION,
   DELETAR_MERCADO_MUTATION,
+  LISTAR_PRECOS_MERCADO_QUERY,
+  LISTAR_PRECOS_PRODUTO_QUERY,
+  BUSCAR_PRECO_MERCADO_QUERY,
+  BUSCAR_PRECO_PRODUTO_MERCADO_QUERY,
+  CRIAR_PRECO_MERCADO_MUTATION,
+  ATUALIZAR_PRECO_MERCADO_MUTATION,
+  DELETAR_PRECO_MERCADO_MUTATION,
 } from "../graphql/operations";
 
 // Ciclo interfaces
@@ -393,6 +400,145 @@ export function useDeletarMercado() {
       queryClient.invalidateQueries({
         queryKey: ["listar_mercados_por_responsavel"],
       });
+    },
+  });
+}
+
+export function useListarPrecosMercado(mercadoId: number) {
+  return useQuery({
+    queryKey: ["listar_precos_mercado", mercadoId],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request(
+        LISTAR_PRECOS_MERCADO_QUERY,
+        { mercadoId },
+      );
+      return response.listarPrecosMercado;
+    },
+    enabled: !!mercadoId,
+  });
+}
+
+export function useListarPrecosProduto(produtoId: number) {
+  return useQuery({
+    queryKey: ["listar_precos_produto", produtoId],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request(
+        LISTAR_PRECOS_PRODUTO_QUERY,
+        { produtoId },
+      );
+      return response.listarPrecosProduto;
+    },
+    enabled: !!produtoId,
+  });
+}
+
+export function useBuscarPrecoMercado(id: string) {
+  return useQuery({
+    queryKey: ["buscar_preco_mercado", id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request(
+        BUSCAR_PRECO_MERCADO_QUERY,
+        { id },
+      );
+      return response.buscarPrecoMercado;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useBuscarPrecoProdutoMercado(
+  produtoId: number,
+  mercadoId: number,
+) {
+  return useQuery({
+    queryKey: ["buscar_preco_produto_mercado", produtoId, mercadoId],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request(
+        BUSCAR_PRECO_PRODUTO_MERCADO_QUERY,
+        { produtoId, mercadoId },
+      );
+      return response.buscarPrecoProdutoMercado;
+    },
+    enabled: !!produtoId && !!mercadoId,
+  });
+}
+
+export function useCriarPrecoMercado() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        CRIAR_PRECO_MERCADO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_precos_mercado"] });
+      queryClient.invalidateQueries({ queryKey: ["listar_precos_produto"] });
+    },
+  });
+}
+
+export function useAtualizarPrecoMercado() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        ATUALIZAR_PRECO_MERCADO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_precos_mercado"] });
+      queryClient.invalidateQueries({ queryKey: ["listar_precos_produto"] });
+      queryClient.invalidateQueries({ queryKey: ["buscar_preco_mercado"] });
+      queryClient.invalidateQueries({
+        queryKey: ["buscar_preco_produto_mercado"],
+      });
+    },
+  });
+}
+
+export function useDeletarPrecoMercado() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        DELETAR_PRECO_MERCADO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_precos_mercado"] });
+      queryClient.invalidateQueries({ queryKey: ["listar_precos_produto"] });
     },
   });
 }
