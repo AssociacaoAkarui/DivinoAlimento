@@ -1,58 +1,69 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Truck } from 'lucide-react';
-import { formatarDataBR } from '@/utils/ciclo';
-import { Ciclo } from '@/types/ciclo-mercado';
-import { RoleTitle } from '@/components/layout/RoleTitle';
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ArrowLeft, Truck } from "lucide-react";
+import { formatarDataBR } from "@/utils/ciclo";
+import { Ciclo } from "@/types/ciclo-mercado";
+import { RoleTitle } from "@/components/layout/RoleTitle";
 
 export default function FornecedorSelecionarCicloEntregas() {
   const navigate = useNavigate();
 
   // Mock data - apenas ciclos ativos
   const [ciclos] = useState<Ciclo[]>([
-    { 
-      id: '1', 
-      nome: '1º Ciclo de Novembro 2025', 
-      inicio_ofertas: '2025-11-03', 
-      fim_ofertas: '2025-11-18',
-      status: 'ativo',
-      admin_responsavel_id: '1',
-      admin_responsavel_nome: 'João Silva',
-      mercados: []
+    {
+      id: "1",
+      nome: "1º Ciclo de Novembro 2025",
+      inicio_ofertas: "2025-11-03",
+      fim_ofertas: "2025-11-18",
+      status: "ativo",
+      admin_responsavel_id: "1",
+      admin_responsavel_nome: "João Silva",
+      mercados: [],
     },
-    { 
-      id: '2', 
-      nome: '2º Ciclo de Outubro 2025', 
-      inicio_ofertas: '2025-10-22', 
-      fim_ofertas: '2025-10-30',
-      status: 'ativo',
-      admin_responsavel_id: '2',
-      admin_responsavel_nome: 'Anna Cardoso',
-      mercados: []
+    {
+      id: "2",
+      nome: "2º Ciclo de Outubro 2025",
+      inicio_ofertas: "2025-10-22",
+      fim_ofertas: "2025-10-30",
+      status: "ativo",
+      admin_responsavel_id: "2",
+      admin_responsavel_nome: "Anna Cardoso",
+      mercados: [],
     },
-    { 
-      id: '3', 
-      nome: '1º Ciclo de Outubro 2025', 
-      inicio_ofertas: '2025-10-13', 
-      fim_ofertas: '2025-10-20',
-      status: 'ativo',
-      admin_responsavel_id: '3',
-      admin_responsavel_nome: 'Maria Santos',
-      mercados: []
-    }
+    {
+      id: "3",
+      nome: "1º Ciclo de Outubro 2025",
+      inicio_ofertas: "2025-10-13",
+      fim_ofertas: "2025-10-20",
+      status: "ativo",
+      admin_responsavel_id: "3",
+      admin_responsavel_nome: "Maria Santos",
+      mercados: [],
+    },
   ]);
 
   // Filtra apenas ciclos ativos
   const ciclosAtivos = useMemo(() => {
     return ciclos
-      .filter(ciclo => ciclo.status === 'ativo')
-      .sort((a, b) => new Date(b.inicio_ofertas).getTime() - new Date(a.inicio_ofertas).getTime());
+      .filter((ciclo) => ciclo.status === "ativo")
+      .sort(
+        (a, b) =>
+          new Date(b.inicio_ofertas).getTime() -
+          new Date(a.inicio_ofertas).getTime(),
+      );
   }, [ciclos]);
 
   const handleVerEntregas = (cicloId: string) => {
@@ -60,23 +71,29 @@ export default function FornecedorSelecionarCicloEntregas() {
   };
 
   return (
-    <ResponsiveLayout 
+    <ResponsiveLayout
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate('/fornecedor/loja')} 
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/fornecedor/loja")}
           className="text-white hover:bg-white/20"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-      } 
+      }
       headerContent={<UserMenuLarge />}
     >
       <div className="space-y-6 pt-8">
         <div>
-          <RoleTitle page="Selecione o Ciclo para Ver Entregas" className="text-2xl md:text-3xl" />
-          <p className="text-sm md:text-base text-muted-foreground">Escolha em qual ciclo ativo você deseja visualizar o relatório de entregas.</p>
+          <RoleTitle
+            page="Selecione o Ciclo para Ver Entregas"
+            className="text-2xl md:text-3xl"
+          />
+          <p className="text-sm md:text-base text-muted-foreground">
+            Escolha em qual ciclo ativo você deseja visualizar o relatório de
+            entregas.
+          </p>
         </div>
 
         {/* Desktop Table */}
@@ -95,19 +112,26 @@ export default function FornecedorSelecionarCicloEntregas() {
                 {ciclosAtivos.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8">
-                      <p className="text-muted-foreground">Nenhum ciclo ativo disponível no momento.</p>
+                      <p className="text-muted-foreground">
+                        Nenhum ciclo ativo disponível no momento.
+                      </p>
                     </TableCell>
                   </TableRow>
                 ) : (
                   ciclosAtivos.map((ciclo) => (
                     <TableRow key={ciclo.id}>
-                      <TableCell className="font-medium">{ciclo.nome}</TableCell>
-                      <TableCell>{formatarDataBR(ciclo.inicio_ofertas)} – {formatarDataBR(ciclo.fim_ofertas)}</TableCell>
+                      <TableCell className="font-medium">
+                        {ciclo.nome}
+                      </TableCell>
+                      <TableCell>
+                        {formatarDataBR(ciclo.inicio_ofertas)} –{" "}
+                        {formatarDataBR(ciclo.fim_ofertas)}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="success">Ativo</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button 
+                        <Button
                           onClick={() => handleVerEntregas(ciclo.id)}
                           className="bg-primary hover:bg-primary/90"
                         >
@@ -127,7 +151,9 @@ export default function FornecedorSelecionarCicloEntregas() {
         <div className="md:hidden space-y-4">
           {ciclosAtivos.length === 0 ? (
             <Card className="p-6 text-center">
-              <p className="text-muted-foreground">Nenhum ciclo ativo disponível no momento.</p>
+              <p className="text-muted-foreground">
+                Nenhum ciclo ativo disponível no momento.
+              </p>
             </Card>
           ) : (
             ciclosAtivos.map((ciclo) => (
@@ -138,10 +164,14 @@ export default function FornecedorSelecionarCicloEntregas() {
                     <Badge variant="success">Ativo</Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <p><span className="font-medium">Período:</span> {formatarDataBR(ciclo.inicio_ofertas)} – {formatarDataBR(ciclo.fim_ofertas)}</p>
+                    <p>
+                      <span className="font-medium">Período:</span>{" "}
+                      {formatarDataBR(ciclo.inicio_ofertas)} –{" "}
+                      {formatarDataBR(ciclo.fim_ofertas)}
+                    </p>
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={() => handleVerEntregas(ciclo.id)}
                   className="w-full bg-primary hover:bg-primary/90"
                 >

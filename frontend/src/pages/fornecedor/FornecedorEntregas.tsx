@@ -1,19 +1,32 @@
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Search, Download, FileText, Package } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { formatBRL } from '@/utils/currency';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { parseISO } from 'date-fns';
-import { RoleTitle } from '@/components/layout/RoleTitle';
-import { exportFornecedoresCSV, exportFornecedoresPDF } from '@/utils/export';
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Search, Download, FileText, Package } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { formatBRL } from "@/utils/currency";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { parseISO } from "date-fns";
+import { RoleTitle } from "@/components/layout/RoleTitle";
+import { exportFornecedoresCSV, exportFornecedoresPDF } from "@/utils/export";
 
 interface EntregaFornecedor {
   id: string;
@@ -31,91 +44,106 @@ export default function FornecedorEntregas() {
   const navigate = useNavigate();
   const { cicloId } = useParams();
   const isMobile = useIsMobile();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [orderBy, setOrderBy] = useState<'urgente' | 'antiga'>('urgente');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [orderBy, setOrderBy] = useState<"urgente" | "antiga">("urgente");
 
   // Mock data - in production this would come from API filtered by fornecedor_id and ciclo_id
   const entregas: EntregaFornecedor[] = [
     {
-      id: '1',
-      produto: 'Tomate',
-      unidade_medida: 'kg',
-      valor_unitario: 5.50,
+      id: "1",
+      produto: "Tomate",
+      unidade_medida: "kg",
+      valor_unitario: 5.5,
       quantidade_entregue: 120,
-      valor_total: 660.00,
-      data_hora_entrega: '15/11/2025 14:00',
-      local_nome: 'Mercado Central',
-      local_endereco: 'Rua das Flores, 123 - Centro'
+      valor_total: 660.0,
+      data_hora_entrega: "15/11/2025 14:00",
+      local_nome: "Mercado Central",
+      local_endereco: "Rua das Flores, 123 - Centro",
     },
     {
-      id: '2',
-      produto: 'Alface',
-      unidade_medida: 'unidade',
-      valor_unitario: 2.00,
+      id: "2",
+      produto: "Alface",
+      unidade_medida: "unidade",
+      valor_unitario: 2.0,
       quantidade_entregue: 200,
-      valor_total: 400.00,
-      data_hora_entrega: '15/11/2025 14:00',
-      local_nome: 'Mercado Central',
-      local_endereco: 'Rua das Flores, 123 - Centro'
+      valor_total: 400.0,
+      data_hora_entrega: "15/11/2025 14:00",
+      local_nome: "Mercado Central",
+      local_endereco: "Rua das Flores, 123 - Centro",
     },
     {
-      id: '3',
-      produto: 'Cenoura',
-      unidade_medida: 'kg',
-      valor_unitario: 4.00,
+      id: "3",
+      produto: "Cenoura",
+      unidade_medida: "kg",
+      valor_unitario: 4.0,
       quantidade_entregue: 80,
-      valor_total: 320.00,
-      data_hora_entrega: '17/11/2025 09:30',
-      local_nome: 'Mercado Zona Norte',
-      local_endereco: 'Av. Principal, 456 - Zona Norte'
-    }
+      valor_total: 320.0,
+      data_hora_entrega: "17/11/2025 09:30",
+      local_nome: "Mercado Zona Norte",
+      local_endereco: "Av. Principal, 456 - Zona Norte",
+    },
   ];
 
   const filteredEntregas = entregas
-    .filter(entrega =>
-      entrega.produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entrega.local_nome.toLowerCase().includes(searchTerm.toLowerCase())
+    .filter(
+      (entrega) =>
+        entrega.produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        entrega.local_nome.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     .sort((a, b) => {
-      const dateA = parseISO(a.data_hora_entrega.split(' ')[0].split('/').reverse().join('-') + 'T' + a.data_hora_entrega.split(' ')[1]);
-      const dateB = parseISO(b.data_hora_entrega.split(' ')[0].split('/').reverse().join('-') + 'T' + b.data_hora_entrega.split(' ')[1]);
-      
-      if (orderBy === 'urgente') {
+      const dateA = parseISO(
+        a.data_hora_entrega.split(" ")[0].split("/").reverse().join("-") +
+          "T" +
+          a.data_hora_entrega.split(" ")[1],
+      );
+      const dateB = parseISO(
+        b.data_hora_entrega.split(" ")[0].split("/").reverse().join("-") +
+          "T" +
+          b.data_hora_entrega.split(" ")[1],
+      );
+
+      if (orderBy === "urgente") {
         return dateA.getTime() - dateB.getTime(); // Mais próxima primeiro
       } else {
         return dateB.getTime() - dateA.getTime(); // Mais antiga primeiro
       }
     });
 
-  const totalQuantidade = filteredEntregas.reduce((acc, e) => acc + e.quantidade_entregue, 0);
-  const valorTotalGeral = filteredEntregas.reduce((acc, e) => acc + e.valor_total, 0);
+  const totalQuantidade = filteredEntregas.reduce(
+    (acc, e) => acc + e.quantidade_entregue,
+    0,
+  );
+  const valorTotalGeral = filteredEntregas.reduce(
+    (acc, e) => acc + e.valor_total,
+    0,
+  );
 
   const handleExportCSV = () => {
     try {
       // Preparar dados para exportação com campos necessários
-      const entregasParaExportar = filteredEntregas.map(e => ({
+      const entregasParaExportar = filteredEntregas.map((e) => ({
         ciclo: `Ciclo ${cicloId}`,
-        fornecedor: 'Fornecedor Atual', // Em produção, viria do contexto de autenticação
+        fornecedor: "Fornecedor Atual", // Em produção, viria do contexto de autenticação
         produto: e.produto,
         unidade_medida: e.unidade_medida,
         valor_unitario: e.valor_unitario,
         quantidade_entregue: e.quantidade_entregue,
-        valor_total: e.valor_total
+        valor_total: e.valor_total,
       }));
 
       const ciclos = [{ id: Number(cicloId), nome: `Ciclo ${cicloId}` }];
-      
+
       exportFornecedoresCSV(entregasParaExportar, ciclos);
-      
+
       toast({
         title: "Exportação concluída",
-        description: "O relatório CSV foi gerado com sucesso!"
+        description: "O relatório CSV foi gerado com sucesso!",
       });
     } catch (_error) {
       toast({
         title: "Erro na exportação",
         description: "Não foi possível gerar o arquivo CSV.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -123,33 +151,33 @@ export default function FornecedorEntregas() {
   const handleExportPDF = () => {
     try {
       // Preparar dados para exportação com campos necessários
-      const entregasParaExportar = filteredEntregas.map(e => ({
+      const entregasParaExportar = filteredEntregas.map((e) => ({
         ciclo: `Ciclo ${cicloId}`,
-        fornecedor: 'Fornecedor Atual', // Em produção, viria do contexto de autenticação
+        fornecedor: "Fornecedor Atual", // Em produção, viria do contexto de autenticação
         produto: e.produto,
         unidade_medida: e.unidade_medida,
         valor_unitario: e.valor_unitario,
         quantidade_entregue: e.quantidade_entregue,
-        valor_total: e.valor_total
+        valor_total: e.valor_total,
       }));
 
       const ciclos = [{ id: Number(cicloId), nome: `Ciclo ${cicloId}` }];
       const resumo = {
         totalQuantidade,
-        valorTotal: valorTotalGeral
+        valorTotal: valorTotalGeral,
       };
-      
+
       exportFornecedoresPDF(entregasParaExportar, ciclos, resumo);
-      
+
       toast({
         title: "Exportação concluída",
-        description: "O relatório PDF foi gerado com sucesso!"
+        description: "O relatório PDF foi gerado com sucesso!",
       });
     } catch (_error) {
       toast({
         title: "Erro na exportação",
         description: "Não foi possível gerar o arquivo PDF.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -157,13 +185,13 @@ export default function FornecedorEntregas() {
   // Empty state when no entregas
   if (entregas.length === 0) {
     return (
-      <ResponsiveLayout 
+      <ResponsiveLayout
         headerContent={<UserMenuLarge />}
         leftHeaderContent={
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate('/fornecedor/loja')} 
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/fornecedor/loja")}
             className="text-white hover:text-primary transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -172,11 +200,13 @@ export default function FornecedorEntregas() {
       >
         <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
           <Package className="h-16 w-16 text-muted-foreground" />
-          <h2 className="text-2xl font-bold text-primary">Nenhuma entrega encontrada</h2>
+          <h2 className="text-2xl font-bold text-primary">
+            Nenhuma entrega encontrada
+          </h2>
           <p className="text-muted-foreground text-center max-w-md">
             Não há entregas registradas para este ciclo.
           </p>
-          <Button onClick={() => navigate('/fornecedor/loja')}>
+          <Button onClick={() => navigate("/fornecedor/loja")}>
             Escolher outro ciclo
           </Button>
         </div>
@@ -185,13 +215,13 @@ export default function FornecedorEntregas() {
   }
 
   return (
-    <ResponsiveLayout 
+    <ResponsiveLayout
       headerContent={<UserMenuLarge />}
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate('/fornecedor/selecionar-ciclo-entregas')} 
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/fornecedor/selecionar-ciclo-entregas")}
           className="text-white hover:text-primary transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -210,20 +240,32 @@ export default function FornecedorEntregas() {
         {/* Resumo Card */}
         <Card className="border-2 border-primary/20">
           <CardHeader>
-            <CardTitle className="text-lg text-primary">Resumo das Entregas</CardTitle>
+            <CardTitle className="text-lg text-primary">
+              Resumo das Entregas
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Quantidade de Registros</p>
-                <p className="text-2xl font-bold text-primary">{filteredEntregas.length}</p>
+                <p className="text-sm text-muted-foreground">
+                  Quantidade de Registros
+                </p>
+                <p className="text-2xl font-bold text-primary">
+                  {filteredEntregas.length}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Quantidade Total Entregue</p>
-                <p className="text-2xl font-bold text-primary">{totalQuantidade}</p>
+                <p className="text-sm text-muted-foreground">
+                  Quantidade Total Entregue
+                </p>
+                <p className="text-2xl font-bold text-primary">
+                  {totalQuantidade}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Valor Total Consolidado</p>
+                <p className="text-sm text-muted-foreground">
+                  Valor Total Consolidado
+                </p>
                 <p className="text-2xl font-bold text-success">
                   {formatBRL(valorTotalGeral)}
                 </p>
@@ -244,7 +286,10 @@ export default function FornecedorEntregas() {
                 className="pl-10"
               />
             </div>
-            <Select value={orderBy} onValueChange={(value: 'urgente' | 'antiga') => setOrderBy(value)}>
+            <Select
+              value={orderBy}
+              onValueChange={(value: "urgente" | "antiga") => setOrderBy(value)}
+            >
               <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue />
               </SelectTrigger>
@@ -255,16 +300,16 @@ export default function FornecedorEntregas() {
             </Select>
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleExportCSV}
               className="border-primary text-primary hover:bg-primary/10"
             >
               <Download className="h-4 w-4 mr-2" />
               Exportar CSV
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleExportPDF}
               className="border-primary text-primary hover:bg-primary/10"
             >
@@ -281,7 +326,9 @@ export default function FornecedorEntregas() {
               {filteredEntregas.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">
-                    {searchTerm ? 'Nenhum resultado encontrado.' : 'Nenhuma entrega registrada.'}
+                    {searchTerm
+                      ? "Nenhum resultado encontrado."
+                      : "Nenhuma entrega registrada."}
                   </p>
                 </div>
               ) : (
@@ -295,25 +342,40 @@ export default function FornecedorEntregas() {
                         Produto: {entrega.produto}
                       </div>
                       <div className="text-sm text-foreground">
-                        <span className="text-muted-foreground">Unidade:</span> {entrega.unidade_medida}
+                        <span className="text-muted-foreground">Unidade:</span>{" "}
+                        {entrega.unidade_medida}
                       </div>
                       <div className="text-sm text-foreground">
-                        <span className="text-muted-foreground">Valor Unitário:</span> {formatBRL(entrega.valor_unitario)}
+                        <span className="text-muted-foreground">
+                          Valor Unitário:
+                        </span>{" "}
+                        {formatBRL(entrega.valor_unitario)}
                       </div>
                       <div className="text-sm text-foreground">
-                        <span className="text-muted-foreground">Quantidade Entregue:</span> {entrega.quantidade_entregue}
+                        <span className="text-muted-foreground">
+                          Quantidade Entregue:
+                        </span>{" "}
+                        {entrega.quantidade_entregue}
                       </div>
                       <div className="text-sm font-semibold text-primary">
-                        <span className="text-muted-foreground font-normal">Valor Total:</span> {formatBRL(entrega.valor_total)}
+                        <span className="text-muted-foreground font-normal">
+                          Valor Total:
+                        </span>{" "}
+                        {formatBRL(entrega.valor_total)}
                       </div>
                       <div className="text-sm text-foreground">
-                        <span className="text-muted-foreground">Data/Hora de Entrega:</span> {entrega.data_hora_entrega}
+                        <span className="text-muted-foreground">
+                          Data/Hora de Entrega:
+                        </span>{" "}
+                        {entrega.data_hora_entrega}
                       </div>
                       <div className="text-sm text-foreground">
-                        <span className="text-muted-foreground">Local:</span> {entrega.local_nome}
+                        <span className="text-muted-foreground">Local:</span>{" "}
+                        {entrega.local_nome}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        <span className="text-muted-foreground">Endereço:</span> {entrega.local_endereco}
+                        <span className="text-muted-foreground">Endereço:</span>{" "}
+                        {entrega.local_endereco}
                       </div>
                     </div>
                   ))}
@@ -328,7 +390,9 @@ export default function FornecedorEntregas() {
                     <TableHead>Produto</TableHead>
                     <TableHead>Unidade</TableHead>
                     <TableHead className="text-right">Valor Unitário</TableHead>
-                    <TableHead className="text-right">Quantidade Entregue</TableHead>
+                    <TableHead className="text-right">
+                      Quantidade Entregue
+                    </TableHead>
                     <TableHead className="text-right">Valor Total</TableHead>
                     <TableHead>Data/Hora de Entrega</TableHead>
                     <TableHead>Local de Entrega</TableHead>
@@ -339,27 +403,37 @@ export default function FornecedorEntregas() {
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8">
                         <p className="text-muted-foreground">
-                          {searchTerm ? 'Nenhum resultado encontrado.' : 'Nenhuma entrega registrada.'}
+                          {searchTerm
+                            ? "Nenhum resultado encontrado."
+                            : "Nenhuma entrega registrada."}
                         </p>
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredEntregas.map((entrega) => (
                       <TableRow key={entrega.id}>
-                        <TableCell className="font-medium">{entrega.produto}</TableCell>
+                        <TableCell className="font-medium">
+                          {entrega.produto}
+                        </TableCell>
                         <TableCell>{entrega.unidade_medida}</TableCell>
                         <TableCell className="text-right">
                           {formatBRL(entrega.valor_unitario)}
                         </TableCell>
-                        <TableCell className="text-right">{entrega.quantidade_entregue}</TableCell>
+                        <TableCell className="text-right">
+                          {entrega.quantidade_entregue}
+                        </TableCell>
                         <TableCell className="text-right font-semibold text-success">
                           {formatBRL(entrega.valor_total)}
                         </TableCell>
-                        <TableCell className="whitespace-nowrap">{entrega.data_hora_entrega}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {entrega.data_hora_entrega}
+                        </TableCell>
                         <TableCell>
                           <div className="space-y-1">
                             <p className="font-medium">{entrega.local_nome}</p>
-                            <p className="text-sm text-muted-foreground">{entrega.local_endereco}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {entrega.local_endereco}
+                            </p>
                           </div>
                         </TableCell>
                       </TableRow>

@@ -1,52 +1,58 @@
-import React, { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import React, { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { 
+import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
+import {
   ArrowLeft,
   ShoppingBag,
   Truck,
   UserCircle,
   Package,
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
-import { useAuth } from '@/contexts/AuthContext';
-import { roleLabel } from '@/utils/labels';
-import leafTitleIcon from '@/assets/leaf-title-icon.png';
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { useAuth } from "@/contexts/AuthContext";
+import { roleLabel } from "@/utils/labels";
+import leafTitleIcon from "@/assets/leaf-title-icon.png";
 
 // Mock data - in real app would come from API/context
 const mockFornecedorData = {
-  nomeFornecedor: 'Sítio Bela Vista',
+  nomeFornecedor: "Sítio Bela Vista",
   ciclos: [
     {
-      id: 'c_nov_1',
-      nome: '1º Ciclo de Novembro 2025',
-      status: 'Ativo',
-      periodoOferta: { inicio: '31/10/2025', fim: '03/11/2025' },
-      dataEntrega: '15/11/2025 18:25',
-      localEntrega: 'Mercado Central',
-      dentroJanelaOferta: true
+      id: "c_nov_1",
+      nome: "1º Ciclo de Novembro 2025",
+      status: "Ativo",
+      periodoOferta: { inicio: "31/10/2025", fim: "03/11/2025" },
+      dataEntrega: "15/11/2025 18:25",
+      localEntrega: "Mercado Central",
+      dentroJanelaOferta: true,
     },
     {
-      id: 'c_out_2',
-      nome: '2º Ciclo de Outubro 2025',
-      status: 'Finalizado',
-      periodoOferta: { inicio: '20/10/2025', fim: '23/10/2025' },
-      dataEntrega: '30/10/2025 14:00',
-      localEntrega: 'Feira Livre',
-      dentroJanelaOferta: false
-    }
-  ]
+      id: "c_out_2",
+      nome: "2º Ciclo de Outubro 2025",
+      status: "Finalizado",
+      periodoOferta: { inicio: "20/10/2025", fim: "23/10/2025" },
+      dataEntrega: "30/10/2025 14:00",
+      localEntrega: "Feira Livre",
+      dentroJanelaOferta: false,
+    },
+  ],
 };
 
 const LojaProdutor = () => {
   const navigate = useNavigate();
   const { activeRole, user } = useAuth();
-  const { nomeFornecedor: _nomeFornecedor, ciclos: _ciclos } = mockFornecedorData;
+  const { nomeFornecedor: _nomeFornecedor, ciclos: _ciclos } =
+    mockFornecedorData;
 
-  const roleText = activeRole ? roleLabel(activeRole, user?.gender) : '';
+  const roleText = activeRole ? roleLabel(activeRole, user?.gender) : "";
   const pageTitle = `Painel ${roleText}`;
 
   useEffect(() => {
@@ -57,53 +63,53 @@ const LojaProdutor = () => {
 
   const acoesLoja = [
     {
-      title: 'Ofertar Alimento',
-      description: 'Publique e edite seus alimentos nos ciclos ativos, dentro do período de oferta.',
+      title: "Ofertar Alimento",
+      description:
+        "Publique e edite seus alimentos nos ciclos ativos, dentro do período de oferta.",
       icon: ShoppingBag,
-      route: '/fornecedor/selecionar-ciclo',
-      enabled: true
+      route: "/fornecedor/selecionar-ciclo",
+      enabled: true,
     },
     {
-      title: 'Relatório de Entregas',
-      description: 'Veja os pedidos e locais de entrega dos alimentos desse ciclo.',
+      title: "Relatório de Entregas",
+      description:
+        "Veja os pedidos e locais de entrega dos alimentos desse ciclo.",
       icon: Truck,
-      route: '/fornecedor/selecionar-ciclo-entregas',
-      enabled: true
-    }
+      route: "/fornecedor/selecionar-ciclo-entregas",
+      enabled: true,
+    },
   ];
 
   const acoesAdministracao = [
     {
-      title: 'Dados Pessoais',
-      description: 'Atualize suas informações de perfil e contato.',
+      title: "Dados Pessoais",
+      description: "Atualize suas informações de perfil e contato.",
       icon: UserCircle,
-      route: '/usuario/1',
-      enabled: true
-    }
+      route: "/usuario/1",
+      enabled: true,
+    },
   ];
 
   return (
-    <ResponsiveLayout 
+    <ResponsiveLayout
       leftHeaderContent={
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate("/dashboard")}
           className="text-white hover:text-primary transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
       }
-      headerContent={
-        <UserMenuLarge />
-      }
+      headerContent={<UserMenuLarge />}
     >
       <div className="container max-w-7xl mx-auto py-6 px-4 space-y-8 pt-8">
         {/* Header */}
         <div className="text-center relative mb-8">
-          <img 
-            src={leafTitleIcon} 
-            alt="" 
+          <img
+            src={leafTitleIcon}
+            alt=""
             className="absolute left-1/2 -translate-x-[175px] md:-translate-x-[270px] top-1/2 -translate-y-[90%] w-10 h-10 md:w-16 md:h-16"
           />
           <h1 className="text-xl md:text-[28px] font-bold text-primary">
@@ -119,7 +125,7 @@ const LojaProdutor = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {acoesLoja.map((acao, index) => (
-              <Card 
+              <Card
                 key={index}
                 className="shadow-sm transition-all duration-200 hover:shadow-md cursor-pointer hover:scale-[1.02]"
                 onClick={() => navigate(acao.route)}
@@ -131,7 +137,9 @@ const LojaProdutor = () => {
                     </div>
                     <div className="flex-1">
                       <CardTitle className="text-lg">{acao.title}</CardTitle>
-                      <CardDescription className="mt-2">{acao.description}</CardDescription>
+                      <CardDescription className="mt-2">
+                        {acao.description}
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -148,7 +156,7 @@ const LojaProdutor = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {acoesAdministracao.map((acao, index) => (
-              <Card 
+              <Card
                 key={index}
                 className="shadow-sm transition-all duration-200 hover:shadow-md cursor-pointer hover:scale-[1.02]"
                 onClick={() => navigate(acao.route)}
@@ -160,7 +168,9 @@ const LojaProdutor = () => {
                     </div>
                     <div className="flex-1">
                       <CardTitle className="text-lg">{acao.title}</CardTitle>
-                      <CardDescription className="mt-2">{acao.description}</CardDescription>
+                      <CardDescription className="mt-2">
+                        {acao.description}
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
