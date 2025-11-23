@@ -31,6 +31,13 @@ export type AdicionarProdutoOfertaInput = {
   valorReferencia?: InputMaybe<Scalars['Float']['input']>;
 };
 
+export type AdicionarProdutoPedidoInput = {
+  produtoId: Scalars['Int']['input'];
+  quantidade: Scalars['Float']['input'];
+  valorCompra?: InputMaybe<Scalars['Float']['input']>;
+  valorOferta?: InputMaybe<Scalars['Float']['input']>;
+};
+
 export type AprovarSubmissaoInput = {
   descricao?: InputMaybe<Scalars['String']['input']>;
   precoUnidade?: InputMaybe<Scalars['Float']['input']>;
@@ -102,6 +109,14 @@ export type AtualizarQuantidadeProdutoInput = {
   valorOferta?: InputMaybe<Scalars['Float']['input']>;
 };
 
+export type AtualizarQuantidadeProdutoPedidoInput = {
+  quantidade: Scalars['Float']['input'];
+};
+
+export type AtualizarStatusPedidoInput = {
+  status: Scalars['String']['input'];
+};
+
 export type AtualizarUsuarioInput = {
   agencia?: InputMaybe<Scalars['String']['input']>;
   banco?: InputMaybe<Scalars['String']['input']>;
@@ -124,6 +139,16 @@ export type CategoriaProdutos = {
   status: Scalars['String']['output'];
 };
 
+export type Cesta = {
+  __typename?: 'Cesta';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  nome: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  valormaximo?: Maybe<Scalars['Float']['output']>;
+};
+
 export type Ciclo = {
   __typename?: 'Ciclo';
   createdAt?: Maybe<Scalars['String']['output']>;
@@ -140,6 +165,44 @@ export type Ciclo = {
   retiradaConsumidorInicio?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
+export type CicloCestas = {
+  __typename?: 'CicloCestas';
+  cesta?: Maybe<Cesta>;
+  cestaId: Scalars['Int']['output'];
+  ciclo?: Maybe<Ciclo>;
+  cicloId: Scalars['Int']['output'];
+  composicoes?: Maybe<Array<Composicao>>;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  quantidadeCestas: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
+export type Composicao = {
+  __typename?: 'Composicao';
+  cicloCesta?: Maybe<CicloCestas>;
+  cicloCestaId: Scalars['Int']['output'];
+  composicaoOfertaProdutos?: Maybe<Array<ComposicaoOfertaProduto>>;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  observacao?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type ComposicaoOfertaProduto = {
+  __typename?: 'ComposicaoOfertaProduto';
+  composicaoId: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  ofertaProdutoId?: Maybe<Scalars['Int']['output']>;
+  produto?: Maybe<Produto>;
+  produtoId: Scalars['Int']['output'];
+  quantidade: Scalars['Float']['output'];
+  updatedAt: Scalars['String']['output'];
+  valor?: Maybe<Scalars['Float']['output']>;
 };
 
 export type CriarCategoriaProdutosInput = {
@@ -160,6 +223,12 @@ export type CriarCicloInput = {
   retiradaConsumidorInicio?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CriarComposicaoInput = {
+  cestaId: Scalars['Int']['input'];
+  cicloId: Scalars['Int']['input'];
+  quantidadeCestas?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type CriarMercadoInput = {
   nome: Scalars['String']['input'];
   pontosEntrega?: InputMaybe<Array<PontoEntregaInput>>;
@@ -173,6 +242,13 @@ export type CriarMercadoInput = {
 export type CriarOfertaInput = {
   cicloId: Scalars['Int']['input'];
   observacao?: InputMaybe<Scalars['String']['input']>;
+  usuarioId: Scalars['Int']['input'];
+};
+
+export type CriarPedidoConsumidoresInput = {
+  cicloId: Scalars['Int']['input'];
+  observacao?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
   usuarioId: Scalars['Int']['input'];
 };
 
@@ -276,6 +352,7 @@ export type Mercado = {
 export type Mutation = {
   __typename?: 'Mutation';
   adicionarProdutoOferta: OfertaProduto;
+  adicionarProdutoPedido: PedidoConsumidoresProduto;
   aprovarSubmissaoProduto: SubmissaoProduto;
   atualizarCategoria: CategoriaProdutos;
   atualizarCiclo: Ciclo;
@@ -285,11 +362,15 @@ export type Mutation = {
   atualizarProduto: Produto;
   atualizarProdutoComercializavel: ProdutoComercializavel;
   atualizarQuantidadeProdutoOferta: OfertaProduto;
+  atualizarQuantidadeProdutoPedido?: Maybe<PedidoConsumidoresProduto>;
+  atualizarStatusPedido: PedidoConsumidores;
   atualizarUsuario: Usuario;
   criarCategoria: CategoriaProdutos;
   criarCiclo: Ciclo;
+  criarComposicao: Composicao;
   criarMercado: Mercado;
   criarOferta: Oferta;
+  criarPedidoConsumidores: PedidoConsumidores;
   criarPontoEntrega: PontoEntrega;
   criarPrecoMercado: PrecoMercado;
   criarProduto: Produto;
@@ -305,15 +386,23 @@ export type Mutation = {
   deletarProdutoComercializavel: Scalars['Boolean']['output'];
   deletarSubmissaoProduto: Scalars['Boolean']['output'];
   removerProdutoOferta: Scalars['Boolean']['output'];
+  removerProdutoPedido: Scalars['Boolean']['output'];
   reprovarSubmissaoProduto: SubmissaoProduto;
   sessionLogin: ActiveSession;
   sessionLogout: LogoutResponse;
+  sincronizarProdutosComposicao: Scalars['Boolean']['output'];
 };
 
 
 export type MutationAdicionarProdutoOfertaArgs = {
   input: AdicionarProdutoOfertaInput;
   ofertaId: Scalars['ID']['input'];
+};
+
+
+export type MutationAdicionarProdutoPedidoArgs = {
+  input: AdicionarProdutoPedidoInput;
+  pedidoId: Scalars['ID']['input'];
 };
 
 
@@ -371,6 +460,18 @@ export type MutationAtualizarQuantidadeProdutoOfertaArgs = {
 };
 
 
+export type MutationAtualizarQuantidadeProdutoPedidoArgs = {
+  input: AtualizarQuantidadeProdutoPedidoInput;
+  pedidoProdutoId: Scalars['ID']['input'];
+};
+
+
+export type MutationAtualizarStatusPedidoArgs = {
+  input: AtualizarStatusPedidoInput;
+  pedidoId: Scalars['ID']['input'];
+};
+
+
 export type MutationAtualizarUsuarioArgs = {
   id: Scalars['ID']['input'];
   input: AtualizarUsuarioInput;
@@ -387,6 +488,11 @@ export type MutationCriarCicloArgs = {
 };
 
 
+export type MutationCriarComposicaoArgs = {
+  input: CriarComposicaoInput;
+};
+
+
 export type MutationCriarMercadoArgs = {
   input: CriarMercadoInput;
 };
@@ -394,6 +500,11 @@ export type MutationCriarMercadoArgs = {
 
 export type MutationCriarOfertaArgs = {
   input: CriarOfertaInput;
+};
+
+
+export type MutationCriarPedidoConsumidoresArgs = {
+  input: CriarPedidoConsumidoresInput;
 };
 
 
@@ -472,6 +583,11 @@ export type MutationRemoverProdutoOfertaArgs = {
 };
 
 
+export type MutationRemoverProdutoPedidoArgs = {
+  pedidoProdutoId: Scalars['ID']['input'];
+};
+
+
 export type MutationReprovarSubmissaoProdutoArgs = {
   id: Scalars['ID']['input'];
   motivoReprovacao: Scalars['String']['input'];
@@ -480,6 +596,12 @@ export type MutationReprovarSubmissaoProdutoArgs = {
 
 export type MutationSessionLoginArgs = {
   input: LoginInput;
+};
+
+
+export type MutationSincronizarProdutosComposicaoArgs = {
+  composicaoId: Scalars['ID']['input'];
+  produtos: Array<SincronizarProdutosComposicaoInput>;
 };
 
 export type Oferta = {
@@ -505,6 +627,33 @@ export type OfertaProduto = {
   quantidade: Scalars['Float']['output'];
   valorOferta?: Maybe<Scalars['Float']['output']>;
   valorReferencia?: Maybe<Scalars['Float']['output']>;
+};
+
+export type PedidoConsumidores = {
+  __typename?: 'PedidoConsumidores';
+  ciclo?: Maybe<Ciclo>;
+  cicloId: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  observacao?: Maybe<Scalars['String']['output']>;
+  pedidoConsumidoresProdutos?: Maybe<Array<PedidoConsumidoresProduto>>;
+  status: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  usuario?: Maybe<Usuario>;
+  usuarioId: Scalars['Int']['output'];
+};
+
+export type PedidoConsumidoresProduto = {
+  __typename?: 'PedidoConsumidoresProduto';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  pedidoConsumidorId: Scalars['Int']['output'];
+  produto?: Maybe<Produto>;
+  produtoId: Scalars['Int']['output'];
+  quantidade: Scalars['Float']['output'];
+  updatedAt: Scalars['String']['output'];
+  valorCompra?: Maybe<Scalars['Float']['output']>;
+  valorOferta?: Maybe<Scalars['Float']['output']>;
 };
 
 export type PontoEntrega = {
@@ -574,8 +723,10 @@ export type Query = {
   __typename?: 'Query';
   buscarCategoria: CategoriaProdutos;
   buscarCiclo: Ciclo;
+  buscarComposicao: Composicao;
   buscarMercado: Mercado;
   buscarOferta: Oferta;
+  buscarPedidoConsumidores: PedidoConsumidores;
   buscarPontoEntrega: PontoEntrega;
   buscarPrecoMercado?: Maybe<PrecoMercado>;
   buscarPrecoProdutoMercado?: Maybe<PrecoMercado>;
@@ -585,12 +736,16 @@ export type Query = {
   buscarUsuario: Usuario;
   healthcheck: HealthCheck;
   listarCategorias: Array<CategoriaProdutos>;
+  listarCestas: Array<Cesta>;
   listarCiclos: ListarCiclosResponse;
+  listarComposicoesPorCiclo: Array<CicloCestas>;
   listarMercados: Array<Mercado>;
   listarMercadosAtivos: Array<Mercado>;
   listarMercadosPorResponsavel: Array<Mercado>;
   listarOfertasPorCiclo: Array<Oferta>;
   listarOfertasPorUsuario: Array<Oferta>;
+  listarPedidosPorCiclo: Array<PedidoConsumidores>;
+  listarPedidosPorUsuario: Array<PedidoConsumidores>;
   listarPontosEntrega: Array<PontoEntrega>;
   listarPontosEntregaAtivos: Array<PontoEntrega>;
   listarPrecosMercado: Array<PrecoMercado>;
@@ -616,12 +771,22 @@ export type QueryBuscarCicloArgs = {
 };
 
 
+export type QueryBuscarComposicaoArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type QueryBuscarMercadoArgs = {
   id: Scalars['ID']['input'];
 };
 
 
 export type QueryBuscarOfertaArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryBuscarPedidoConsumidoresArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -668,6 +833,11 @@ export type QueryListarCiclosArgs = {
 };
 
 
+export type QueryListarComposicoesPorCicloArgs = {
+  cicloId: Scalars['Int']['input'];
+};
+
+
 export type QueryListarMercadosPorResponsavelArgs = {
   responsavelId: Scalars['Int']['input'];
 };
@@ -679,6 +849,16 @@ export type QueryListarOfertasPorCicloArgs = {
 
 
 export type QueryListarOfertasPorUsuarioArgs = {
+  usuarioId: Scalars['Int']['input'];
+};
+
+
+export type QueryListarPedidosPorCicloArgs = {
+  cicloId: Scalars['Int']['input'];
+};
+
+
+export type QueryListarPedidosPorUsuarioArgs = {
   usuarioId: Scalars['Int']['input'];
 };
 
@@ -705,6 +885,12 @@ export type QueryListarSubmissoesPorFornecedorArgs = {
 
 export type QueryListarSubmissoesPorStatusArgs = {
   status: Scalars['String']['input'];
+};
+
+export type SincronizarProdutosComposicaoInput = {
+  ofertaProdutoId?: InputMaybe<Scalars['Int']['input']>;
+  produtoId: Scalars['Int']['input'];
+  quantidade: Scalars['Float']['input'];
 };
 
 export type SubmissaoProduto = {
@@ -1174,6 +1360,99 @@ export type DeletarPrecoMercadoMutationVariables = Exact<{
 
 
 export type DeletarPrecoMercadoMutation = { __typename?: 'Mutation', deletarPrecoMercado: boolean };
+
+export type ListarComposicoesPorCicloQueryVariables = Exact<{
+  cicloId: Scalars['Int']['input'];
+}>;
+
+
+export type ListarComposicoesPorCicloQuery = { __typename?: 'Query', listarComposicoesPorCiclo: Array<{ __typename?: 'CicloCestas', id: string, cicloId: number, cestaId: number, quantidadeCestas: number, cesta?: { __typename?: 'Cesta', id: string, nome: string, valormaximo?: number | null, status: string } | null, ciclo?: { __typename?: 'Ciclo', id: string, nome: string } | null, composicoes?: Array<{ __typename?: 'Composicao', id: string, cicloCestaId: number, status?: string | null, observacao?: string | null, composicaoOfertaProdutos?: Array<{ __typename?: 'ComposicaoOfertaProduto', id: string, composicaoId: number, produtoId: number, quantidade: number, valor?: number | null, ofertaProdutoId?: number | null, produto?: { __typename?: 'Produto', id: string, nome: string, medida?: string | null, valorReferencia?: number | null } | null }> | null }> | null }> };
+
+export type BuscarComposicaoQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarComposicaoQuery = { __typename?: 'Query', buscarComposicao: { __typename?: 'Composicao', id: string, cicloCestaId: number, status?: string | null, observacao?: string | null, cicloCesta?: { __typename?: 'CicloCestas', id: string, cicloId: number, cestaId: number, quantidadeCestas: number, cesta?: { __typename?: 'Cesta', id: string, nome: string, valormaximo?: number | null } | null, ciclo?: { __typename?: 'Ciclo', id: string, nome: string } | null } | null, composicaoOfertaProdutos?: Array<{ __typename?: 'ComposicaoOfertaProduto', id: string, composicaoId: number, produtoId: number, quantidade: number, valor?: number | null, ofertaProdutoId?: number | null, produto?: { __typename?: 'Produto', id: string, nome: string, medida?: string | null, valorReferencia?: number | null } | null }> | null } };
+
+export type ListarCestasQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListarCestasQuery = { __typename?: 'Query', listarCestas: Array<{ __typename?: 'Cesta', id: string, nome: string, valormaximo?: number | null, status: string }> };
+
+export type CriarComposicaoMutationVariables = Exact<{
+  input: CriarComposicaoInput;
+}>;
+
+
+export type CriarComposicaoMutation = { __typename?: 'Mutation', criarComposicao: { __typename?: 'Composicao', id: string, cicloCestaId: number, status?: string | null, observacao?: string | null } };
+
+export type SincronizarProdutosComposicaoMutationVariables = Exact<{
+  composicaoId: Scalars['ID']['input'];
+  produtos: Array<SincronizarProdutosComposicaoInput> | SincronizarProdutosComposicaoInput;
+}>;
+
+
+export type SincronizarProdutosComposicaoMutation = { __typename?: 'Mutation', sincronizarProdutosComposicao: boolean };
+
+export type BuscarPedidoConsumidoresQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type BuscarPedidoConsumidoresQuery = { __typename?: 'Query', buscarPedidoConsumidores: { __typename?: 'PedidoConsumidores', id: string, cicloId: number, usuarioId: number, status: string, observacao?: string | null, createdAt: string, updatedAt: string, ciclo?: { __typename?: 'Ciclo', id: string, nome: string } | null, usuario?: { __typename?: 'Usuario', id: string, nome: string, email: string } | null, pedidoConsumidoresProdutos?: Array<{ __typename?: 'PedidoConsumidoresProduto', id: string, pedidoConsumidorId: number, produtoId: number, quantidade: number, valorOferta?: number | null, valorCompra?: number | null, produto?: { __typename?: 'Produto', id: string, nome: string, medida?: string | null, valorReferencia?: number | null } | null }> | null } };
+
+export type ListarPedidosPorCicloQueryVariables = Exact<{
+  cicloId: Scalars['Int']['input'];
+}>;
+
+
+export type ListarPedidosPorCicloQuery = { __typename?: 'Query', listarPedidosPorCiclo: Array<{ __typename?: 'PedidoConsumidores', id: string, cicloId: number, usuarioId: number, status: string, observacao?: string | null, createdAt: string, updatedAt: string, usuario?: { __typename?: 'Usuario', id: string, nome: string, email: string } | null }> };
+
+export type ListarPedidosPorUsuarioQueryVariables = Exact<{
+  usuarioId: Scalars['Int']['input'];
+}>;
+
+
+export type ListarPedidosPorUsuarioQuery = { __typename?: 'Query', listarPedidosPorUsuario: Array<{ __typename?: 'PedidoConsumidores', id: string, cicloId: number, usuarioId: number, status: string, observacao?: string | null, createdAt: string, updatedAt: string, ciclo?: { __typename?: 'Ciclo', id: string, nome: string } | null, pedidoConsumidoresProdutos?: Array<{ __typename?: 'PedidoConsumidoresProduto', id: string, produtoId: number, quantidade: number, valorOferta?: number | null, valorCompra?: number | null, produto?: { __typename?: 'Produto', id: string, nome: string, medida?: string | null } | null }> | null }> };
+
+export type CriarPedidoConsumidoresMutationVariables = Exact<{
+  input: CriarPedidoConsumidoresInput;
+}>;
+
+
+export type CriarPedidoConsumidoresMutation = { __typename?: 'Mutation', criarPedidoConsumidores: { __typename?: 'PedidoConsumidores', id: string, cicloId: number, usuarioId: number, status: string, observacao?: string | null, createdAt: string, updatedAt: string } };
+
+export type AdicionarProdutoPedidoMutationVariables = Exact<{
+  pedidoId: Scalars['ID']['input'];
+  input: AdicionarProdutoPedidoInput;
+}>;
+
+
+export type AdicionarProdutoPedidoMutation = { __typename?: 'Mutation', adicionarProdutoPedido: { __typename?: 'PedidoConsumidoresProduto', id: string, pedidoConsumidorId: number, produtoId: number, quantidade: number, valorOferta?: number | null, valorCompra?: number | null } };
+
+export type AtualizarQuantidadeProdutoPedidoMutationVariables = Exact<{
+  pedidoProdutoId: Scalars['ID']['input'];
+  input: AtualizarQuantidadeProdutoPedidoInput;
+}>;
+
+
+export type AtualizarQuantidadeProdutoPedidoMutation = { __typename?: 'Mutation', atualizarQuantidadeProdutoPedido?: { __typename?: 'PedidoConsumidoresProduto', id: string, pedidoConsumidorId: number, produtoId: number, quantidade: number, valorOferta?: number | null, valorCompra?: number | null } | null };
+
+export type RemoverProdutoPedidoMutationVariables = Exact<{
+  pedidoProdutoId: Scalars['ID']['input'];
+}>;
+
+
+export type RemoverProdutoPedidoMutation = { __typename?: 'Mutation', removerProdutoPedido: boolean };
+
+export type AtualizarStatusPedidoMutationVariables = Exact<{
+  pedidoId: Scalars['ID']['input'];
+  input: AtualizarStatusPedidoInput;
+}>;
+
+
+export type AtualizarStatusPedidoMutation = { __typename?: 'Mutation', atualizarStatusPedido: { __typename?: 'PedidoConsumidores', id: string, status: string, observacao?: string | null } };
 
 
 export const LoginDocument = gql`
@@ -2092,6 +2371,247 @@ export const DeletarPrecoMercadoDocument = gql`
   deletarPrecoMercado(id: $id)
 }
     `;
+export const ListarComposicoesPorCicloDocument = gql`
+    query ListarComposicoesPorCiclo($cicloId: Int!) {
+  listarComposicoesPorCiclo(cicloId: $cicloId) {
+    id
+    cicloId
+    cestaId
+    quantidadeCestas
+    cesta {
+      id
+      nome
+      valormaximo
+      status
+    }
+    ciclo {
+      id
+      nome
+    }
+    composicoes {
+      id
+      cicloCestaId
+      status
+      observacao
+      composicaoOfertaProdutos {
+        id
+        composicaoId
+        produtoId
+        quantidade
+        valor
+        ofertaProdutoId
+        produto {
+          id
+          nome
+          medida
+          valorReferencia
+        }
+      }
+    }
+  }
+}
+    `;
+export const BuscarComposicaoDocument = gql`
+    query BuscarComposicao($id: ID!) {
+  buscarComposicao(id: $id) {
+    id
+    cicloCestaId
+    status
+    observacao
+    cicloCesta {
+      id
+      cicloId
+      cestaId
+      quantidadeCestas
+      cesta {
+        id
+        nome
+        valormaximo
+      }
+      ciclo {
+        id
+        nome
+      }
+    }
+    composicaoOfertaProdutos {
+      id
+      composicaoId
+      produtoId
+      quantidade
+      valor
+      ofertaProdutoId
+      produto {
+        id
+        nome
+        medida
+        valorReferencia
+      }
+    }
+  }
+}
+    `;
+export const ListarCestasDocument = gql`
+    query ListarCestas {
+  listarCestas {
+    id
+    nome
+    valormaximo
+    status
+  }
+}
+    `;
+export const CriarComposicaoDocument = gql`
+    mutation CriarComposicao($input: CriarComposicaoInput!) {
+  criarComposicao(input: $input) {
+    id
+    cicloCestaId
+    status
+    observacao
+  }
+}
+    `;
+export const SincronizarProdutosComposicaoDocument = gql`
+    mutation SincronizarProdutosComposicao($composicaoId: ID!, $produtos: [SincronizarProdutosComposicaoInput!]!) {
+  sincronizarProdutosComposicao(composicaoId: $composicaoId, produtos: $produtos)
+}
+    `;
+export const BuscarPedidoConsumidoresDocument = gql`
+    query BuscarPedidoConsumidores($id: ID!) {
+  buscarPedidoConsumidores(id: $id) {
+    id
+    cicloId
+    usuarioId
+    status
+    observacao
+    createdAt
+    updatedAt
+    ciclo {
+      id
+      nome
+    }
+    usuario {
+      id
+      nome
+      email
+    }
+    pedidoConsumidoresProdutos {
+      id
+      pedidoConsumidorId
+      produtoId
+      quantidade
+      valorOferta
+      valorCompra
+      produto {
+        id
+        nome
+        medida
+        valorReferencia
+      }
+    }
+  }
+}
+    `;
+export const ListarPedidosPorCicloDocument = gql`
+    query ListarPedidosPorCiclo($cicloId: Int!) {
+  listarPedidosPorCiclo(cicloId: $cicloId) {
+    id
+    cicloId
+    usuarioId
+    status
+    observacao
+    createdAt
+    updatedAt
+    usuario {
+      id
+      nome
+      email
+    }
+  }
+}
+    `;
+export const ListarPedidosPorUsuarioDocument = gql`
+    query ListarPedidosPorUsuario($usuarioId: Int!) {
+  listarPedidosPorUsuario(usuarioId: $usuarioId) {
+    id
+    cicloId
+    usuarioId
+    status
+    observacao
+    createdAt
+    updatedAt
+    ciclo {
+      id
+      nome
+    }
+    pedidoConsumidoresProdutos {
+      id
+      produtoId
+      quantidade
+      valorOferta
+      valorCompra
+      produto {
+        id
+        nome
+        medida
+      }
+    }
+  }
+}
+    `;
+export const CriarPedidoConsumidoresDocument = gql`
+    mutation CriarPedidoConsumidores($input: CriarPedidoConsumidoresInput!) {
+  criarPedidoConsumidores(input: $input) {
+    id
+    cicloId
+    usuarioId
+    status
+    observacao
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export const AdicionarProdutoPedidoDocument = gql`
+    mutation AdicionarProdutoPedido($pedidoId: ID!, $input: AdicionarProdutoPedidoInput!) {
+  adicionarProdutoPedido(pedidoId: $pedidoId, input: $input) {
+    id
+    pedidoConsumidorId
+    produtoId
+    quantidade
+    valorOferta
+    valorCompra
+  }
+}
+    `;
+export const AtualizarQuantidadeProdutoPedidoDocument = gql`
+    mutation AtualizarQuantidadeProdutoPedido($pedidoProdutoId: ID!, $input: AtualizarQuantidadeProdutoPedidoInput!) {
+  atualizarQuantidadeProdutoPedido(
+    pedidoProdutoId: $pedidoProdutoId
+    input: $input
+  ) {
+    id
+    pedidoConsumidorId
+    produtoId
+    quantidade
+    valorOferta
+    valorCompra
+  }
+}
+    `;
+export const RemoverProdutoPedidoDocument = gql`
+    mutation RemoverProdutoPedido($pedidoProdutoId: ID!) {
+  removerProdutoPedido(pedidoProdutoId: $pedidoProdutoId)
+}
+    `;
+export const AtualizarStatusPedidoDocument = gql`
+    mutation AtualizarStatusPedido($pedidoId: ID!, $input: AtualizarStatusPedidoInput!) {
+  atualizarStatusPedido(pedidoId: $pedidoId, input: $input) {
+    id
+    status
+    observacao
+  }
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
@@ -2288,6 +2808,45 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     DeletarPrecoMercado(variables: DeletarPrecoMercadoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeletarPrecoMercadoMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeletarPrecoMercadoMutation>({ document: DeletarPrecoMercadoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'DeletarPrecoMercado', 'mutation', variables);
+    },
+    ListarComposicoesPorCiclo(variables: ListarComposicoesPorCicloQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarComposicoesPorCicloQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarComposicoesPorCicloQuery>({ document: ListarComposicoesPorCicloDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarComposicoesPorCiclo', 'query', variables);
+    },
+    BuscarComposicao(variables: BuscarComposicaoQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarComposicaoQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarComposicaoQuery>({ document: BuscarComposicaoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarComposicao', 'query', variables);
+    },
+    ListarCestas(variables?: ListarCestasQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarCestasQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarCestasQuery>({ document: ListarCestasDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarCestas', 'query', variables);
+    },
+    CriarComposicao(variables: CriarComposicaoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarComposicaoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarComposicaoMutation>({ document: CriarComposicaoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarComposicao', 'mutation', variables);
+    },
+    SincronizarProdutosComposicao(variables: SincronizarProdutosComposicaoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<SincronizarProdutosComposicaoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<SincronizarProdutosComposicaoMutation>({ document: SincronizarProdutosComposicaoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'SincronizarProdutosComposicao', 'mutation', variables);
+    },
+    BuscarPedidoConsumidores(variables: BuscarPedidoConsumidoresQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<BuscarPedidoConsumidoresQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BuscarPedidoConsumidoresQuery>({ document: BuscarPedidoConsumidoresDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'BuscarPedidoConsumidores', 'query', variables);
+    },
+    ListarPedidosPorCiclo(variables: ListarPedidosPorCicloQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarPedidosPorCicloQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarPedidosPorCicloQuery>({ document: ListarPedidosPorCicloDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarPedidosPorCiclo', 'query', variables);
+    },
+    ListarPedidosPorUsuario(variables: ListarPedidosPorUsuarioQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ListarPedidosPorUsuarioQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListarPedidosPorUsuarioQuery>({ document: ListarPedidosPorUsuarioDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'ListarPedidosPorUsuario', 'query', variables);
+    },
+    CriarPedidoConsumidores(variables: CriarPedidoConsumidoresMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CriarPedidoConsumidoresMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CriarPedidoConsumidoresMutation>({ document: CriarPedidoConsumidoresDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'CriarPedidoConsumidores', 'mutation', variables);
+    },
+    AdicionarProdutoPedido(variables: AdicionarProdutoPedidoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AdicionarProdutoPedidoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AdicionarProdutoPedidoMutation>({ document: AdicionarProdutoPedidoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AdicionarProdutoPedido', 'mutation', variables);
+    },
+    AtualizarQuantidadeProdutoPedido(variables: AtualizarQuantidadeProdutoPedidoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AtualizarQuantidadeProdutoPedidoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AtualizarQuantidadeProdutoPedidoMutation>({ document: AtualizarQuantidadeProdutoPedidoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AtualizarQuantidadeProdutoPedido', 'mutation', variables);
+    },
+    RemoverProdutoPedido(variables: RemoverProdutoPedidoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<RemoverProdutoPedidoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<RemoverProdutoPedidoMutation>({ document: RemoverProdutoPedidoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'RemoverProdutoPedido', 'mutation', variables);
+    },
+    AtualizarStatusPedido(variables: AtualizarStatusPedidoMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AtualizarStatusPedidoMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AtualizarStatusPedidoMutation>({ document: AtualizarStatusPedidoDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'AtualizarStatusPedido', 'mutation', variables);
     }
   };
 }

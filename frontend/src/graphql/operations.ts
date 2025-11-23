@@ -1003,3 +1003,272 @@ export const DELETAR_PRECO_MERCADO_MUTATION = gql`
     deletarPrecoMercado(id: $id)
   }
 `;
+
+export const LISTAR_COMPOSICOES_POR_CICLO_QUERY = gql`
+  query ListarComposicoesPorCiclo($cicloId: Int!) {
+    listarComposicoesPorCiclo(cicloId: $cicloId) {
+      id
+      cicloId
+      cestaId
+      quantidadeCestas
+      cesta {
+        id
+        nome
+        valormaximo
+        status
+      }
+      ciclo {
+        id
+        nome
+      }
+      composicoes {
+        id
+        cicloCestaId
+        status
+        observacao
+        composicaoOfertaProdutos {
+          id
+          composicaoId
+          produtoId
+          quantidade
+          valor
+          ofertaProdutoId
+          produto {
+            id
+            nome
+            medida
+            valorReferencia
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const BUSCAR_COMPOSICAO_QUERY = gql`
+  query BuscarComposicao($id: ID!) {
+    buscarComposicao(id: $id) {
+      id
+      cicloCestaId
+      status
+      observacao
+      cicloCesta {
+        id
+        cicloId
+        cestaId
+        quantidadeCestas
+        cesta {
+          id
+          nome
+          valormaximo
+        }
+        ciclo {
+          id
+          nome
+        }
+      }
+      composicaoOfertaProdutos {
+        id
+        composicaoId
+        produtoId
+        quantidade
+        valor
+        ofertaProdutoId
+        produto {
+          id
+          nome
+          medida
+          valorReferencia
+        }
+      }
+    }
+  }
+`;
+
+export const LISTAR_CESTAS_QUERY = gql`
+  query ListarCestas {
+    listarCestas {
+      id
+      nome
+      valormaximo
+      status
+    }
+  }
+`;
+
+export const CRIAR_COMPOSICAO_MUTATION = gql`
+  mutation CriarComposicao($input: CriarComposicaoInput!) {
+    criarComposicao(input: $input) {
+      id
+      cicloCestaId
+      status
+      observacao
+    }
+  }
+`;
+
+export const SINCRONIZAR_PRODUTOS_COMPOSICAO_MUTATION = gql`
+  mutation SincronizarProdutosComposicao(
+    $composicaoId: ID!
+    $produtos: [SincronizarProdutosComposicaoInput!]!
+  ) {
+    sincronizarProdutosComposicao(
+      composicaoId: $composicaoId
+      produtos: $produtos
+    )
+  }
+`;
+
+export const BUSCAR_PEDIDO_CONSUMIDORES_QUERY = gql`
+  query BuscarPedidoConsumidores($id: ID!) {
+    buscarPedidoConsumidores(id: $id) {
+      id
+      cicloId
+      usuarioId
+      status
+      observacao
+      createdAt
+      updatedAt
+      ciclo {
+        id
+        nome
+      }
+      usuario {
+        id
+        nome
+        email
+      }
+      pedidoConsumidoresProdutos {
+        id
+        pedidoConsumidorId
+        produtoId
+        quantidade
+        valorOferta
+        valorCompra
+        produto {
+          id
+          nome
+          medida
+          valorReferencia
+        }
+      }
+    }
+  }
+`;
+
+export const LISTAR_PEDIDOS_POR_CICLO_QUERY = gql`
+  query ListarPedidosPorCiclo($cicloId: Int!) {
+    listarPedidosPorCiclo(cicloId: $cicloId) {
+      id
+      cicloId
+      usuarioId
+      status
+      observacao
+      createdAt
+      updatedAt
+      usuario {
+        id
+        nome
+        email
+      }
+    }
+  }
+`;
+
+export const LISTAR_PEDIDOS_POR_USUARIO_QUERY = gql`
+  query ListarPedidosPorUsuario($usuarioId: Int!) {
+    listarPedidosPorUsuario(usuarioId: $usuarioId) {
+      id
+      cicloId
+      usuarioId
+      status
+      observacao
+      createdAt
+      updatedAt
+      ciclo {
+        id
+        nome
+      }
+      pedidoConsumidoresProdutos {
+        id
+        produtoId
+        quantidade
+        valorOferta
+        valorCompra
+        produto {
+          id
+          nome
+          medida
+        }
+      }
+    }
+  }
+`;
+
+export const CRIAR_PEDIDO_CONSUMIDORES_MUTATION = gql`
+  mutation CriarPedidoConsumidores($input: CriarPedidoConsumidoresInput!) {
+    criarPedidoConsumidores(input: $input) {
+      id
+      cicloId
+      usuarioId
+      status
+      observacao
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const ADICIONAR_PRODUTO_PEDIDO_MUTATION = gql`
+  mutation AdicionarProdutoPedido(
+    $pedidoId: ID!
+    $input: AdicionarProdutoPedidoInput!
+  ) {
+    adicionarProdutoPedido(pedidoId: $pedidoId, input: $input) {
+      id
+      pedidoConsumidorId
+      produtoId
+      quantidade
+      valorOferta
+      valorCompra
+    }
+  }
+`;
+
+export const ATUALIZAR_QUANTIDADE_PRODUTO_PEDIDO_MUTATION = gql`
+  mutation AtualizarQuantidadeProdutoPedido(
+    $pedidoProdutoId: ID!
+    $input: AtualizarQuantidadeProdutoPedidoInput!
+  ) {
+    atualizarQuantidadeProdutoPedido(
+      pedidoProdutoId: $pedidoProdutoId
+      input: $input
+    ) {
+      id
+      pedidoConsumidorId
+      produtoId
+      quantidade
+      valorOferta
+      valorCompra
+    }
+  }
+`;
+
+export const REMOVER_PRODUTO_PEDIDO_MUTATION = gql`
+  mutation RemoverProdutoPedido($pedidoProdutoId: ID!) {
+    removerProdutoPedido(pedidoProdutoId: $pedidoProdutoId)
+  }
+`;
+
+export const ATUALIZAR_STATUS_PEDIDO_MUTATION = gql`
+  mutation AtualizarStatusPedido(
+    $pedidoId: ID!
+    $input: AtualizarStatusPedidoInput!
+  ) {
+    atualizarStatusPedido(pedidoId: $pedidoId, input: $input) {
+      id
+      status
+      observacao
+    }
+  }
+`;
