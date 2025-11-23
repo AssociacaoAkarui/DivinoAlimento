@@ -297,6 +297,109 @@ input CriarUsuarioInput {
     status: String
 }
 
+type CicloCestas {
+    id: ID!
+    cicloId: Int!
+    ciclo: Ciclo
+    cestaId: Int!
+    cesta: Cesta
+    quantidadeCestas: Int!
+    composicoes: [Composicao!]
+    createdAt: String!
+    updatedAt: String!
+}
+
+type Cesta {
+    id: ID!
+    nome: String!
+    valormaximo: Float
+    status: String!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type Composicao {
+    id: ID!
+    cicloCestaId: Int!
+    cicloCesta: CicloCestas
+    status: String
+    observacao: String
+    composicaoOfertaProdutos: [ComposicaoOfertaProduto!]
+    createdAt: String!
+    updatedAt: String!
+}
+
+type ComposicaoOfertaProduto {
+    id: ID!
+    composicaoId: Int!
+    produtoId: Int!
+    produto: Produto
+    quantidade: Float!
+    valor: Float
+    ofertaProdutoId: Int
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CriarComposicaoInput {
+    cicloId: Int!
+    cestaId: Int!
+    quantidadeCestas: Int
+}
+
+input SincronizarProdutosComposicaoInput {
+    produtoId: Int!
+    quantidade: Float!
+    ofertaProdutoId: Int
+}
+
+type PedidoConsumidores {
+    id: ID!
+    cicloId: Int!
+    ciclo: Ciclo
+    usuarioId: Int!
+    usuario: Usuario
+    status: String!
+    observacao: String
+    pedidoConsumidoresProdutos: [PedidoConsumidoresProduto!]
+    createdAt: String!
+    updatedAt: String!
+}
+
+type PedidoConsumidoresProduto {
+    id: ID!
+    pedidoConsumidorId: Int!
+    produtoId: Int!
+    produto: Produto
+    quantidade: Float!
+    valorOferta: Float
+    valorCompra: Float
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CriarPedidoConsumidoresInput {
+    cicloId: Int!
+    usuarioId: Int!
+    status: String
+    observacao: String
+}
+
+input AdicionarProdutoPedidoInput {
+    produtoId: Int!
+    quantidade: Float!
+    valorOferta: Float
+    valorCompra: Float
+}
+
+input AtualizarQuantidadeProdutoPedidoInput {
+    quantidade: Float!
+}
+
+input AtualizarStatusPedidoInput {
+    status: String!
+}
+
 type Mutation {
     sessionLogin(input: LoginInput!): ActiveSession!
     sessionLogout: LogoutResponse!
@@ -357,6 +460,27 @@ type Mutation {
         input: AtualizarPrecoMercadoInput!
     ): PrecoMercado!
     deletarPrecoMercado(id: ID!): Boolean!
+    criarComposicao(input: CriarComposicaoInput!): Composicao!
+    sincronizarProdutosComposicao(
+        composicaoId: ID!
+        produtos: [SincronizarProdutosComposicaoInput!]!
+    ): Boolean!
+    criarPedidoConsumidores(
+        input: CriarPedidoConsumidoresInput!
+    ): PedidoConsumidores!
+    adicionarProdutoPedido(
+        pedidoId: ID!
+        input: AdicionarProdutoPedidoInput!
+    ): PedidoConsumidoresProduto!
+    atualizarQuantidadeProdutoPedido(
+        pedidoProdutoId: ID!
+        input: AtualizarQuantidadeProdutoPedidoInput!
+    ): PedidoConsumidoresProduto
+    removerProdutoPedido(pedidoProdutoId: ID!): Boolean!
+    atualizarStatusPedido(
+        pedidoId: ID!
+        input: AtualizarStatusPedidoInput!
+    ): PedidoConsumidores!
 }
 
 type Query {
@@ -393,6 +517,12 @@ type Query {
     listarPrecosProduto(produtoId: Int!): [PrecoMercado!]!
     buscarPrecoMercado(id: ID!): PrecoMercado
     buscarPrecoProdutoMercado(produtoId: Int!, mercadoId: Int!): PrecoMercado
+    buscarComposicao(id: ID!): Composicao!
+    listarComposicoesPorCiclo(cicloId: Int!): [CicloCestas!]!
+    listarCestas: [Cesta!]!
+    buscarPedidoConsumidores(id: ID!): PedidoConsumidores!
+    listarPedidosPorCiclo(cicloId: Int!): [PedidoConsumidores!]!
+    listarPedidosPorUsuario(usuarioId: Int!): [PedidoConsumidores!]!
 }
 
 type OfertaProduto {

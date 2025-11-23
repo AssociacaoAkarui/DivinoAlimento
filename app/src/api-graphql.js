@@ -15,6 +15,9 @@ const {
   PontoEntregaService,
   MercadoService,
   PrecoMercadoService,
+  ComposicaoService,
+  CestaService,
+  PedidoConsumidoresService,
 } = require("../src/services/services.js");
 
 async function requiredAuthenticated(context) {
@@ -563,6 +566,60 @@ const rootValue = {
     return preco;
   },
 
+  buscarComposicao: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const composicao = await context.composicaoService.buscarComposicaoPorId(
+      args.id,
+    );
+    return composicao;
+  },
+
+  listarComposicoesPorCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const composicoes =
+      await context.composicaoService.listarComposicoesPorCiclo(args.cicloId);
+    return composicoes;
+  },
+
+  listarCestas: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const cestas = await context.cestaService.listarCestasAtivas();
+    return cestas;
+  },
+
+  buscarPedidoConsumidores: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pedido =
+      await context.pedidoConsumidoresService.buscarPedidoPorIdComProdutos(
+        args.id,
+      );
+    return pedido;
+  },
+
+  listarPedidosPorCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pedidos =
+      await context.pedidoConsumidoresService.listarPedidosPorCiclo(
+        args.cicloId,
+      );
+    return pedidos;
+  },
+
+  listarPedidosPorUsuario: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pedidos =
+      await context.pedidoConsumidoresService.listarPedidosPorUsuario(
+        args.usuarioId,
+      );
+    return pedidos;
+  },
+
   criarPrecoMercado: async (args, context) => {
     await requiredAuthenticated(context);
     await setupSession(context);
@@ -661,6 +718,81 @@ const rootValue = {
     );
     return result;
   },
+
+  criarComposicao: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const composicao = await context.composicaoService.criarComposicao(
+      args.input,
+    );
+    return composicao;
+  },
+
+  sincronizarProdutosComposicao: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    await context.composicaoService.sincronizarProdutos(
+      args.composicaoId,
+      args.produtos,
+    );
+    return true;
+  },
+
+  criarPedidoConsumidores: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pedido = await context.pedidoConsumidoresService.criarPedido(
+      args.input,
+    );
+    return pedido;
+  },
+
+  adicionarProdutoPedido: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const { pedidoId, input } = args;
+    const pedidoProduto =
+      await context.pedidoConsumidoresService.adicionarProduto(
+        pedidoId,
+        input.produtoId,
+        input.quantidade,
+      );
+    return pedidoProduto;
+  },
+
+  atualizarQuantidadeProdutoPedido: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const { pedidoProdutoId, input } = args;
+    const pedidoProduto =
+      await context.pedidoConsumidoresService.atualizarQuantidadeProduto(
+        pedidoProdutoId,
+        input.quantidade,
+      );
+    return pedidoProduto;
+  },
+
+  removerProdutoPedido: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await context.pedidoConsumidoresService.atualizarQuantidadeProduto(
+      args.pedidoProdutoId,
+      0,
+    );
+    return true;
+  },
+
+  atualizarStatusPedido: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pedido = await context.pedidoConsumidoresService.atualizarStatus(
+      args.pedidoId,
+      args.input.status,
+    );
+    return pedido;
+  },
 };
 
 const schemaSDL = fs.readFileSync(path.join(__dirname, "api.graphql"), "utf8");
@@ -678,6 +810,9 @@ const ofertaService = new OfertaService();
 const pontoEntregaService = new PontoEntregaService();
 const mercadoService = new MercadoService();
 const precoMercadoService = new PrecoMercadoService();
+const composicaoService = new ComposicaoService();
+const cestaService = new CestaService();
+const pedidoConsumidoresService = new PedidoConsumidoresService();
 
 const API = {
   rootValue,
@@ -693,6 +828,9 @@ const API = {
     pontoEntregaService,
     mercadoService,
     precoMercadoService,
+    composicaoService,
+    cestaService,
+    pedidoConsumidoresService,
   },
   buildContext(sessionToken) {
     return {
@@ -706,6 +844,9 @@ const API = {
       pontoEntregaService,
       mercadoService,
       precoMercadoService,
+      composicaoService,
+      cestaService,
+      pedidoConsumidoresService,
       sessionToken,
     };
   },
