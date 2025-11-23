@@ -56,6 +56,9 @@ import {
 import {
   useBuscarCiclo,
   useListarProdutosComercializaveis,
+  useCriarOferta,
+  useAdicionarProdutoOferta,
+  useRemoverProdutoOferta,
 } from "@/hooks/graphql";
 
 // Interface para produto comercializável do GraphQL
@@ -85,7 +88,7 @@ const criarDescricaoProdutoAPI = (
 
 export default function AdminOferta() {
   const navigate = useNavigate();
-  const { activeRole } = useAuth();
+  const { activeRole, user } = useAuth();
   const { id: cicloId } = useParams();
 
   const [ofertas, setOfertas] = useState<OfertaProduto[]>([]);
@@ -110,6 +113,8 @@ export default function AdminOferta() {
     TipoAgriculturaType | ""
   >("");
   const [ofertaSalva, setOfertaSalva] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [ofertaIdBackend, setOfertaIdBackend] = useState<string | null>(null);
 
   // Refs para foco automático
   const valorInputRef = useRef<HTMLInputElement>(null);
@@ -121,17 +126,46 @@ export default function AdminOferta() {
   );
   const { data: produtosComercializaveisData, isLoading: produtosLoading } =
     useListarProdutosComercializaveis();
+  const criarOfertaMutation = useCriarOferta();
+  const adicionarProdutoMutation = useAdicionarProdutoOferta();
+  const removerProdutoMutation = useRemoverProdutoOferta();
 
   const ciclo = cicloData?.buscarCiclo;
   const produtosComercializaveis = produtosComercializaveisData || [];
 
-  // Carregar ofertas do localStorage na montagem
   useEffect(() => {
+    if (!cicloId) {
+      return;
+    }
+
     const ofertasSalvas = localStorage.getItem(`ofertas-ciclo-${cicloId}`);
     if (ofertasSalvas) {
       setOfertas(JSON.parse(ofertasSalvas));
     }
   }, [cicloId]);
+
+  useEffect(() => {
+    if (!cicloId || !activeRole || ofertaIdBackend) {
+      return;
+    }
+
+    const usuarioId = activeRole === "fornecedor" ? user?.id : null;
+    if (usuarioId) {
+      criarOfertaMutation.mutate(
+        {
+          input: {
+            cicloId: parseInt(cicloId),
+            usuarioId: parseInt(usuarioId),
+          },
+        },
+        {
+          onSuccess: (data) => {
+            setOfertaIdBackend(data.criarOferta.id);
+          },
+        },
+      );
+    }
+  }, [cicloId, activeRole, user?.id, ofertaIdBackend, criarOfertaMutation]);
 
   // Verificar se período de oferta está aberto
   const periodoOfertaAberto = useMemo(() => {
@@ -274,7 +308,6 @@ export default function AdminOferta() {
         description: "O produto foi atualizado na oferta.",
       });
     } else {
-      // Criar nova oferta
       const novaOferta: OfertaProduto = {
         id: `oferta-${Date.now()}`,
         ciclo_id: cicloId || "",
@@ -297,7 +330,51 @@ export default function AdminOferta() {
       });
     }
 
-    handleLimparFormulario();
+    setIsSaving(true);
+    if (ofertaIdBackend) {
+      adicionarProdutoMutation.mutate(
+        {
+          ofertaId: ofertaIdBackend,
+          input: {
+            produtoId: parseInt(selectedProdutoId),
+            quantidade: quantidade,
+            valorReferencia: produto.precoBase,
+            valorOferta: valor,
+          },
+        },
+        {
+          onSuccess: () => {
+            setTimeout(() => {
+              handleLimparFormulario();
+              localStorage.setItem(
+                `ofertas-ciclo-${cicloId}`,
+                JSON.stringify(ofertas),
+              );
+              setIsSaving(false);
+              setOfertaSalva(true);
+            }, 300);
+          },
+          onError: () => {
+            setIsSaving(false);
+            toast({
+              title: "Erro",
+              description: "Falha ao salvar no servidor.",
+              variant: "destructive",
+            });
+          },
+        },
+      );
+    } else {
+      setTimeout(() => {
+        handleLimparFormulario();
+        localStorage.setItem(
+          `ofertas-ciclo-${cicloId}`,
+          JSON.stringify(ofertas),
+        );
+        setIsSaving(false);
+        setOfertaSalva(true);
+      }, 300);
+    }
   };
 
   const handleEditarOferta = (oferta: OfertaProduto) => {
@@ -327,12 +404,54 @@ export default function AdminOferta() {
 
   const handleDeleteOferta = () => {
     if (ofertaToDelete) {
-      setOfertas(ofertas.filter((o) => o.id !== ofertaToDelete));
-      toast({
-        title: "Produto removido",
-        description: "O produto foi removido da oferta.",
-      });
-      setOfertaToDelete(null);
+      setIsSaving(true);
+      const novasOfertas = ofertas.filter((o) => o.id !== ofertaToDelete);
+
+      if (ofertaIdBackend) {
+        removerProdutoMutation.mutate(
+          {
+            ofertaProdutoId: ofertaToDelete,
+            ofertaId: ofertaIdBackend,
+          },
+          {
+            onSuccess: () => {
+              setOfertas(novasOfertas);
+              toast({
+                title: "Produto removido",
+                description: "O produto foi removido da oferta.",
+              });
+              setOfertaToDelete(null);
+              localStorage.setItem(
+                `ofertas-ciclo-${cicloId}`,
+                JSON.stringify(novasOfertas),
+              );
+              setIsSaving(false);
+              setOfertaSalva(true);
+            },
+            onError: () => {
+              setIsSaving(false);
+              toast({
+                title: "Erro",
+                description: "Falha ao remover do servidor.",
+                variant: "destructive",
+              });
+            },
+          },
+        );
+      } else {
+        setOfertas(novasOfertas);
+        toast({
+          title: "Produto removido",
+          description: "O produto foi removido da oferta.",
+        });
+        setOfertaToDelete(null);
+        localStorage.setItem(
+          `ofertas-ciclo-${cicloId}`,
+          JSON.stringify(novasOfertas),
+        );
+        setIsSaving(false);
+        setOfertaSalva(true);
+      }
     }
     setDeleteDialogOpen(false);
   };
@@ -462,7 +581,34 @@ export default function AdminOferta() {
               </div>
             </div>
 
-            {/* Stepper */}
+            {(ofertaSalva || isSaving) && (
+              <div
+                className={`p-4 border rounded-lg transition-colors ${
+                  isSaving
+                    ? "bg-yellow-50 border-yellow-200"
+                    : "bg-green-50 border-green-200"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {isSaving ? (
+                    <Loader2 className="h-5 w-5 text-yellow-600 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  )}
+                  <p
+                    className={`text-sm ${
+                      isSaving ? "text-yellow-700" : "text-green-700"
+                    }`}
+                  >
+                    <strong>
+                      {isSaving ? "Guardando..." : "Oferta guardada"}
+                    </strong>
+                    {!isSaving && " - Los cambios se guardan automáticamente"}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-center gap-3 py-4">
               {/* Etapa 1 - Completa */}
               <div className="flex items-center gap-2">
