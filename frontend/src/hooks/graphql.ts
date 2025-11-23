@@ -106,6 +106,19 @@ import {
   CRIAR_PRECO_MERCADO_MUTATION,
   ATUALIZAR_PRECO_MERCADO_MUTATION,
   DELETAR_PRECO_MERCADO_MUTATION,
+  LISTAR_COMPOSICOES_POR_CICLO_QUERY,
+  BUSCAR_COMPOSICAO_QUERY,
+  LISTAR_CESTAS_QUERY,
+  CRIAR_COMPOSICAO_MUTATION,
+  SINCRONIZAR_PRODUTOS_COMPOSICAO_MUTATION,
+  BUSCAR_PEDIDO_CONSUMIDORES_QUERY,
+  LISTAR_PEDIDOS_POR_CICLO_QUERY,
+  LISTAR_PEDIDOS_POR_USUARIO_QUERY,
+  CRIAR_PEDIDO_CONSUMIDORES_MUTATION,
+  ADICIONAR_PRODUTO_PEDIDO_MUTATION,
+  ATUALIZAR_QUANTIDADE_PRODUTO_PEDIDO_MUTATION,
+  REMOVER_PRODUTO_PEDIDO_MUTATION,
+  ATUALIZAR_STATUS_PEDIDO_MUTATION,
 } from "../graphql/operations";
 
 // Ciclo interfaces
@@ -539,6 +552,100 @@ export function useDeletarPrecoMercado() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listar_precos_mercado"] });
       queryClient.invalidateQueries({ queryKey: ["listar_precos_produto"] });
+    },
+  });
+}
+
+export function useListarComposicoesPorCiclo(cicloId: string) {
+  return useQuery({
+    queryKey: ["listar_composicoes_por_ciclo", cicloId],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request(
+        LISTAR_COMPOSICOES_POR_CICLO_QUERY,
+        { cicloId: parseInt(cicloId) },
+      );
+      return response.listarComposicoesPorCiclo;
+    },
+    enabled: !!cicloId,
+  });
+}
+
+export function useBuscarComposicao(id: string) {
+  return useQuery({
+    queryKey: ["buscar_composicao", id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request(
+        BUSCAR_COMPOSICAO_QUERY,
+        { id },
+      );
+      return response.buscarComposicao;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useListarCestas() {
+  return useQuery({
+    queryKey: ["listar_cestas"],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response =
+        await graphqlClientSecure(token).request(LISTAR_CESTAS_QUERY);
+      return response.listarCestas;
+    },
+  });
+}
+
+export function useCriarComposicao() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        CRIAR_COMPOSICAO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listar_composicoes_por_ciclo"],
+      });
+    },
+  });
+}
+
+export function useSincronizarProdutosComposicao() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        SINCRONIZAR_PRODUTOS_COMPOSICAO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listar_composicoes_por_ciclo"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["buscar_composicao"] });
     },
   });
 }
@@ -1526,9 +1633,9 @@ export function useAdicionarProdutoOferta() {
         variables,
       );
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["buscar_oferta"],
+        queryKey: ["buscar_oferta", variables.ofertaId],
       });
     },
   });
@@ -1566,7 +1673,7 @@ export function useRemoverProdutoOferta() {
   return useMutation<
     RemoverProdutoOfertaMutation,
     Error,
-    { ofertaProdutoId: string }
+    { ofertaProdutoId: string; ofertaId?: string }
   >({
     mutationFn: async (variables) => {
       const token = getSessionToken();
@@ -1575,15 +1682,20 @@ export function useRemoverProdutoOferta() {
       }
       return await graphqlClientSecure(
         token,
-      ).request<RemoverProdutoOfertaMutation>(
-        REMOVER_PRODUTO_OFERTA_MUTATION,
-        variables,
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["buscar_oferta"],
+      ).request<RemoverProdutoOfertaMutation>(REMOVER_PRODUTO_OFERTA_MUTATION, {
+        ofertaProdutoId: variables.ofertaProdutoId,
       });
+    },
+    onSuccess: (data, variables) => {
+      if (variables.ofertaId) {
+        queryClient.invalidateQueries({
+          queryKey: ["buscar_oferta", variables.ofertaId],
+        });
+      } else {
+        queryClient.invalidateQueries({
+          queryKey: ["buscar_oferta"],
+        });
+      }
     },
   });
 }

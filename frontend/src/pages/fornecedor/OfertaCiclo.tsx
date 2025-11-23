@@ -54,9 +54,6 @@ export default function OfertaCiclo() {
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [quantidade, setQuantidade] = useState("");
   const [valor, setValor] = useState("");
-  const [produtosOfertados, setProdutosOfertados] = useState<ProdutoOfertado[]>(
-    [],
-  );
 
   const [tipoProduto, setTipoProduto] = useState<string[]>([]);
   const [origemProdutiva, setOrigemProdutiva] = useState<string[]>([]);
@@ -75,7 +72,7 @@ export default function OfertaCiclo() {
   const ciclo = oferta?.ciclo;
   const produtosDisponiveis = produtosData || [];
 
-  const produtosOfertadosFromApi = useMemo(() => {
+  const produtosOfertados = useMemo(() => {
     if (!oferta?.ofertaProdutos) return [];
     return oferta.ofertaProdutos.map((op) => ({
       id: op.id,
@@ -91,12 +88,6 @@ export default function OfertaCiclo() {
   }, [oferta?.ofertaProdutos]);
 
   useEffect(() => {
-    if (produtosOfertadosFromApi.length > 0) {
-      setProdutosOfertados(produtosOfertadosFromApi);
-    }
-  }, [produtosOfertadosFromApi]);
-
-  useEffect(() => {
     if (ciclo?.ofertaFim) {
       const hoje = new Date();
       const fim = new Date(ciclo.ofertaFim);
@@ -105,10 +96,24 @@ export default function OfertaCiclo() {
   }, [ciclo?.ofertaFim]);
 
   useEffect(() => {
-    if (produtosOfertadosFromApi.length > 0) {
+    if (produtosOfertados.length > 0) {
       setOfertaEnviada(true);
     }
-  }, [produtosOfertadosFromApi]);
+  }, [produtosOfertados]);
+
+  useEffect(() => {
+    if (produtoSelecionado) {
+      const produto = produtosDisponiveis.find(
+        (p) => p.id === produtoSelecionado,
+      );
+      if (produto && produto.valorReferencia) {
+        const precoFormatado = produto.valorReferencia
+          .toFixed(2)
+          .replace(".", ",");
+        setValor(precoFormatado);
+      }
+    }
+  }, [produtoSelecionado, produtosDisponiveis]);
 
   const handleAdicionarProduto = async () => {
     if (!produtoSelecionado || !quantidade || !valor) {
@@ -157,8 +162,8 @@ export default function OfertaCiclo() {
     try {
       await removerProdutoMutation.mutateAsync({
         ofertaProdutoId: produtoId,
+        ofertaId: id,
       });
-      setProdutosOfertados(produtosOfertados.filter((p) => p.id !== produtoId));
       toast({
         title: "Alimento removido",
         description: "O alimento foi removido da oferta.",
