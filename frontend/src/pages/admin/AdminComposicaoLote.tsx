@@ -13,8 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-} from "@/components/ui/alert-dialog";
+import {} from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import {
   Search,
@@ -38,6 +37,15 @@ import {
   filterProducts,
   Oferta,
 } from "@/utils/product-grouping";
+import {
+  useBuscarCiclo,
+  useListarOfertasPorCiclo,
+  useListarComposicoesPorCiclo,
+  useCriarComposicao,
+  useSincronizarProdutosComposicao,
+  useListarCestas,
+} from "@/hooks/graphql";
+import { transformarOfertasParaUI } from "@/lib/composicao-helpers";
 
 export default function AdminComposicaoLote() {
   const { id } = useParams();
@@ -84,105 +92,33 @@ export default function AdminComposicaoLote() {
     }
   }, [id, mercadoId]);
 
-  // Dados mock - Alimentos ofertados com produto_base
-  const [ofertas] = useState<Oferta[]>([
-    {
-      id: "1",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (kg)",
-      unidade: "kg",
-      valor: 4.5,
-      fornecedor: "João Produtor",
-      quantidadeOfertada: 50,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "2",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (cx)",
-      unidade: "cx",
-      valor: 20.0,
-      fornecedor: "Maria Horta",
-      quantidadeOfertada: 15,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "3",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (kg)",
-      unidade: "kg",
-      valor: 4.2,
-      fornecedor: "Sítio Verde",
-      quantidadeOfertada: 30,
-      certificacao: "transicao",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "4",
-      produto_base: "Alface Crespa",
-      nome: "Alface Crespa (kg)",
-      unidade: "kg",
-      valor: 3.2,
-      fornecedor: "Maria Horta",
-      quantidadeOfertada: 30,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "5",
-      produto_base: "Alface Crespa",
-      nome: "Alface Crespa (maço)",
-      unidade: "maço",
-      valor: 2.0,
-      fornecedor: "João Produtor",
-      quantidadeOfertada: 50,
-      certificacao: "convencional",
-      tipo_agricultura: "nao_familiar",
-    },
-    {
-      id: "6",
-      produto_base: "Ovos Caipiras",
-      nome: "Ovos Caipiras (dúzia)",
-      unidade: "dúzia",
-      valor: 15.0,
-      fornecedor: "Sítio Boa Vista",
-      quantidadeOfertada: 100,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "7",
-      produto_base: "Cenoura Orgânica",
-      nome: "Cenoura Orgânica (kg)",
-      unidade: "kg",
-      valor: 3.8,
-      fornecedor: "Fazenda Santa Clara",
-      quantidadeOfertada: 40,
-      certificacao: "organico",
-      tipo_agricultura: "nao_familiar",
-    },
-    {
-      id: "8",
-      produto_base: "Cenoura Orgânica",
-      nome: "Cenoura Orgânica (maço)",
-      unidade: "maço",
-      valor: 2.5,
-      fornecedor: "João Produtor",
-      quantidadeOfertada: 35,
-      certificacao: "transicao",
-      tipo_agricultura: "familiar",
-    },
-  ]);
+  const cicloId = id;
+  const { data: cicloData, isLoading: cicloLoading } = useBuscarCiclo(
+    cicloId || "",
+  );
+  const { data: ofertasData, isLoading: ofertasLoading } =
+    useListarOfertasPorCiclo(cicloId ? parseInt(cicloId) : 0);
+  const { data: composicoesData } = useListarComposicoesPorCiclo(cicloId || "");
+  const { data: cestasData } = useListarCestas();
+  const criarComposicaoMutation = useCriarComposicao();
+  const sincronizarProdutosMutation = useSincronizarProdutosComposicao();
 
-  const ciclo = {
-    nome: "1º Ciclo de Novembro 2025",
-    valorMaximo: 500.0,
-    tipo: "Lote",
-  };
+  const ofertas = useMemo(() => {
+    if (!ofertasData?.listarOfertasPorCiclo) return [];
+    return transformarOfertasParaUI(ofertasData.listarOfertasPorCiclo);
+  }, [ofertasData]);
 
-  // Agrupar e filtrar produtos (com ordenação A-Z)
+  const cicloAPI = cicloData?.buscarCiclo;
+  const ciclo = useMemo(
+    () => ({
+      nome: cicloAPI?.nome || "Ciclo",
+      valorMaximo: 500.0,
+      tipo: "Lote",
+    }),
+    [cicloAPI],
+  );
+
+  const isDataLoading = cicloLoading || ofertasLoading;
   const productGroups = useMemo(() => {
     const groups = groupAndSortProducts(ofertas);
     return filterProducts(groups, busca);
@@ -209,12 +145,10 @@ export default function AdminComposicaoLote() {
     return items;
   }, [selectedByGroup, composicao, ofertas]);
 
-  // Cálculos reativos
   const valorAtual = selectedItems.reduce((acc, item) => {
     return acc + item.valor * item.quantidade;
   }, 0);
 
-  const saldo = ciclo.valorMaximo - valorAtual;
   const totalItens = selectedItems.reduce(
     (acc, item) => acc + item.quantidade,
     0,
@@ -307,42 +241,37 @@ export default function AdminComposicaoLote() {
     executarPublicacao();
   };
 
-  const executarPublicacao = () => {
-    // Preparar dados para envio
-    const payload = {
-      itens: selectedItems.map((item) => {
-        const oferta = ofertas.find((o) => o.id === item.id);
-        return {
-          produtoComercializavelId: item.id,
-          fornecedorId: oferta?.fornecedor || "",
-          precoUnitario: item.valor,
-          quantidadeOfertada: oferta?.quantidadeOfertada || 0,
-          quantidadePedidos: item.quantidade,
-        };
-      }),
-      valorAtual,
-      valorMaximo: ciclo.valorMaximo,
-      saldo,
-    };
+  const executarPublicacao = async () => {
+    const produtos = selectedItems.map((item) => ({
+      produtoId: parseInt(item.id),
+      quantidade: item.quantidade,
+      ofertaProdutoId: parseInt(item.id),
+    }));
 
     setIsLoading(true);
     setShowConfirmModal(false);
 
-    // Simular chamada ao backend
-    // POST/PATCH: /api/ciclos/:cicloId/mercados/:mercadoId/composicao-lote
-    setTimeout(() => {
-      // Persistir no localStorage
-      const storageKey = `composicao-lote-ciclo-${id}-mercado-${mercadoId}`;
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify({
-          selectedByGroup: Array.from(selectedByGroup.entries()),
-          composicao: Array.from(composicao.entries()),
-          timestamp: new Date().toISOString(),
-        }),
-      );
+    try {
+      const composicaoExistente = composicoesData?.[0]?.composicoes?.[0];
 
-      setIsLoading(false);
+      if (composicaoExistente) {
+        await sincronizarProdutosMutation.mutateAsync({
+          composicaoId: composicaoExistente.id,
+          produtos,
+        });
+      } else if (cicloId && cestasData?.[0]) {
+        const novaComposicao = await criarComposicaoMutation.mutateAsync({
+          input: {
+            cicloId: parseInt(cicloId),
+            cestaId: parseInt(cestasData[0].id),
+            quantidadeCestas: 1,
+          },
+        });
+        await sincronizarProdutosMutation.mutateAsync({
+          composicaoId: novaComposicao.criarComposicao.id,
+          produtos,
+        });
+      }
 
       toast({
         title: "Composição lote salva com sucesso",
@@ -351,26 +280,21 @@ export default function AdminComposicaoLote() {
         duration: 5000,
       });
 
-      // Telemetria/Log de auditoria
-      console.warn("Auditoria - Lote Publicado:", {
-        ciclo_id: id,
-        mercado_id: mercadoId,
-        usuario: "Admin",
-        timestamp: new Date().toISOString(),
-        acima_do_limite: excedeuValor,
-        payload,
-      });
-
-      // Redirecionar após 1s
       setTimeout(() => {
         navigate("/admin/ciclo-index");
       }, 1000);
-    }, 1000);
+    } catch (error) {
+      toast({
+        title: "Erro ao salvar composição lote.",
+        description: String(error),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Pode publicar se houver pelo menos 1 item selecionado (independente do valor)
-  const podePublicar = selectedItems.length > 0;
-  const excedeuValor = valorAtual > ciclo.valorMaximo;
+  const podePublicar = selectedItems.length > 0 && !isDataLoading;
 
   return (
     <ResponsiveLayout
@@ -580,7 +504,7 @@ export default function AdminComposicaoLote() {
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isLoading || isDataLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : productGroups.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground space-y-4">
