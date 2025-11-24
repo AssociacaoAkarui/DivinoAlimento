@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
   Search,
@@ -38,55 +39,14 @@ import { groupAndSortProducts, type Oferta } from "@/utils/product-grouping";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RoleTitle } from "@/components/layout/RoleTitle";
-
-// Mock data - alimentos disponíveis para venda direta
-const mockProdutos: Oferta[] = [
-  {
-    id: "1",
-    produto_base: "Alface",
-    nome: "Alface Crespa",
-    unidade: "Maço",
-    fornecedor: "Sítio Verde",
-    valor: 3.5,
-    quantidadeOfertada: 50,
-  },
-  {
-    id: "2",
-    produto_base: "Tomate",
-    nome: "Tomate Orgânico",
-    unidade: "Kg",
-    fornecedor: "Fazenda Boa Vista",
-    valor: 8.9,
-    quantidadeOfertada: 30,
-  },
-  {
-    id: "3",
-    produto_base: "Cenoura",
-    nome: "Cenoura",
-    unidade: "Kg",
-    fornecedor: "Horta da Serra",
-    valor: 4.5,
-    quantidadeOfertada: 40,
-  },
-  {
-    id: "4",
-    produto_base: "Banana",
-    nome: "Banana Prata",
-    unidade: "Dúzia",
-    fornecedor: "Sítio Frutas",
-    valor: 6.0,
-    quantidadeOfertada: 0,
-  },
-  {
-    id: "5",
-    produto_base: "Laranja",
-    nome: "Laranja Pera",
-    unidade: "Kg",
-    fornecedor: "Pomar do Vale",
-    valor: 5.5,
-    quantidadeOfertada: 25,
-  },
-];
+import {
+  useListarCiclos,
+  useListarOfertasPorCiclo,
+  useCriarPedidoConsumidores,
+  useAdicionarProdutoPedido,
+} from "@/hooks/graphql";
+import { transformarOfertasParaUI } from "@/lib/composicao-helpers";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PedidoConsumidores = () => {
   const navigate = useNavigate();
@@ -94,6 +54,7 @@ const PedidoConsumidores = () => {
   const [searchParams] = useSearchParams();
   const _idMercado = searchParams.get("cst");
   const _idUsuario = searchParams.get("usr");
+  const { user } = useAuth();
 
   const [busca, setBusca] = useState("");
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(
@@ -101,12 +62,33 @@ const PedidoConsumidores = () => {
   );
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const TAXA_SERVICO = 5.0;
 
-  // Agrupar e filtrar alimentos
+  const { data: ciclosData, isLoading: ciclosLoading } = useListarCiclos();
+  const cicloAtivo = useMemo(() => {
+    if (!ciclosData?.listarCiclos?.ciclos) return null;
+    return ciclosData.listarCiclos.ciclos.find(
+      (c) => c.status === "ativo" || c.status === "aberto",
+    );
+  }, [ciclosData]);
+
+  const { data: ofertasData, isLoading: ofertasLoading } =
+    useListarOfertasPorCiclo(cicloAtivo ? parseInt(cicloAtivo.id) : 0);
+
+  const criarPedidoMutation = useCriarPedidoConsumidores();
+  const adicionarProdutoMutation = useAdicionarProdutoPedido();
+
+  const produtos = useMemo(() => {
+    if (!ofertasData?.listarOfertasPorCiclo) return [];
+    return transformarOfertasParaUI(ofertasData.listarOfertasPorCiclo);
+  }, [ofertasData]);
+
+  const isDataLoading = ciclosLoading || ofertasLoading;
+
   const productGroups = useMemo(() => {
-    const groups = groupAndSortProducts(mockProdutos);
+    const groups = groupAndSortProducts(produtos);
     if (!busca) return groups;
 
     const searchLower = busca.toLowerCase();
@@ -122,14 +104,13 @@ const PedidoConsumidores = () => {
       .filter((group) => group.variantes.length > 0);
   }, [busca]);
 
-  // Calcular totais
   const valorProdutos = useMemo(() => {
     return Array.from(selectedProducts).reduce((sum, id) => {
-      const produto = mockProdutos.find((p) => p.id === id);
+      const produto = produtos.find((p) => p.id === id);
       const quantidade = quantities[id] || 0;
       return sum + (produto ? produto.valor * quantidade : 0);
     }, 0);
-  }, [selectedProducts, quantities]);
+  }, [selectedProducts, quantities, produtos]);
 
   const valorTotal = valorProdutos + TAXA_SERVICO;
 
@@ -148,7 +129,7 @@ const PedidoConsumidores = () => {
   };
 
   const handleQuantityChange = (id: string, value: number) => {
-    const produto = mockProdutos.find((p) => p.id === id);
+    const produto = produtos.find((p) => p.id === id);
     if (!produto) return;
 
     if (value > produto.quantidadeOfertada) {
@@ -184,19 +165,58 @@ const PedidoConsumidores = () => {
     setShowConfirmModal(true);
   };
 
-  const handleConfirmarFinal = () => {
-    toast({
-      title: "Pedido registrado com sucesso!",
-      description: "Seu pedido de venda direta foi registrado.",
-    });
+  const handleConfirmarFinal = async () => {
+    if (!cicloAtivo || !user) return;
+
+    setIsLoading(true);
     setShowConfirmModal(false);
-    navigate("/dashboard");
+
+    try {
+      const novoPedido = await criarPedidoMutation.mutateAsync({
+        input: {
+          cicloId: parseInt(cicloAtivo.id),
+          usuarioId: parseInt(user.id),
+          status: "pendente",
+        },
+      });
+
+      for (const productId of Array.from(selectedProducts)) {
+        const quantidade = quantities[productId] || 0;
+        if (quantidade > 0) {
+          await adicionarProdutoMutation.mutateAsync({
+            pedidoId: novoPedido.criarPedidoConsumidores.id,
+            input: {
+              produtoId: parseInt(productId),
+              quantidade,
+            },
+          });
+        }
+      }
+
+      toast({
+        title: "Pedido registrado com sucesso!",
+        description: `${selectedProducts.size} produto(s) adicionado(s) ao pedido.`,
+        className: "bg-green-600 text-white border-green-700",
+      });
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+    } catch (error) {
+      toast({
+        title: "Erro ao criar pedido",
+        description: String(error),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const selectedItems = useMemo(() => {
     return Array.from(selectedProducts)
       .map((id) => {
-        const produto = mockProdutos.find((p) => p.id === id);
+        const produto = produtos.find((p) => p.id === id);
         if (!produto) return null;
         return {
           ...produto,
@@ -476,7 +496,13 @@ const PedidoConsumidores = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {isMobile ? (
+            {isDataLoading ? (
+              <Skeleton className="h-64 w-full" />
+            ) : productGroups.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <p>Nenhuma oferta disponível no ciclo ativo.</p>
+              </div>
+            ) : isMobile ? (
               <div className="space-y-3">
                 {productGroups.flatMap((group) =>
                   group.variantes.map((produto) => {
