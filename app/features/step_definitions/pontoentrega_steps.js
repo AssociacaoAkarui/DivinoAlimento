@@ -35,7 +35,7 @@ When("eu salvo o novo ponto de entrega", async function () {
 Then(
   "o ponto de entrega {string} é criado para o mercado {string}",
   async function (nomePonto, mercado) {
-    expect(this.error).to.be.undefined;
+    expect(this.error).to.not.exist;
     expect(pontoEntregaCriado).to.have.property("id");
     expect(pontoEntregaCriado.nome).to.equal(nomePonto);
   },
