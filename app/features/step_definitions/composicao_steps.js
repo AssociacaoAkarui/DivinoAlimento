@@ -28,6 +28,11 @@ let quantidadeDisponivel;
 let alertaFalta;
 let listaComposicoes;
 
+Given("que existe uma cesta {string} cadastrada", async function (nomeCesta) {
+  const cestaData = Factories.CestaFactory.create({ nome: nomeCesta });
+  cestaDaComposicao = await cestaService.criarCesta(cestaData);
+});
+
 Given("que existe um ciclo ativo para composições", async function () {
   const pontoEntregaData = Factories.PontoEntregaFactory.create();
   const pontoEntrega =
@@ -40,8 +45,10 @@ Given("que existe um ciclo ativo para composições", async function () {
 });
 
 When("eu crio uma composição para a cesta no ciclo", async function () {
-  const cestaData = Factories.CestaFactory.create({ nome: "Cesta Básica" });
-  cestaDaComposicao = await cestaService.criarCesta(cestaData);
+  if (!cestaDaComposicao) {
+    const cestaData = Factories.CestaFactory.create({ nome: "Cesta Básica" });
+    cestaDaComposicao = await cestaService.criarCesta(cestaData);
+  }
   novaComposicao = {
     cicloId: cicloAtivo.id,
     cestaId: cestaDaComposicao.id,
