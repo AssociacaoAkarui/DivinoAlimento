@@ -47,12 +47,16 @@ import {
 import { useCompositionFilters } from "@/hooks/useCompositionFilters";
 import { CompositionFilters } from "@/components/admin/CompositionFilters";
 import { RoleTitle } from "@/components/layout/RoleTitle";
+import { useListarCiclos, useListarOfertasPorCiclo } from "@/hooks/graphql";
+import { transformarOfertasParaUI } from "@/lib/composicao-helpers";
 
 export default function AdminLiberarVendaDireta() {
-  const { id: _id } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const _mercadoId = searchParams.get("mercado");
+
+  const cicloId = id ? parseInt(id) : 0;
 
   const [busca, setBusca] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -75,81 +79,21 @@ export default function AdminLiberarVendaDireta() {
   // composicao: variantId -> quantidade
   const [composicao, setComposicao] = useState<Map<string, number>>(new Map());
 
-  // Dados mock com produto_base
-  const [ofertas] = useState<Oferta[]>([
-    {
-      id: "1",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (kg)",
-      unidade: "kg",
-      valor: 4.5,
-      fornecedor: "João Produtor",
-      quantidadeOfertada: 50,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "2",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (cx)",
-      unidade: "cx",
-      valor: 20.0,
-      fornecedor: "Maria Horta",
-      quantidadeOfertada: 15,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "3",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (kg)",
-      unidade: "kg",
-      valor: 4.2,
-      fornecedor: "Sítio Verde",
-      quantidadeOfertada: 30,
-      certificacao: "transicao",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "4",
-      produto_base: "Alface Crespa",
-      nome: "Alface Crespa (kg)",
-      unidade: "kg",
-      valor: 3.2,
-      fornecedor: "Maria Horta",
-      quantidadeOfertada: 30,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "5",
-      produto_base: "Alface Crespa",
-      nome: "Alface Crespa (maço)",
-      unidade: "maço",
-      valor: 2.0,
-      fornecedor: "João Produtor",
-      quantidadeOfertada: 50,
-      certificacao: "convencional",
-      tipo_agricultura: "nao_familiar",
-    },
-    {
-      id: "6",
-      produto_base: "Ovos Caipiras",
-      nome: "Ovos Caipiras (dúzia)",
-      unidade: "dúzia",
-      valor: 15.0,
-      fornecedor: "Sítio Boa Vista",
-      quantidadeOfertada: 100,
-      certificacao: "convencional",
-      tipo_agricultura: "familiar",
-    },
-  ]);
+  const { data: ciclosData, isLoading: ciclosLoading } = useListarCiclos();
+  const ciclo = useMemo(() => {
+    if (!ciclosData?.listarCiclos?.ciclos) return null;
+    return ciclosData.listarCiclos.ciclos.find((c) => c.id === String(cicloId));
+  }, [ciclosData, cicloId]);
 
-  const ciclo = {
-    nome: "1º Ciclo de Novembro 2025",
-    mercado: "Feira do Produtor",
-    tipo: "Venda Direta",
-  };
+  const { data: ofertasData, isLoading: ofertasLoading } =
+    useListarOfertasPorCiclo(cicloId);
+
+  const ofertas = useMemo(() => {
+    if (!ofertasData?.listarOfertasPorCiclo) return [];
+    return transformarOfertasParaUI(ofertasData.listarOfertasPorCiclo);
+  }, [ofertasData]);
+
+  const isDataLoading = ciclosLoading || ofertasLoading;
 
   // Agrupar e filtrar produtos
   const productGroups = useMemo(() => {
@@ -329,11 +273,11 @@ export default function AdminLiberarVendaDireta() {
             <div className="flex items-center justify-between">
               <div>
                 <RoleTitle
-                  page={`Liberar Venda Direta – ${ciclo.nome}`}
+                  page={`Liberar Venda Direta – ${ciclo?.nome || "Carregando..."}`}
                   className="text-2xl"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  Tipo: {ciclo.tipo} • {ciclo.mercado}
+                  Ciclo #{cicloId}
                 </p>
               </div>
               <div className="text-right">
@@ -493,7 +437,7 @@ export default function AdminLiberarVendaDireta() {
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isDataLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : productGroups.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
