@@ -1134,6 +1134,27 @@ class PedidoConsumidoresService {
       });
     }
   }
+
+  async listarPedidosPorUsuario(usuarioId) {
+    try {
+      const pedidos = await PedidoConsumidores.findAll({
+        where: { usuarioId },
+        include: [
+          "ciclo",
+          {
+            model: PedidoConsumidoresProdutos,
+            as: "pedidoConsumidoresProdutos",
+            include: ["produto"],
+          },
+        ],
+      });
+      return pedidos;
+    } catch (error) {
+      throw new ServiceError("Falha ao listar pedidos por usuário.", {
+        cause: error,
+      });
+    }
+  }
 }
 
 class CryptoUUIDService {
