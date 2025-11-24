@@ -571,6 +571,7 @@ export function useListarComposicoesPorCiclo(cicloId: string) {
       return response.listarComposicoesPorCiclo;
     },
     enabled: !!cicloId,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -1859,6 +1860,304 @@ export function useDeletarPontoEntrega() {
       });
       queryClient.invalidateQueries({
         queryKey: ["listar_pontos_entrega_ativos"],
+      });
+    },
+  });
+}
+
+// PedidoConsumidores interfaces
+export interface PedidoConsumidoresProduto {
+  id: string;
+  pedidoConsumidorId: number;
+  produtoId: number;
+  produto?: {
+    id: string;
+    nome: string;
+    medida?: string;
+    valorReferencia?: number;
+  };
+  quantidade: number;
+  valorOferta?: number;
+  valorCompra?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PedidoConsumidores {
+  id: string;
+  cicloId: number;
+  ciclo?: Ciclo;
+  usuarioId: number;
+  usuario?: {
+    id: string;
+    nome: string;
+    email: string;
+  };
+  status: string;
+  observacao?: string;
+  pedidoConsumidoresProdutos?: PedidoConsumidoresProduto[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BuscarPedidoConsumidoresQuery {
+  buscarPedidoConsumidores: PedidoConsumidores;
+}
+
+export interface ListarPedidosPorCicloQuery {
+  listarPedidosPorCiclo: PedidoConsumidores[];
+}
+
+export interface ListarPedidosPorUsuarioQuery {
+  listarPedidosPorUsuario: PedidoConsumidores[];
+}
+
+export interface CriarPedidoConsumidoresMutation {
+  criarPedidoConsumidores: PedidoConsumidores;
+}
+
+export interface AdicionarProdutoPedidoMutation {
+  adicionarProdutoPedido: PedidoConsumidoresProduto;
+}
+
+export interface AtualizarQuantidadeProdutoPedidoMutation {
+  atualizarQuantidadeProdutoPedido: PedidoConsumidoresProduto;
+}
+
+export interface RemoverProdutoPedidoMutation {
+  removerProdutoPedido: boolean;
+}
+
+export interface AtualizarStatusPedidoMutation {
+  atualizarStatusPedido: PedidoConsumidores;
+}
+
+export interface CriarPedidoConsumidoresInput {
+  cicloId: number;
+  usuarioId: number;
+  status?: string;
+  observacao?: string;
+}
+
+export interface AdicionarProdutoPedidoInput {
+  produtoId: number;
+  quantidade: number;
+  valorOferta?: number;
+  valorCompra?: number;
+}
+
+export interface AtualizarQuantidadeProdutoPedidoInput {
+  quantidade: number;
+}
+
+export interface AtualizarStatusPedidoInput {
+  status: string;
+}
+
+// PedidoConsumidores hooks
+export function useBuscarPedidoConsumidores(id: string) {
+  return useQuery<BuscarPedidoConsumidoresQuery, Error>({
+    queryKey: ["buscar_pedido_consumidores", id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(
+        token,
+      ).request<BuscarPedidoConsumidoresQuery>(
+        BUSCAR_PEDIDO_CONSUMIDORES_QUERY,
+        { id },
+      );
+    },
+    enabled: !!id,
+  });
+}
+
+export function useListarPedidosPorCiclo(cicloId: number) {
+  return useQuery<ListarPedidosPorCicloQuery, Error>({
+    queryKey: ["listar_pedidos_por_ciclo", cicloId],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(
+        token,
+      ).request<ListarPedidosPorCicloQuery>(LISTAR_PEDIDOS_POR_CICLO_QUERY, {
+        cicloId,
+      });
+    },
+    enabled: !!cicloId,
+  });
+}
+
+export function useListarPedidosPorUsuario(usuarioId: number) {
+  return useQuery<ListarPedidosPorUsuarioQuery, Error>({
+    queryKey: ["listar_pedidos_por_usuario", usuarioId],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(
+        token,
+      ).request<ListarPedidosPorUsuarioQuery>(
+        LISTAR_PEDIDOS_POR_USUARIO_QUERY,
+        {
+          usuarioId,
+        },
+      );
+    },
+    enabled: !!usuarioId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useCriarPedidoConsumidores() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    CriarPedidoConsumidoresMutation,
+    Error,
+    { input: CriarPedidoConsumidoresInput }
+  >({
+    mutationFn: async (variables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(
+        token,
+      ).request<CriarPedidoConsumidoresMutation>(
+        CRIAR_PEDIDO_CONSUMIDORES_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listar_pedidos_por_ciclo"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["listar_pedidos_por_usuario"],
+      });
+    },
+  });
+}
+
+export function useAdicionarProdutoPedido() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    AdicionarProdutoPedidoMutation,
+    Error,
+    { pedidoId: string; input: AdicionarProdutoPedidoInput }
+  >({
+    mutationFn: async (variables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(
+        token,
+      ).request<AdicionarProdutoPedidoMutation>(
+        ADICIONAR_PRODUTO_PEDIDO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["buscar_pedido_consumidores", variables.pedidoId],
+      });
+    },
+  });
+}
+
+export function useAtualizarQuantidadeProdutoPedido() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    AtualizarQuantidadeProdutoPedidoMutation,
+    Error,
+    { pedidoProdutoId: string; input: AtualizarQuantidadeProdutoPedidoInput }
+  >({
+    mutationFn: async (variables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(
+        token,
+      ).request<AtualizarQuantidadeProdutoPedidoMutation>(
+        ATUALIZAR_QUANTIDADE_PRODUTO_PEDIDO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["buscar_pedido_consumidores"],
+      });
+    },
+  });
+}
+
+export function useRemoverProdutoPedido() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    RemoverProdutoPedidoMutation,
+    Error,
+    { pedidoProdutoId: string; pedidoId?: string }
+  >({
+    mutationFn: async (variables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(
+        token,
+      ).request<RemoverProdutoPedidoMutation>(REMOVER_PRODUTO_PEDIDO_MUTATION, {
+        pedidoProdutoId: variables.pedidoProdutoId,
+      });
+    },
+    onSuccess: (data, variables) => {
+      if (variables.pedidoId) {
+        queryClient.invalidateQueries({
+          queryKey: ["buscar_pedido_consumidores", variables.pedidoId],
+        });
+      } else {
+        queryClient.invalidateQueries({
+          queryKey: ["buscar_pedido_consumidores"],
+        });
+      }
+    },
+  });
+}
+
+export function useAtualizarStatusPedido() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    AtualizarStatusPedidoMutation,
+    Error,
+    { pedidoId: string; input: AtualizarStatusPedidoInput }
+  >({
+    mutationFn: async (variables) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(
+        token,
+      ).request<AtualizarStatusPedidoMutation>(
+        ATUALIZAR_STATUS_PEDIDO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["buscar_pedido_consumidores"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["listar_pedidos_por_ciclo"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["listar_pedidos_por_usuario"],
       });
     },
   });
