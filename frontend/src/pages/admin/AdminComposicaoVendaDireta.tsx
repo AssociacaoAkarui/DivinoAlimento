@@ -50,12 +50,20 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { RoleTitle } from "@/components/layout/RoleTitle";
+import {
+  useListarCiclos,
+  useListarOfertasPorCiclo,
+  useListarPedidosPorCiclo,
+} from "@/hooks/graphql";
+import { transformarOfertasParaUI } from "@/lib/composicao-helpers";
 
 export default function AdminComposicaoVendaDireta() {
-  const { id: _id } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const _mercadoId = searchParams.get("mercado");
+
+  const cicloId = id ? parseInt(id) : 0;
 
   const [busca, setBusca] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -74,74 +82,39 @@ export default function AdminComposicaoVendaDireta() {
     hasActiveFilters,
   } = useCompositionFilters();
 
-  // quantidadesVendidas: produtoId -> quantidade vendida
-  const [quantidadesVendidas, setQuantidadesVendidas] = useState<
-    Map<string, number>
-  >(new Map());
+  const { data: ciclosData, isLoading: ciclosLoading } = useListarCiclos();
+  const ciclo = useMemo(() => {
+    if (!ciclosData?.listarCiclos?.ciclos) return null;
+    return ciclosData.listarCiclos.ciclos.find((c) => c.id === String(cicloId));
+  }, [ciclosData, cicloId]);
 
-  // Dados mock representando produtos já ofertados no ciclo
-  const [ofertas] = useState<Oferta[]>([
-    {
-      id: "1",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (kg)",
-      unidade: "kg",
-      valor: 4.5,
-      fornecedor: "João Produtor",
-      quantidadeOfertada: 50,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "2",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (cx)",
-      unidade: "cx",
-      valor: 20.0,
-      fornecedor: "Maria Horta",
-      quantidadeOfertada: 15,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "3",
-      produto_base: "Alface Crespa",
-      nome: "Alface Crespa (kg)",
-      unidade: "kg",
-      valor: 3.2,
-      fornecedor: "Maria Horta",
-      quantidadeOfertada: 30,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "4",
-      produto_base: "Alface Crespa",
-      nome: "Alface Crespa (maço)",
-      unidade: "maço",
-      valor: 2.0,
-      fornecedor: "João Produtor",
-      quantidadeOfertada: 50,
-      certificacao: "convencional",
-      tipo_agricultura: "nao_familiar",
-    },
-    {
-      id: "5",
-      produto_base: "Ovos Caipiras",
-      nome: "Ovos Caipiras (dúzia)",
-      unidade: "dúzia",
-      valor: 15.0,
-      fornecedor: "Sítio Boa Vista",
-      quantidadeOfertada: 100,
-      certificacao: "convencional",
-      tipo_agricultura: "familiar",
-    },
-  ]);
+  const { data: ofertasData, isLoading: ofertasLoading } =
+    useListarOfertasPorCiclo(cicloId);
 
-  const ciclo = {
-    nome: "1º Ciclo de Novembro 2025",
-    mercado: "Feira do Produtor",
-  };
+  const ofertas = useMemo(() => {
+    if (!ofertasData?.listarOfertasPorCiclo) return [];
+    return transformarOfertasParaUI(ofertasData.listarOfertasPorCiclo);
+  }, [ofertasData]);
+
+  const { data: pedidosData, isLoading: pedidosLoading } =
+    useListarPedidosPorCiclo(cicloId);
+
+  const quantidadesVendidas = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!pedidosData?.listarPedidosPorCiclo) return map;
+
+    pedidosData.listarPedidosPorCiclo.forEach((pedido) => {
+      pedido.pedidoConsumidoresProdutos?.forEach((item) => {
+        const produtoId = String(item.produtoId);
+        const qtdAtual = map.get(produtoId) || 0;
+        map.set(produtoId, qtdAtual + item.quantidade);
+      });
+    });
+
+    return map;
+  }, [pedidosData]);
+
+  const isDataLoading = ciclosLoading || ofertasLoading || pedidosLoading;
 
   // Filtrar por fornecedor
   const ofertasFiltradas = useMemo(() => {
@@ -249,29 +222,6 @@ export default function AdminComposicaoVendaDireta() {
     return produtoMax || "N/A";
   }, [ofertas, quantidadesVendidas]);
 
-  const _handleQuantidadeVendidaChange = (
-    produtoId: string,
-    quantidade: number,
-  ) => {
-    const oferta = ofertas.find((o) => o.id === produtoId);
-    if (!oferta) return;
-
-    const validQuantity = Math.max(
-      0,
-      Math.min(quantidade, oferta.quantidadeOfertada),
-    );
-
-    setQuantidadesVendidas((prev) => {
-      const newMap = new Map(prev);
-      if (validQuantity === 0) {
-        newMap.delete(produtoId);
-      } else {
-        newMap.set(produtoId, validQuantity);
-      }
-      return newMap;
-    });
-  };
-
   const handleSalvarClick = () => {
     setShowConfirmModal(true);
   };
@@ -338,16 +288,14 @@ export default function AdminComposicaoVendaDireta() {
           <div className="flex items-center gap-3 mb-2">
             <ShoppingCart className="h-8 w-8 text-primary" />
             <RoleTitle
-              page={`Composição de Venda Direta – ${ciclo.nome}`}
+              page={`Composição de Venda Direta – ${ciclo?.nome || "Carregando..."}`}
               className="text-3xl"
             />
           </div>
           <p className="text-lg text-muted-foreground">
             Fechamento do ciclo – consolidação das vendas realizadas
           </p>
-          <p className="text-sm text-muted-foreground">
-            {ciclo.nome} • {ciclo.mercado}
-          </p>
+          <p className="text-sm text-muted-foreground">Ciclo #{cicloId}</p>
         </div>
 
         {/* Card de Resumo Principal */}
@@ -546,7 +494,7 @@ export default function AdminComposicaoVendaDireta() {
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isDataLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : productGroups.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
