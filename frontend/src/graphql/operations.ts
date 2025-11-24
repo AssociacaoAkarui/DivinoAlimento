@@ -1171,6 +1171,19 @@ export const LISTAR_PEDIDOS_POR_CICLO_QUERY = gql`
         nome
         email
       }
+      pedidoConsumidoresProdutos {
+        id
+        pedidoConsumidorId
+        produtoId
+        quantidade
+        valorOferta
+        valorCompra
+        produto {
+          id
+          nome
+          medida
+        }
+      }
     }
   }
 `;
