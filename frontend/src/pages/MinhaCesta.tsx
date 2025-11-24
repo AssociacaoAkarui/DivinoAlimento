@@ -1,77 +1,93 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, ShoppingBasket, MapPin, Clock, CalendarDays } from 'lucide-react';
-import { formatBRL } from '@/utils/currency';
-import { Button } from '@/components/ui/button';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { RoleTitle } from '@/components/layout/RoleTitle';
-
-// Mock data - cesta do consumidor
-const mockCesta = {
-  ciclo: {
-    nome: '1º Ciclo de Novembro 2025',
-    tipo: 'Cesta Semanal',
-    status: 'Ativo',
-    retirada: {
-      data: '15/11/2025',
-      horario: '14:00 às 18:00',
-      local: 'Mercado Central - Praça da Alimentação'
-    }
-  },
-  itens: [
-    {
-      id: '1',
-      produto: 'Alface Crespa',
-      medida: 'Maço',
-      quantidade: 2,
-      valorUnitario: 3.50,
-      isExtra: false
-    },
-    {
-      id: '2',
-      produto: 'Tomate Orgânico',
-      medida: 'Kg',
-      quantidade: 1.5,
-      valorUnitario: 8.90,
-      isExtra: false
-    },
-    {
-      id: '3',
-      produto: 'Cenoura',
-      medida: 'Kg',
-      quantidade: 1,
-      valorUnitario: 4.50,
-      isExtra: false
-    },
-    {
-      id: '4',
-      produto: 'Banana Prata',
-      medida: 'Dúzia',
-      quantidade: 1,
-      valorUnitario: 6.00,
-      isExtra: true
-    },
-  ],
-  taxas: 5.00
-};
+import React from "react";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ArrowLeft, ShoppingBasket, CalendarDays } from "lucide-react";
+import { formatBRL } from "@/utils/currency";
+import { Button } from "@/components/ui/button";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { RoleTitle } from "@/components/layout/RoleTitle";
+import { useListarCiclos, useListarPedidosPorUsuario } from "@/hooks/graphql";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 const MinhaCesta = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  
-  // Estado vazio (comentar/descomentar para testar)
-  const temCesta = true;
+  const { user } = useAuth();
 
-  const valorProdutos = mockCesta.itens.reduce(
-    (sum, item) => sum + item.valorUnitario * item.quantidade,
-    0
-  );
-  const valorTotal = valorProdutos + mockCesta.taxas;
+  const { data: ciclosData, isLoading: ciclosLoading } = useListarCiclos();
+  const { data: pedidosData, isLoading: pedidosLoading } =
+    useListarPedidosPorUsuario(user ? parseInt(user.id) : 0);
+
+  const cicloAtivo = useMemo(() => {
+    if (!ciclosData?.listarCiclos?.ciclos) return null;
+    return ciclosData.listarCiclos.ciclos.find(
+      (c) => c.status === "ativo" || c.status === "aberto",
+    );
+  }, [ciclosData]);
+
+  const pedidoCicloAtivo = useMemo(() => {
+    if (!pedidosData?.listarPedidosPorUsuario || !cicloAtivo) return null;
+    return pedidosData.listarPedidosPorUsuario.find(
+      (p) => p.ciclo?.id === cicloAtivo.id,
+    );
+  }, [pedidosData, cicloAtivo]);
+
+  const isLoading = ciclosLoading || pedidosLoading;
+  const temCesta =
+    !!pedidoCicloAtivo &&
+    (pedidoCicloAtivo.pedidoConsumidoresProdutos?.length ?? 0) > 0;
+
+  const TAXAS = 5.0;
+
+  const valorProdutos = useMemo(() => {
+    if (!pedidoCicloAtivo?.pedidoConsumidoresProdutos) return 0;
+    return pedidoCicloAtivo.pedidoConsumidoresProdutos.reduce((sum, item) => {
+      const valor = item.valorCompra || item.valorOferta || 0;
+      return sum + valor * item.quantidade;
+    }, 0);
+  }, [pedidoCicloAtivo]);
+
+  const valorTotal = valorProdutos + TAXAS;
+
+  if (isLoading) {
+    return (
+      <ResponsiveLayout
+        headerContent={<UserMenuLarge />}
+        leftHeaderContent={
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center text-primary-foreground hover:opacity-80 transition-opacity focus-ring p-2 -ml-2"
+            aria-label="Voltar"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        }
+      >
+        <div className="space-y-6 pt-8 p-4">
+          <div>
+            <RoleTitle page="Minha Cesta" />
+            <p className="text-muted-foreground mt-2">
+              Itens da sua cesta no ciclo atual
+            </p>
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </ResponsiveLayout>
+    );
+  }
 
   if (!temCesta) {
     return (
@@ -79,7 +95,7 @@ const MinhaCesta = () => {
         headerContent={<UserMenuLarge />}
         leftHeaderContent={
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate("/dashboard")}
             className="flex items-center text-primary-foreground hover:opacity-80 transition-opacity focus-ring p-2 -ml-2"
             aria-label="Voltar"
           >
@@ -108,8 +124,8 @@ const MinhaCesta = () => {
                   <p className="text-muted-foreground mb-4">
                     Confira os alimentos disponíveis na venda direta
                   </p>
-                  <Button 
-                    onClick={() => navigate('/pedidoConsumidores/1')}
+                  <Button
+                    onClick={() => navigate("/pedidoConsumidores/1")}
                     variant="outline"
                   >
                     Ver opções de compra direta
@@ -128,7 +144,7 @@ const MinhaCesta = () => {
       headerContent={<UserMenuLarge />}
       leftHeaderContent={
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate("/dashboard")}
           className="flex items-center text-primary-foreground hover:opacity-80 transition-opacity focus-ring p-2 -ml-2"
           aria-label="Voltar"
         >
@@ -149,15 +165,10 @@ const MinhaCesta = () => {
         <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge 
-                variant={mockCesta.ciclo.status === 'Ativo' ? 'default' : 'secondary'} 
-                className={mockCesta.ciclo.status === 'Ativo' ? 'bg-primary' : ''}
-              >
-                {mockCesta.ciclo.status}
+              <Badge variant="default" className="bg-primary">
+                {cicloAtivo?.status === "ativo" ? "Ativo" : "Aberto"}
               </Badge>
-              <span className="font-medium">
-                {mockCesta.ciclo.nome} – {mockCesta.ciclo.tipo}
-              </span>
+              <span className="font-medium">{cicloAtivo?.nome}</span>
             </div>
           </CardContent>
         </Card>
@@ -177,7 +188,7 @@ const MinhaCesta = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Taxas</span>
-              <span className="font-medium">{formatBRL(mockCesta.taxas)}</span>
+              <span className="font-medium">{formatBRL(TAXAS)}</span>
             </div>
             <div className="h-px bg-border" />
             <div className="flex justify-between text-lg font-bold">
@@ -195,7 +206,7 @@ const MinhaCesta = () => {
           <CardContent>
             {isMobile ? (
               <div className="space-y-3">
-                {mockCesta.itens.map(item => (
+                {pedidoCicloAtivo?.pedidoConsumidoresProdutos?.map((item) => (
                   <div
                     key={item.id}
                     className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -203,35 +214,45 @@ const MinhaCesta = () => {
                     <div className="flex items-start gap-2 mb-3">
                       <div className="flex-1">
                         <h3 className="font-poppins font-bold text-base text-primary leading-tight">
-                          {item.produto}
+                          {item.produto?.nome}
                         </h3>
-                        {item.isExtra && (
-                          <Badge 
-                            className="mt-1 bg-secondary text-secondary-foreground text-xs"
-                          >
-                            Extra
-                          </Badge>
-                        )}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Medida:</span>
-                        <span className="font-medium text-foreground">{item.medida}</span>
+                        <span className="font-medium text-foreground">
+                          {item.produto?.medida || "un"}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Quantidade:</span>
-                        <span className="font-medium text-foreground">{item.quantidade}</span>
+                        <span className="text-muted-foreground">
+                          Quantidade:
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {item.quantidade}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Valor Unitário:</span>
-                        <span className="font-medium text-foreground">{formatBRL(item.valorUnitario)}</span>
+                        <span className="text-muted-foreground">
+                          Valor Unitário:
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {formatBRL(item.valorCompra || item.valorOferta || 0)}
+                        </span>
                       </div>
                       <div className="h-px bg-border my-2" />
                       <div className="flex justify-between">
-                        <span className="font-semibold text-foreground">Valor Total:</span>
-                        <span className="font-bold text-primary">{formatBRL(item.valorUnitario * item.quantidade)}</span>
+                        <span className="font-semibold text-foreground">
+                          Valor Total:
+                        </span>
+                        <span className="font-bold text-primary">
+                          {formatBRL(
+                            (item.valorCompra || item.valorOferta || 0) *
+                              item.quantidade,
+                          )}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -249,27 +270,27 @@ const MinhaCesta = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockCesta.itens.map(item => (
+                  {pedidoCicloAtivo?.pedidoConsumidoresProdutos?.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{item.produto}</span>
-                          {item.isExtra && (
-                            <Badge variant="secondary" className="text-xs">
-                              Extra
-                            </Badge>
-                          )}
+                          <span className="font-medium">
+                            {item.produto?.nome}
+                          </span>
                         </div>
                       </TableCell>
-                      <TableCell>{item.medida}</TableCell>
+                      <TableCell>{item.produto?.medida || "un"}</TableCell>
                       <TableCell className="text-right tabular-nums">
                         {item.quantidade}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
-                        {formatBRL(item.valorUnitario)}
+                        {formatBRL(item.valorCompra || item.valorOferta || 0)}
                       </TableCell>
                       <TableCell className="text-right tabular-nums font-medium">
-                        {formatBRL(item.valorUnitario * item.quantidade)}
+                        {formatBRL(
+                          (item.valorCompra || item.valorOferta || 0) *
+                            item.quantidade,
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -279,35 +300,28 @@ const MinhaCesta = () => {
           </CardContent>
         </Card>
 
-        {/* Informações de Retirada/Entrega */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações de Retirada</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start gap-3">
-              <CalendarDays className="w-5 h-5 text-primary mt-0.5" />
-              <div>
-                <div className="font-medium">Data</div>
-                <div className="text-muted-foreground">{mockCesta.ciclo.retirada.data}</div>
+        {cicloAtivo?.dataInicio && cicloAtivo?.dataFim && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações do Ciclo</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-3">
+                <CalendarDays className="w-5 h-5 text-primary mt-0.5" />
+                <div>
+                  <div className="font-medium">Período do Ciclo</div>
+                  <div className="text-muted-foreground">
+                    {new Date(cicloAtivo.dataInicio).toLocaleDateString(
+                      "pt-BR",
+                    )}{" "}
+                    até{" "}
+                    {new Date(cicloAtivo.dataFim).toLocaleDateString("pt-BR")}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Clock className="w-5 h-5 text-primary mt-0.5" />
-              <div>
-                <div className="font-medium">Horário</div>
-                <div className="text-muted-foreground">{mockCesta.ciclo.retirada.horario}</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <MapPin className="w-5 h-5 text-primary mt-0.5" />
-              <div>
-                <div className="font-medium">Local de Retirada</div>
-                <div className="text-muted-foreground">{mockCesta.ciclo.retirada.local}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </ResponsiveLayout>
   );
