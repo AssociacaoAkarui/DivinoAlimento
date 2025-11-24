@@ -48,106 +48,103 @@ import {
   Oferta,
 } from "@/utils/product-grouping";
 import { RoleTitle } from "@/components/layout/RoleTitle";
+import {
+  useBuscarCiclo,
+  useListarOfertasPorCiclo,
+  useListarComposicoesPorCiclo,
+  useCriarComposicao,
+  useSincronizarProdutosComposicao,
+  useListarCestas,
+} from "@/hooks/graphql";
+
+interface OfertaAPI {
+  id: string;
+  cicloId: number;
+  usuarioId: number;
+  usuario?: { id: string; nome: string };
+  status: string;
+  ofertaProdutos?: OfertaProdutoAPI[];
+}
+
+interface OfertaProdutoAPI {
+  id: string;
+  produtoId: number;
+  produto?: { id: string; nome: string; medida?: string };
+  quantidade: number;
+  valorReferencia?: number;
+  valorOferta?: number;
+}
+
+function transformarOfertasParaUI(ofertasAPI: OfertaAPI[]): Oferta[] {
+  const resultado: Oferta[] = [];
+
+  ofertasAPI.forEach((oferta) => {
+    oferta.ofertaProdutos?.forEach((op) => {
+      if (op.produto) {
+        resultado.push({
+          id: op.id,
+          produto_base: op.produto.nome,
+          nome: `${op.produto.nome} (${op.produto.medida || "un"})`,
+          unidade: op.produto.medida || "un",
+          valor: op.valorOferta || op.valorReferencia || 0,
+          fornecedor: oferta.usuario?.nome || "Fornecedor",
+          quantidadeOfertada: op.quantidade,
+          certificacao: "convencional",
+          tipo_agricultura: "familiar",
+        });
+      }
+    });
+  });
+
+  return resultado;
+}
 
 export default function AdminComposicaoCesta() {
-  const { id: _id } = useParams();
+  const { id: cicloId } = useParams();
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
-  // selectedByGroup: groupKey -> Set of variantIds
   const [selectedByGroup, setSelectedByGroup] = useState<
     Map<string, Set<string>>
   >(new Map());
-  // composicao: variantId -> quantidade
   const [composicao, setComposicao] = useState<Map<string, number>>(new Map());
 
-  // Dados mock - agora com produto_base
-  const [ofertas] = useState<Oferta[]>([
-    {
-      id: "1",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (kg)",
-      unidade: "kg",
-      valor: 4.5,
-      fornecedor: "João Produtor",
-      quantidadeOfertada: 50,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "2",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (cx)",
-      unidade: "cx",
-      valor: 20.0,
-      fornecedor: "Maria Horta",
-      quantidadeOfertada: 15,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "3",
-      produto_base: "Tomate Orgânico",
-      nome: "Tomate Orgânico (kg)",
-      unidade: "kg",
-      valor: 4.2,
-      fornecedor: "Sítio Verde",
-      quantidadeOfertada: 30,
-      certificacao: "transicao",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "4",
-      produto_base: "Alface Crespa",
-      nome: "Alface Crespa (kg)",
-      unidade: "kg",
-      valor: 3.2,
-      fornecedor: "Maria Horta",
-      quantidadeOfertada: 30,
-      certificacao: "organico",
-      tipo_agricultura: "familiar",
-    },
-    {
-      id: "5",
-      produto_base: "Alface Crespa",
-      nome: "Alface Crespa (maço)",
-      unidade: "maço",
-      valor: 2.0,
-      fornecedor: "João Produtor",
-      quantidadeOfertada: 50,
-      certificacao: "convencional",
-      tipo_agricultura: "nao_familiar",
-    },
-    {
-      id: "6",
-      produto_base: "Ovos Caipiras",
-      nome: "Ovos Caipiras (dúzia)",
-      unidade: "dúzia",
-      valor: 15.0,
-      fornecedor: "Sítio Boa Vista",
-      quantidadeOfertada: 100,
-      certificacao: "convencional",
-      tipo_agricultura: "familiar",
-    },
-  ]);
+  const { data: cicloData, isLoading: cicloLoading } = useBuscarCiclo(
+    cicloId || "",
+  );
+  const { data: ofertasData, isLoading: ofertasLoading } =
+    useListarOfertasPorCiclo(cicloId ? parseInt(cicloId) : 0);
+  const { data: composicoesData } = useListarComposicoesPorCiclo(cicloId || "");
+  const { data: cestasData } = useListarCestas();
+  const criarComposicaoMutation = useCriarComposicao();
+  const sincronizarProdutosMutation = useSincronizarProdutosComposicao();
 
-  const ciclo = {
-    nome: "1º Ciclo de Novembro 2025",
-    quantidade: 50,
-    valorMaximo: 80.0,
-    tipo: "Cesta",
-  };
+  const ofertas = useMemo(() => {
+    if (!ofertasData?.listarOfertasPorCiclo) return [];
+    return transformarOfertasParaUI(ofertasData.listarOfertasPorCiclo);
+  }, [ofertasData]);
 
-  // Agrupar e filtrar produtos
+  const cicloAPI = cicloData?.buscarCiclo;
+  const ciclo = useMemo(
+    () => ({
+      nome: cicloAPI?.nome || "Ciclo",
+      quantidade: composicoesData?.[0]?.quantidadeCestas || 50,
+      valorMaximo: cestasData?.[0]?.valormaximo || 80.0,
+      tipo: "Cesta",
+    }),
+    [cicloAPI, composicoesData, cestasData],
+  );
+
+  const isDataLoading = cicloLoading || ofertasLoading;
+
   const productGroups = useMemo(() => {
     const groups = groupAndSortProducts(ofertas);
     return filterProducts(groups, busca);
   }, [ofertas, busca]);
 
-  // Calcular itens selecionados
   const selectedItems = useMemo(() => {
     const items: Array<{ id: string; valor: number; quantidade: number }> = [];
     selectedByGroup.forEach((variantIds) => {
@@ -168,7 +165,6 @@ export default function AdminComposicaoCesta() {
     return items;
   }, [selectedByGroup, composicao, ofertas]);
 
-  // Cálculos reativos
   const valorAtual = selectedItems.reduce((acc, item) => {
     return acc + item.valor * item.quantidade;
   }, 0);
@@ -183,7 +179,6 @@ export default function AdminComposicaoCesta() {
 
       if (newSet.has(variantId)) {
         newSet.delete(variantId);
-        // Remove quantidade também
         setComposicao((prevComp) => {
           const newComp = new Map(prevComp);
           newComp.delete(variantId);
@@ -259,7 +254,6 @@ export default function AdminComposicaoCesta() {
   };
 
   const handlePublicarClick = () => {
-    // Se valor atual excede o máximo, abrir modal de confirmação
     if (excedeuValor) {
       setShowConfirmModal(true);
     } else {
@@ -267,36 +261,54 @@ export default function AdminComposicaoCesta() {
     }
   };
 
-  const executarPublicacao = () => {
-    // Preparar dados para envio
-    const payload = selectedItems.map((item) => ({
-      produto_id: item.id,
-      valor_unit: item.valor,
-      pedidos: item.quantidade,
+  const executarPublicacao = async () => {
+    const produtos = selectedItems.map((item) => ({
+      produtoId: parseInt(item.id),
+      quantidade: item.quantidade,
+      ofertaProdutoId: parseInt(item.id),
     }));
 
     setIsLoading(true);
     setShowConfirmModal(false);
 
-    // Simular chamada ao backend
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const composicaoExistente = composicoesData?.[0]?.composicoes?.[0];
+
+      if (composicaoExistente) {
+        await sincronizarProdutosMutation.mutateAsync({
+          composicaoId: composicaoExistente.id,
+          produtos,
+        });
+      } else if (cicloId && cestasData?.[0]) {
+        const novaComposicao = await criarComposicaoMutation.mutateAsync({
+          input: {
+            cicloId: parseInt(cicloId),
+            cestaId: parseInt(cestasData[0].id),
+            quantidadeCestas: ciclo.quantidade,
+          },
+        });
+        await sincronizarProdutosMutation.mutateAsync({
+          composicaoId: novaComposicao.criarComposicao.id,
+          produtos,
+        });
+      }
+
       toast({
         title: "Cesta publicada com sucesso.",
         className: "bg-green-600 text-white border-green-700",
       });
-
-      // Telemetria: logar se publicou acima do limite
-      if (excedeuValor) {
-        console.warn("Evento: cesta_publicada_acima_do_limite", payload);
-      } else {
-        console.warn("Dados enviados:", payload);
-      }
-    }, 1000);
+    } catch (error) {
+      toast({
+        title: "Erro ao publicar cesta.",
+        description: String(error),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Pode publicar se houver pelo menos 1 item selecionado (independente do valor)
-  const podePublicar = selectedItems.length > 0;
+  const podePublicar = selectedItems.length > 0 && !isDataLoading;
   const excedeuValor = valorAtual > ciclo.valorMaximo;
 
   return (
@@ -508,7 +520,7 @@ export default function AdminComposicaoCesta() {
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isLoading || isDataLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : productGroups.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
