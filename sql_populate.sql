@@ -199,6 +199,83 @@ INSERT INTO "Ciclos" (id, nome, "ofertaInicio", "ofertaFim", "pontoEntregaId", o
 SELECT 3, 'Ciclo de Outubro 2025', '2025-10-01 08:00:00', '2025-10-15 18:00:00', 1, 'Ciclo finalizado de outubro', 'finalizado', CURRENT_DATE, CURRENT_DATE
 WHERE NOT EXISTS (SELECT 1 FROM "Ciclos" WHERE id = 3);
 
+INSERT INTO "Oferta" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 1, 1, 2, 'ativo', 'Oferta ciclo 1', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Oferta" WHERE id = 1);
+
+INSERT INTO "Oferta" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 2, 2, 2, 'ativo', 'Oferta ciclo 2', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Oferta" WHERE id = 2);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 1, 1, 1, 100, 8.50, 8.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 1);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 2, 1, 3, 50, 12.00, 12.00, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 2);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 3, 1, 4, 80, 3.50, 3.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 3);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 4, 2, 1, 120, 8.50, 8.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 4);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 5, 2, 5, 60, 5.00, 5.00, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 5);
+
+-- UC016: PedidoConsumidores (consumidor participa en varios ciclos)
+-- Consumidor id=3 (Joao) tiene pedidos en ciclo 1 y ciclo 2
+INSERT INTO "PedidoConsumidores" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 1, 1, 3, 'confirmado', 'Pedido do ciclo 1', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidores" WHERE id = 1);
+
+INSERT INTO "PedidoConsumidores" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 2, 2, 3, 'pendente', 'Pedido do ciclo 2', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidores" WHERE id = 2);
+
+-- Consumidor id=4 (Maria Multi) tambien tiene pedido en ciclo 1
+INSERT INTO "PedidoConsumidores" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 3, 1, 4, 'confirmado', 'Pedido da Maria', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidores" WHERE id = 3);
+
+-- Pedido en ciclo finalizado (historico)
+INSERT INTO "PedidoConsumidores" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 4, 3, 3, 'entregue', 'Pedido ciclo anterior', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidores" WHERE id = 4);
+
+-- UC016: PedidoConsumidoresProdutos (produtos nos pedidos)
+-- Pedido 1 (Joao, ciclo 1): Banana e Maca
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 1, 1, 1, 3, 8.50, 8.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 1);
+
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 2, 1, 3, 2, 12.00, 12.00, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 2);
+
+-- Pedido 2 (Joao, ciclo 2): Banana e Couve
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 3, 2, 1, 5, 8.50, 8.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 3);
+
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 4, 2, 5, 4, 5.00, 5.00, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 4);
+
+-- Pedido 3 (Maria, ciclo 1): Alface
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 5, 3, 4, 6, 3.50, 3.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 5);
+
+-- Pedido 4 (Joao, ciclo finalizado - historico)
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 6, 4, 1, 2, 8.00, 8.00, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 6);
+
 -- Reset sequences after manual ID inserts (fixes "duplicate key" errors)
 SELECT setval('"CategoriaProdutos_id_seq"', COALESCE((SELECT MAX(id) FROM "CategoriaProdutos"), 1));
 SELECT setval('"Cesta_id_seq"', COALESCE((SELECT MAX(id) FROM "Cesta"), 1));
@@ -210,3 +287,7 @@ SELECT setval('"Mercados_id_seq"', COALESCE((SELECT MAX(id) FROM "Mercados"), 1)
 SELECT setval('"PontoEntregas_id_seq"', COALESCE((SELECT MAX(id) FROM "PontoEntregas"), 1));
 SELECT setval('"PrecoMercados_id_seq"', COALESCE((SELECT MAX(id) FROM "PrecoMercados"), 1));
 SELECT setval('"Ciclos_id_seq"', COALESCE((SELECT MAX(id) FROM "Ciclos"), 1));
+SELECT setval('"Oferta_id_seq"', COALESCE((SELECT MAX(id) FROM "Oferta"), 1));
+SELECT setval('"OfertaProdutos_id_seq"', COALESCE((SELECT MAX(id) FROM "OfertaProdutos"), 1));
+SELECT setval('"PedidoConsumidores_id_seq"', COALESCE((SELECT MAX(id) FROM "PedidoConsumidores"), 1));
+SELECT setval('"PedidoConsumidoresProdutos_id_seq"', COALESCE((SELECT MAX(id) FROM "PedidoConsumidoresProdutos"), 1));
