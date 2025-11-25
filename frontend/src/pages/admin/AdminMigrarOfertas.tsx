@@ -1,5 +1,3 @@
-import { useState, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit2, Check, Loader2 } from "lucide-react";
 import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
@@ -37,14 +35,21 @@ import {
 } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { sobrasPorCiclo } from "@/fixtures/produtosSobra";
 import { formatBRL } from "@/utils/currency";
-import { useListarCiclos } from "@/hooks/graphql";
+import { useListarCiclos, useMigrarOfertas } from "@/hooks/graphql";
+import {
+  LISTAR_OFERTAS_POR_CICLO_QUERY,
+  LISTAR_PEDIDOS_POR_CICLO_QUERY,
+} from "@/graphql/operations";
+import { graphqlClientSecure, getSessionToken } from "@/lib/graphql-client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useState, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface ProdutoMigracao {
-  id: string;
+  produtoId: number;
+  fornecedorId: number;
   produto: string;
   fornecedor: string;
   unidade: string;
@@ -68,7 +73,7 @@ const AdminMigrarOfertas = () => {
   const [ciclosOrigemIds, setCiclosOrigemIds] = useState<string[]>([]);
   const [produtos, setProdutos] = useState<ProdutoMigracao[]>([]);
   const [busca, setBusca] = useState("");
-  const [editandoProduto, setEditandoProduto] = useState<string | null>(null);
+  const [editandoProduto, setEditandoProduto] = useState<number | null>(null);
   const [editValues, setEditValues] = useState<{
     fornecedor: string;
     valor: string;
@@ -76,12 +81,13 @@ const AdminMigrarOfertas = () => {
     fornecedor: "",
     valor: "",
   });
+  const [carregandoSobras, setCarregandoSobras] = useState(false);
 
-  // GraphQL hook para listar ciclos
   const { data: ciclosData, isLoading: ciclosLoading } = useListarCiclos();
-  const ciclos = ciclosData?.listarCiclos || [];
+  const ciclos = ciclosData?.listarCiclos?.ciclos || [];
 
-  // Helper para formatar período do ciclo
+  const migrarOfertasMutation = useMigrarOfertas();
+
   const formatarPeriodo = (ciclo: {
     ofertaInicio?: string;
     ofertaFim?: string;
@@ -100,6 +106,7 @@ const AdminMigrarOfertas = () => {
     () => ciclos.find((c: { id: string }) => c.id === destinoSelecionadoId),
     [ciclos, destinoSelecionadoId],
   );
+
   const ciclosFinalizados = useMemo(
     () =>
       ciclos.filter(
@@ -108,6 +115,7 @@ const AdminMigrarOfertas = () => {
       ),
     [ciclos, destinoSelecionadoId],
   );
+
   const ciclosAtivos = useMemo(
     () =>
       ciclos.filter(
@@ -117,8 +125,7 @@ const AdminMigrarOfertas = () => {
     [ciclos],
   );
 
-  // Carregar sobras de múltiplos ciclos
-  const handleCarregarSobras = () => {
+  const handleCarregarSobras = async () => {
     if (ciclosOrigemIds.length === 0) {
       toast({
         title: "Atenção",
@@ -137,61 +144,104 @@ const AdminMigrarOfertas = () => {
       return;
     }
 
-    // Mapa para agrupar produtos
-    const produtosMap = new Map<string, ProdutoMigracao>();
+    setCarregandoSobras(true);
 
-    ciclosOrigemIds.forEach((cicloId) => {
-      const sobras =
-        sobrasPorCiclo[cicloId as keyof typeof sobrasPorCiclo] || [];
+    try {
+      const token = getSessionToken();
+      const client = graphqlClientSecure(token);
 
-      sobras.forEach((s) => {
-        const ofertados = s.disponivel || 0;
-        const pedidos = Math.floor(ofertados * 0.4); // Mock: 40% vendidos
-        const sobraram = Math.max(ofertados - pedidos, 0);
+      const produtosMap = new Map<string, ProdutoMigracao>();
 
-        // Chave para agrupar: produto + fornecedor + unidade
-        const chave = `${s.produto}_${s.fornecedor}_${s.unidade}`;
-        const existente = produtosMap.get(chave);
+      for (const cicloId of ciclosOrigemIds) {
+        const [ofertasResult, pedidosResult] = await Promise.all([
+          client.request(LISTAR_OFERTAS_POR_CICLO_QUERY, {
+            cicloId: parseInt(cicloId),
+          }),
+          client.request(LISTAR_PEDIDOS_POR_CICLO_QUERY, {
+            cicloId: parseInt(cicloId),
+          }),
+        ]);
 
-        if (existente) {
-          // Agrupar produtos iguais
-          existente.ofertados += ofertados;
-          existente.pedidos += pedidos;
-          existente.sobraram += sobraram;
-          existente.qtdMigrar += sobraram;
-          existente.ciclosOrigem.push(cicloId);
-        } else {
-          // Novo produto
-          produtosMap.set(chave, {
-            id: s.id,
-            produto: s.produto,
-            fornecedor: s.fornecedor,
-            unidade: s.unidade,
-            valor: s.valor,
-            ofertados,
-            pedidos,
-            sobraram,
-            qtdMigrar: sobraram,
-            selecionado: sobraram > 0,
-            ciclosOrigem: [cicloId],
+        const ofertas = ofertasResult.listarOfertasPorCiclo || [];
+        const pedidos = pedidosResult.listarPedidosPorCiclo || [];
+
+        ofertas.forEach((oferta: any) => {
+          if (!oferta.ofertaProdutos) return;
+
+          oferta.ofertaProdutos.forEach((ofertaProduto: any) => {
+            const produtoId = ofertaProduto.produtoId;
+            const fornecedorId = oferta.usuarioId;
+            const quantidade = ofertaProduto.quantidade || 0;
+            const valorOferta = ofertaProduto.valorOferta || 0;
+            const produtoNome = ofertaProduto.produto?.nome || "Produto";
+            const fornecedorNome = oferta.usuario?.nome || "Fornecedor";
+
+            let quantidadePedida = 0;
+            pedidos.forEach((pedido: any) => {
+              if (!pedido.pedidoConsumidoresProdutos) return;
+
+              pedido.pedidoConsumidoresProdutos.forEach(
+                (pedidoProduto: any) => {
+                  if (pedidoProduto.produtoId === produtoId) {
+                    quantidadePedida += pedidoProduto.quantidade || 0;
+                  }
+                },
+              );
+            });
+
+            const sobra = Math.max(quantidade - quantidadePedida, 0);
+            const chave = `${produtoId}_${fornecedorId}`;
+            const existente = produtosMap.get(chave);
+
+            if (existente) {
+              existente.ofertados += quantidade;
+              existente.pedidos += quantidadePedida;
+              existente.sobraram += sobra;
+              existente.qtdMigrar += sobra;
+              existente.ciclosOrigem.push(cicloId);
+            } else {
+              produtosMap.set(chave, {
+                produtoId,
+                fornecedorId,
+                produto: produtoNome,
+                fornecedor: fornecedorNome,
+                unidade: ofertaProduto.produto?.medida || "un",
+                valor: valorOferta,
+                ofertados: quantidade,
+                pedidos: quantidadePedida,
+                sobraram: sobra,
+                qtdMigrar: sobra,
+                selecionado: sobra > 0,
+                ciclosOrigem: [cicloId],
+              });
+            }
           });
-        }
-      });
-    });
+        });
+      }
 
-    const todosProdutos = Array.from(produtosMap.values());
+      const todosProdutos = Array.from(produtosMap.values());
 
-    if (todosProdutos.every((p) => p.sobraram === 0)) {
+      setCarregandoSobras(false);
+
+      if (todosProdutos.every((p) => p.sobraram === 0)) {
+        toast({
+          title: "Atenção",
+          description:
+            "Nenhum item disponível para migração nos ciclos selecionados.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setProdutos(todosProdutos);
+    } catch (error: any) {
+      setCarregandoSobras(false);
       toast({
-        title: "Atenção",
-        description:
-          "Nenhum item disponível para migração nos ciclos selecionados.",
+        title: "Erro ao carregar sobras",
+        description: error.message || "Ocorreu um erro ao carregar os dados.",
         variant: "destructive",
       });
-      return;
     }
-
-    setProdutos(todosProdutos);
   };
 
   const handleToggleCicloOrigem = (cicloId: string) => {
@@ -202,16 +252,18 @@ const AdminMigrarOfertas = () => {
     );
   };
 
-  const handleToggleProduto = (id: string, checked: boolean) => {
+  const handleToggleProduto = (produtoId: number, checked: boolean) => {
     setProdutos((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, selecionado: checked } : p)),
+      prev.map((p) =>
+        p.produtoId === produtoId ? { ...p, selecionado: checked } : p,
+      ),
     );
   };
 
-  const handleQtdMigrarChange = (id: string, value: number) => {
+  const handleQtdMigrarChange = (produtoId: number, value: number) => {
     setProdutos((prev) =>
       prev.map((p) => {
-        if (p.id === id) {
+        if (p.produtoId === produtoId) {
           const qtd = Math.max(1, Math.min(value, p.sobraram));
           return { ...p, qtdMigrar: qtd };
         }
@@ -230,10 +282,10 @@ const AdminMigrarOfertas = () => {
     setProdutos((prev) => prev.map((p) => ({ ...p, selecionado: false })));
   };
 
-  const handleEditarProduto = (id: string) => {
-    const produto = produtos.find((p) => p.id === id);
+  const handleEditarProduto = (produtoId: number) => {
+    const produto = produtos.find((p) => p.produtoId === produtoId);
     if (produto) {
-      setEditandoProduto(id);
+      setEditandoProduto(produtoId);
       setEditValues({
         fornecedor: produto.fornecedor,
         valor: produto.valor.toString(),
@@ -241,10 +293,10 @@ const AdminMigrarOfertas = () => {
     }
   };
 
-  const handleSalvarEdicao = (id: string) => {
+  const handleSalvarEdicao = (produtoId: number) => {
     setProdutos((prev) =>
       prev.map((p) => {
-        if (p.id === id) {
+        if (p.produtoId === produtoId) {
           return {
             ...p,
             fornecedor: editValues.fornecedor,
@@ -288,14 +340,33 @@ const AdminMigrarOfertas = () => {
       return;
     }
 
-    // Simular salvamento
-    toast({
-      title: "✅ Ofertas migradas com sucesso!",
-      description: `${selecionados.length} produtos foram adicionados ao ciclo de destino.`,
-    });
+    const input = {
+      ciclosOrigemIds: ciclosOrigemIds.map((id) => parseInt(id)),
+      cicloDestinoId: parseInt(destinoSelecionadoId),
+      produtos: selecionados.map((p) => ({
+        produtoId: p.produtoId,
+        quantidade: p.qtdMigrar,
+        valorOferta: p.valor,
+        fornecedorId: p.fornecedorId,
+      })),
+    };
 
-    // Redirecionar para gestão de ciclos
-    navigate("/admin/ciclo-index");
+    migrarOfertasMutation.mutate(input, {
+      onSuccess: () => {
+        toast({
+          title: "Ofertas migradas com sucesso!",
+          description: `${selecionados.length} produtos foram adicionados ao ciclo de destino.`,
+        });
+        navigate("/admin/ciclo-index");
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Erro ao migrar ofertas",
+          description: error.message || "Ocorreu um erro ao migrar as ofertas.",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const produtosFiltrados = produtos.filter(
@@ -341,7 +412,6 @@ const AdminMigrarOfertas = () => {
           </p>
         </div>
 
-        {/* Seleção de Ciclo Destino (se não houver destinoId válido) */}
         {!cicloDestino && (
           <Card>
             <CardHeader>
@@ -353,26 +423,31 @@ const AdminMigrarOfertas = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Select
-                value={destinoSelecionadoId}
-                onValueChange={setDestinoSelecionadoId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione o ciclo de destino (Ativo/Iniciado)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ciclosAtivos.map((ciclo) => (
-                    <SelectItem key={ciclo.id} value={ciclo.id}>
-                      {ciclo.nome} • {formatarPeriodo(ciclo)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {ciclosLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : (
+                <Select
+                  value={destinoSelecionadoId}
+                  onValueChange={setDestinoSelecionadoId}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione o ciclo de destino (Ativo/Iniciado)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ciclosAtivos.map((ciclo) => (
+                      <SelectItem key={ciclo.id} value={ciclo.id}>
+                        {ciclo.nome} • {formatarPeriodo(ciclo)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </CardContent>
           </Card>
         )}
 
-        {/* Card do Ciclo Destino */}
         {cicloDestino && (
           <>
             <Card className="shadow-sm">
@@ -391,7 +466,6 @@ const AdminMigrarOfertas = () => {
               </CardHeader>
             </Card>
 
-            {/* Seleção de Ciclos de Origem */}
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="text-primary">
@@ -441,6 +515,7 @@ const AdminMigrarOfertas = () => {
                     ))}
                   </div>
                 )}
+
                 <div className="mt-6 flex justify-end gap-3">
                   <Button
                     variant="outline"
@@ -450,10 +525,17 @@ const AdminMigrarOfertas = () => {
                   </Button>
                   <Button
                     onClick={handleCarregarSobras}
-                    disabled={ciclosOrigemIds.length === 0}
+                    disabled={ciclosOrigemIds.length === 0 || carregandoSobras}
                     variant="success"
                   >
-                    Carregar sobras selecionadas
+                    {carregandoSobras ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Carregando...
+                      </>
+                    ) : (
+                      "Carregar sobras selecionadas"
+                    )}
                   </Button>
                 </div>
               </CardContent>
@@ -461,7 +543,6 @@ const AdminMigrarOfertas = () => {
           </>
         )}
 
-        {/* Tabela de Produtos (quando houver produtos carregados) */}
         {produtos.length > 0 && (
           <Card className="shadow-sm">
             <CardHeader>
@@ -522,7 +603,7 @@ const AdminMigrarOfertas = () => {
                   <TableBody>
                     {produtosFiltrados.map((produto) => (
                       <TableRow
-                        key={produto.id}
+                        key={`${produto.produtoId}_${produto.fornecedorId}`}
                         className={produto.sobraram === 0 ? "opacity-50" : ""}
                       >
                         <TableCell>
@@ -531,7 +612,7 @@ const AdminMigrarOfertas = () => {
                             disabled={produto.sobraram === 0}
                             onCheckedChange={(checked) =>
                               handleToggleProduto(
-                                produto.id,
+                                produto.produtoId,
                                 checked as boolean,
                               )
                             }
@@ -565,7 +646,7 @@ const AdminMigrarOfertas = () => {
                             }
                             onChange={(e) =>
                               handleQtdMigrarChange(
-                                produto.id,
+                                produto.produtoId,
                                 Number(e.target.value),
                               )
                             }
@@ -575,10 +656,10 @@ const AdminMigrarOfertas = () => {
                         <TableCell>
                           {produto.sobraram > 0 && (
                             <Popover
-                              open={editandoProduto === produto.id}
+                              open={editandoProduto === produto.produtoId}
                               onOpenChange={(open) => {
                                 if (open) {
-                                  handleEditarProduto(produto.id);
+                                  handleEditarProduto(produto.produtoId);
                                 } else {
                                   setEditandoProduto(null);
                                 }
@@ -638,7 +719,7 @@ const AdminMigrarOfertas = () => {
                                     <Button
                                       size="sm"
                                       onClick={() =>
-                                        handleSalvarEdicao(produto.id)
+                                        handleSalvarEdicao(produto.produtoId)
                                       }
                                       variant="success"
                                     >
@@ -656,7 +737,6 @@ const AdminMigrarOfertas = () => {
                 </Table>
               </div>
 
-              {/* Totais */}
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 <Card className="border-primary/20 bg-primary/5 shadow-sm">
                   <CardHeader className="pb-3">
@@ -702,13 +782,25 @@ const AdminMigrarOfertas = () => {
                 </Button>
                 <Button
                   onClick={handleSalvarMigracao}
-                  disabled={produtosSelecionados.length === 0}
+                  disabled={
+                    produtosSelecionados.length === 0 ||
+                    migrarOfertasMutation.isPending
+                  }
                   variant="success"
                   className="gap-2"
                 >
-                  <Check className="h-4 w-4" />
-                  Salvar no ciclo destino ({totalItens}{" "}
-                  {totalItens === 1 ? "item" : "itens"})
+                  {migrarOfertasMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Salvar no ciclo destino ({totalItens}{" "}
+                      {totalItens === 1 ? "item" : "itens"})
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
