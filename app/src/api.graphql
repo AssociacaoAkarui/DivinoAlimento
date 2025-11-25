@@ -454,6 +454,7 @@ type Mutation {
         input: AtualizarQuantidadeProdutoInput!
     ): OfertaProduto!
     removerProdutoOferta(ofertaProdutoId: ID!): Boolean!
+    migrarOfertas(input: MigrarOfertasInput!): [Oferta!]!
     criarPrecoMercado(input: CriarPrecoMercadoInput!): PrecoMercado!
     atualizarPrecoMercado(
         id: ID!
@@ -564,6 +565,19 @@ input AdicionarProdutoOfertaInput {
 input AtualizarQuantidadeProdutoInput {
     quantidade: Float!
     valorOferta: Float
+}
+
+input ProdutoMigrarInput {
+    produtoId: Int!
+    quantidade: Float!
+    valorOferta: Float
+    fornecedorId: Int
+}
+
+input MigrarOfertasInput {
+    ciclosOrigemIds: [Int!]!
+    cicloDestinoId: Int!
+    produtos: [ProdutoMigrarInput!]!
 }
 
 type PrecoMercado {

@@ -661,6 +661,20 @@ export const REMOVER_PRODUTO_OFERTA_MUTATION = gql`
   }
 `;
 
+export const MIGRAR_OFERTAS_MUTATION = gql`
+  mutation MigrarOfertas($input: MigrarOfertasInput!) {
+    migrarOfertas(input: $input) {
+      id
+      cicloId
+      usuarioId
+      status
+      observacao
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 // PontoEntrega operations
 export const LISTAR_PONTOS_ENTREGA_QUERY = gql`
   query ListarPontosEntrega {

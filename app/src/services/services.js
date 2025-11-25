@@ -973,6 +973,138 @@ class OfertaService {
       );
     }
   }
+
+  async migrarOfertas(
+    ciclosOrigemIds,
+    cicloDestinoId,
+    produtosMigrar,
+    usuarioId,
+  ) {
+    const transaction = await sequelize.transaction();
+    try {
+      // Validar ciclo destino
+      const cicloDestino = await Ciclo.findByPk(cicloDestinoId);
+      if (!cicloDestino) {
+        throw new ServiceError(
+          `Ciclo de destino com ID ${cicloDestinoId} não encontrado`,
+        );
+      }
+
+      if (cicloDestino.status !== "oferta" && cicloDestino.status !== "ativo") {
+        throw new ServiceError(
+          "Ciclo de destino precisa estar ativo ou em período de ofertas",
+        );
+      }
+
+      // Buscar ofertas dos ciclos origem
+      const ofertas = await Oferta.findAll({
+        where: { cicloId: ciclosOrigemIds },
+        include: [
+          {
+            model: OfertaProdutos,
+            as: "ofertaProdutos",
+            include: ["produto"],
+          },
+        ],
+      });
+
+      // Buscar pedidos dos ciclos origem para calcular sobras
+      const pedidos = await PedidoConsumidores.findAll({
+        where: { cicloId: ciclosOrigemIds },
+        include: [
+          {
+            model: PedidoConsumidoresProdutos,
+            as: "pedidoConsumidoresProdutos",
+          },
+        ],
+      });
+
+      // Calcular sobras por produto
+      const sobras = new Map();
+
+      ofertas.forEach((oferta) => {
+        oferta.ofertaProdutos?.forEach((op) => {
+          const key = `${op.produtoId}`;
+          if (!sobras.has(key)) {
+            sobras.set(key, {
+              produtoId: op.produtoId,
+              quantidade: 0,
+              valorOferta: op.valorOferta,
+            });
+          }
+          sobras.get(key).quantidade += op.quantidade;
+        });
+      });
+
+      pedidos.forEach((pedido) => {
+        pedido.pedidoConsumidoresProdutos?.forEach((pcp) => {
+          const key = `${pcp.produtoId}`;
+          if (sobras.has(key)) {
+            sobras.get(key).quantidade -= pcp.quantidade;
+          }
+        });
+      });
+
+      // Criar ofertas no ciclo destino agrupadas por fornecedor
+      const ofertasPorFornecedor = new Map();
+
+      produtosMigrar.forEach((pm) => {
+        const sobra = sobras.get(`${pm.produtoId}`);
+        if (!sobra || sobra.quantidade <= 0) return;
+
+        const quantidade = Math.min(pm.quantidade, sobra.quantidade);
+        if (quantidade <= 0) return;
+
+        const fornecedorId = pm.fornecedorId || usuarioId;
+        if (!ofertasPorFornecedor.has(fornecedorId)) {
+          ofertasPorFornecedor.set(fornecedorId, []);
+        }
+
+        ofertasPorFornecedor.get(fornecedorId).push({
+          produtoId: pm.produtoId,
+          quantidade,
+          valorOferta: pm.valorOferta || sobra.valorOferta,
+        });
+      });
+
+      const ofertasCriadas = [];
+
+      for (const [fornecedorId, produtos] of ofertasPorFornecedor) {
+        const oferta = await Oferta.create(
+          {
+            cicloId: cicloDestinoId,
+            usuarioId: fornecedorId,
+            status: "ativa",
+            observacao: `Migrado de ciclos: ${ciclosOrigemIds.join(", ")}`,
+          },
+          { transaction },
+        );
+
+        for (const produto of produtos) {
+          await OfertaProdutos.create(
+            {
+              ofertaId: oferta.id,
+              produtoId: produto.produtoId,
+              quantidade: produto.quantidade,
+              valorOferta: produto.valorOferta,
+            },
+            { transaction },
+          );
+        }
+
+        ofertasCriadas.push(oferta);
+      }
+
+      await transaction.commit();
+      return ofertasCriadas;
+    } catch (error) {
+      await transaction.rollback();
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError("Falha ao migrar ofertas.", {
+        cause: error,
+      });
+    }
+  }
 }
 
 class PedidoConsumidoresService {

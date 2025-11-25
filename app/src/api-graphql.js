@@ -719,6 +719,19 @@ const rootValue = {
     return result;
   },
 
+  migrarOfertas: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const ofertas = await context.ofertaService.migrarOfertas(
+      args.input.ciclosOrigemIds,
+      args.input.cicloDestinoId,
+      args.input.produtos,
+      context.session.usuarioId,
+    );
+    return ofertas;
+  },
+
   criarComposicao: async (args, context) => {
     await requiredAuthenticated(context);
     await setupSession(context);

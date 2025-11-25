@@ -86,6 +86,7 @@ import {
   ADICIONAR_PRODUTO_OFERTA_MUTATION,
   ATUALIZAR_QUANTIDADE_PRODUTO_OFERTA_MUTATION,
   REMOVER_PRODUTO_OFERTA_MUTATION,
+  MIGRAR_OFERTAS_MUTATION,
   LISTAR_PONTOS_ENTREGA_QUERY,
   LISTAR_PONTOS_ENTREGA_ATIVOS_QUERY,
   BUSCAR_PONTO_ENTREGA_QUERY,
@@ -1697,6 +1698,55 @@ export function useRemoverProdutoOferta() {
           queryKey: ["buscar_oferta"],
         });
       }
+    },
+  });
+}
+
+export interface ProdutoMigrarInput {
+  produtoId: number;
+  quantidade: number;
+  valorOferta?: number;
+  fornecedorId?: number;
+}
+
+export interface MigrarOfertasInput {
+  ciclosOrigemIds: number[];
+  cicloDestinoId: number;
+  produtos: ProdutoMigrarInput[];
+}
+
+interface MigrarOfertasMutation {
+  migrarOfertas: {
+    id: string;
+    cicloId: number;
+    usuarioId: number;
+    status: string;
+    observacao: string;
+    createdAt: string;
+    updatedAt: string;
+  }[];
+}
+
+export function useMigrarOfertas() {
+  const queryClient = useQueryClient();
+  return useMutation<MigrarOfertasMutation, Error, MigrarOfertasInput>({
+    mutationFn: async (input) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request<MigrarOfertasMutation>(
+        MIGRAR_OFERTAS_MUTATION,
+        { input },
+      );
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["listar_ofertas_por_ciclo", variables.cicloDestinoId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["listar_ciclos"],
+      });
     },
   });
 }

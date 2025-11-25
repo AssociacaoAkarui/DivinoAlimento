@@ -3801,6 +3801,148 @@ describe("Oferta GraphQL", function () {
     expect(result.errors).to.be.undefined;
     expect(result.data.removerProdutoOferta).to.be.true;
   });
+
+  it("admin user can migrar ofertas between ciclos", async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "admin-uuid";
+      },
+    });
+
+    await usuarioService.create(
+      {
+        email: "admin@example.com",
+        senha: "password123",
+        phoneNumber: "11999887766",
+      },
+      {
+        nome: "Admin User",
+        perfis: ["admin"],
+        status: "ativo",
+      },
+    );
+
+    const session = await usuarioService.login(
+      "admin@example.com",
+      "password123",
+    );
+
+    const {
+      PontoEntrega,
+      Ciclo,
+      Produto,
+      Oferta,
+      OfertaProdutos,
+      PedidoConsumidores,
+      PedidoConsumidoresProdutos,
+    } = require("../models/index.js");
+
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste, 123",
+      status: "ativo",
+    });
+
+    const agora = new Date();
+    const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const cicloOrigem = await Ciclo.create({
+      nome: "Ciclo Origem",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+      status: "finalizado",
+    });
+
+    const cicloDestino = await Ciclo.create({
+      nome: "Ciclo Destino",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntrega.id,
+      status: "oferta",
+    });
+
+    const produto = await Produto.create({
+      nome: "Tomate",
+      medida: "kg",
+      valorReferencia: 5.0,
+      status: "ativo",
+    });
+
+    const { Usuario } = require("../models/index.js");
+    const usuario = await Usuario.findOne({
+      where: { email: "admin@example.com" },
+    });
+
+    const oferta = await Oferta.create({
+      cicloId: cicloOrigem.id,
+      usuarioId: usuario.id,
+      status: "ativa",
+    });
+
+    await OfertaProdutos.create({
+      ofertaId: oferta.id,
+      produtoId: produto.id,
+      quantidade: 100,
+      valorOferta: 4.5,
+    });
+
+    const pedido = await PedidoConsumidores.create({
+      cicloId: cicloOrigem.id,
+      usuarioId: usuario.id,
+      status: "confirmado",
+    });
+
+    await PedidoConsumidoresProdutos.create({
+      pedidoConsumidorId: pedido.id,
+      produtoId: produto.id,
+      quantidade: 30,
+      valorOferta: 4.5,
+    });
+
+    const mutation = `
+      mutation MigrarOfertas($input: MigrarOfertasInput!) {
+        migrarOfertas(input: $input) {
+          id
+          cicloId
+          usuarioId
+          status
+          observacao
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(session.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: {
+        input: {
+          ciclosOrigemIds: [cicloOrigem.id],
+          cicloDestinoId: cicloDestino.id,
+          produtos: [
+            {
+              produtoId: produto.id,
+              quantidade: 50,
+              valorOferta: 4.5,
+            },
+          ],
+        },
+      },
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.migrarOfertas).to.be.an("array");
+    expect(result.data.migrarOfertas).to.have.lengthOf(1);
+    expect(result.data.migrarOfertas[0].cicloId).to.equal(cicloDestino.id);
+    expect(result.data.migrarOfertas[0].observacao).to.include(
+      "Migrado de ciclos",
+    );
+  });
 });
 
 describe("PontoEntrega GraphQL", function () {
