@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
+import { useState, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,25 +31,20 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RoleTitle } from "@/components/layout/RoleTitle";
-
-interface EntregaFornecedor {
-  id: string;
-  fornecedor: string;
-  produto: string;
-  unidade_medida: string;
-  valor_unitario: number;
-  quantidade_entregue: number;
-  valor_total: number;
-  agricultura_familiar: boolean;
-  certificacao: "organico" | "transicao" | "convencional";
-}
+import { Skeleton } from "@/components/ui/skeleton";
+import { useBuscarCiclo, useListarOfertasPorCiclo } from "@/hooks/graphql";
+import {
+  transformarOfertasParaRelatorio,
+  filtrarEntregas,
+  ordenarEntregas,
+  calcularResumoConsolidado,
+} from "@/lib/relatorio-fornecedores-helpers";
 
 export default function AdminMercadoRelatorioFornecedores() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { cicloId } = useParams();
-  const [searchParams] = useSearchParams();
-  const _mercadoId = searchParams.get("mercado");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"fornecedor" | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -57,120 +52,97 @@ export default function AdminMercadoRelatorioFornecedores() {
     useState<string>("todos");
   const [filtroCertificacao, setFiltroCertificacao] = useState<string>("todos");
 
-  // Mock data - filtrado para o mercado do admin
-  const entregas: EntregaFornecedor[] = [
-    {
-      id: "1",
-      fornecedor: "Fazenda Verde",
-      produto: "Tomate",
-      unidade_medida: "kg",
-      valor_unitario: 5.5,
-      quantidade_entregue: 120,
-      valor_total: 660.0,
-      agricultura_familiar: true,
-      certificacao: "organico",
-    },
-    {
-      id: "2",
-      fornecedor: "Fazenda Verde",
-      produto: "Alface",
-      unidade_medida: "unidade",
-      valor_unitario: 2.0,
-      quantidade_entregue: 200,
-      valor_total: 400.0,
-      agricultura_familiar: true,
-      certificacao: "transicao",
-    },
-    {
-      id: "3",
-      fornecedor: "Sítio do Sol",
-      produto: "Cenoura",
-      unidade_medida: "kg",
-      valor_unitario: 4.0,
-      quantidade_entregue: 80,
-      valor_total: 320.0,
-      agricultura_familiar: false,
-      certificacao: "convencional",
-    },
-    {
-      id: "4",
-      fornecedor: "Horta Orgânica",
-      produto: "Rúcula",
-      unidade_medida: "maço",
-      valor_unitario: 3.5,
-      quantidade_entregue: 150,
-      valor_total: 525.0,
-      agricultura_familiar: true,
-      certificacao: "organico",
-    },
-  ];
-
-  // Mock data - informações do mercado
-  const mercadoInfo = {
-    nome: "Mercado Central",
-    pontoEntrega: "Praça Central, 123",
-    dataEntrega: "25/11/2025",
-    horaEntrega: "08:00",
-  };
-
-  const filteredEntregas = entregas
-    .filter((entrega) => {
-      const matchSearch =
-        entrega.fornecedor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entrega.produto.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchAgriculturaFamiliar =
-        filtroAgriculturaFamiliar === "todos" ||
-        (filtroAgriculturaFamiliar === "sim" && entrega.agricultura_familiar) ||
-        (filtroAgriculturaFamiliar === "nao" && !entrega.agricultura_familiar);
-
-      const matchCertificacao =
-        filtroCertificacao === "todos" ||
-        entrega.certificacao === filtroCertificacao;
-
-      return matchSearch && matchAgriculturaFamiliar && matchCertificacao;
-    })
-    .sort((a, b) => {
-      if (sortBy === "fornecedor") {
-        const compareResult = a.fornecedor.localeCompare(b.fornecedor);
-        return sortOrder === "asc" ? compareResult : -compareResult;
-      }
-      return 0;
-    });
-
-  const totalQuantidade = filteredEntregas.reduce(
-    (acc, e) => acc + e.quantidade_entregue,
-    0,
+  const { data: cicloData, isLoading: isLoadingCiclo } = useBuscarCiclo(
+    parseInt(cicloId || "0"),
   );
-  const valorTotalGeral = filteredEntregas.reduce(
-    (acc, e) => acc + e.valor_total,
-    0,
-  );
+  const { data: ofertasData, isLoading: isLoadingOfertas } =
+    useListarOfertasPorCiclo(parseInt(cicloId || "0"));
+
+  const isDataLoading = isLoadingCiclo || isLoadingOfertas;
+
+  const entregas = useMemo(() => {
+    if (!ofertasData?.listarOfertasPorCiclo) return [];
+    return transformarOfertasParaRelatorio(ofertasData.listarOfertasPorCiclo);
+  }, [ofertasData]);
+
+  const entregasFiltradas = useMemo(() => {
+    const filtros = {
+      searchTerm,
+      agriculturaFamiliar: filtroAgriculturaFamiliar,
+      certificacao: filtroCertificacao,
+    };
+    const filtradas = filtrarEntregas(entregas, filtros);
+    return ordenarEntregas(filtradas, sortBy, sortOrder);
+  }, [
+    entregas,
+    searchTerm,
+    filtroAgriculturaFamiliar,
+    filtroCertificacao,
+    sortBy,
+    sortOrder,
+  ]);
+
+  const resumo = useMemo(() => {
+    return calcularResumoConsolidado(entregasFiltradas);
+  }, [entregasFiltradas]);
+
+  const cicloInfo = useMemo(() => {
+    if (!cicloData?.buscarCiclo) return null;
+    const ciclo = cicloData.buscarCiclo;
+    const entrega = ciclo.cicloEntregas?.[0];
+    return {
+      nome: ciclo.nome,
+      pontoEntrega: ciclo.pontoEntrega?.nome || "Sem ponto de entrega",
+      endereco: ciclo.pontoEntrega?.endereco || "",
+      dataEntrega: entrega?.entregaFornecedorFim
+        ? new Date(entrega.entregaFornecedorFim).toLocaleDateString("pt-BR")
+        : "-",
+      horaEntrega: entrega?.entregaFornecedorFim
+        ? new Date(entrega.entregaFornecedorFim).toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "-",
+    };
+  }, [cicloData]);
 
   const handleExportCSV = async () => {
     try {
       const ciclosData = [
-        { id: parseInt(cicloId || "1"), nome: `Ciclo ${cicloId}` },
+        {
+          id: parseInt(cicloId || "0"),
+          nome: cicloInfo?.nome || `Ciclo ${cicloId}`,
+        },
       ];
       const { exportFornecedoresCSV } = await import("@/utils/export");
-      exportFornecedoresCSV(filteredEntregas, ciclosData);
+      exportFornecedoresCSV(entregasFiltradas, ciclosData);
       toast({ title: "Sucesso", description: "Download do CSV concluído" });
     } catch (_error) {
-      toast({ title: "Erro", description: "Erro ao exportar CSV" });
+      toast({
+        title: "Erro",
+        description: "Erro ao exportar CSV",
+        variant: "destructive",
+      });
     }
   };
 
   const handleExportPDF = async () => {
     try {
       const ciclosData = [
-        { id: parseInt(cicloId || "1"), nome: `Ciclo ${cicloId}` },
+        {
+          id: parseInt(cicloId || "0"),
+          nome: cicloInfo?.nome || `Ciclo ${cicloId}`,
+        },
       ];
-      const resumo = { totalQuantidade, valorTotal: valorTotalGeral };
       const { exportFornecedoresPDF } = await import("@/utils/export");
-      exportFornecedoresPDF(filteredEntregas, ciclosData, resumo);
+      exportFornecedoresPDF(entregasFiltradas, ciclosData, resumo);
       toast({ title: "Sucesso", description: "Download do PDF concluído" });
     } catch (_error) {
-      toast({ title: "Erro", description: "Erro ao exportar PDF" });
+      toast({
+        title: "Erro",
+        description: "Erro ao exportar PDF",
+        variant: "destructive",
+      });
     }
   };
 
@@ -198,7 +170,6 @@ export default function AdminMercadoRelatorioFornecedores() {
       headerContent={<UserMenuLarge />}
     >
       <div className="space-y-6">
-        {/* Header */}
         <div>
           <RoleTitle
             page="Relatório de Entregas dos Fornecedores"
@@ -210,55 +181,57 @@ export default function AdminMercadoRelatorioFornecedores() {
           </p>
         </div>
 
-        {/* Resumo Card */}
-        <Card className="border-2 border-primary/20">
-          <CardHeader>
-            <CardTitle className="text-lg text-primary">
-              Resumo do Ciclo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Quantidade de Registros
-                </p>
-                <p className="text-2xl font-bold text-primary">
-                  {filteredEntregas.length}
-                </p>
+        {isDataLoading ? (
+          <Skeleton className="h-48 w-full" />
+        ) : (
+          <Card className="border-2 border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-lg text-primary">
+                Resumo do Ciclo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Quantidade de Registros
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    {resumo.quantidadeRegistros}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Quantidade Total Entregue
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    {resumo.totalQuantidade}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Valor Total Consolidado
+                  </p>
+                  <p className="text-2xl font-bold text-success">
+                    R$ {resumo.valorTotal.toFixed(2).replace(".", ",")}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Local / Data / Horário
+                  </p>
+                  <p className="text-base font-semibold">
+                    {cicloInfo?.pontoEntrega}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {cicloInfo?.dataEntrega} às {cicloInfo?.horaEntrega}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Quantidade Total Entregue
-                </p>
-                <p className="text-2xl font-bold text-primary">
-                  {totalQuantidade}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Valor Total Consolidado
-                </p>
-                <p className="text-2xl font-bold text-success">
-                  R$ {valorTotalGeral.toFixed(2).replace(".", ",")}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Local / Data / Horário
-                </p>
-                <p className="text-base font-semibold">
-                  {mercadoInfo.pontoEntrega}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {mercadoInfo.dataEntrega} às {mercadoInfo.horaEntrega}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Toolbar */}
         <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -269,7 +242,6 @@ export default function AdminMercadoRelatorioFornecedores() {
               className="pl-10"
             />
           </div>
-
           <div className="flex flex-wrap gap-2 items-end">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-muted-foreground">
@@ -289,7 +261,6 @@ export default function AdminMercadoRelatorioFornecedores() {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-muted-foreground">
                 Certificação
@@ -309,7 +280,6 @@ export default function AdminMercadoRelatorioFornecedores() {
                 </SelectContent>
               </Select>
             </div>
-
             <Button
               variant="outline"
               onClick={handleExportCSV}
@@ -329,8 +299,13 @@ export default function AdminMercadoRelatorioFornecedores() {
           </div>
         </div>
 
-        {/* Table / Cards */}
-        {!isMobile ? (
+        {isDataLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full" />
+            ))}
+          </div>
+        ) : !isMobile ? (
           <Card>
             <Table>
               <TableHeader>
@@ -359,7 +334,7 @@ export default function AdminMercadoRelatorioFornecedores() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEntregas.length === 0 ? (
+                {entregasFiltradas.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
                       <p className="text-muted-foreground">
@@ -370,7 +345,7 @@ export default function AdminMercadoRelatorioFornecedores() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredEntregas.map((entrega) => (
+                  entregasFiltradas.map((entrega) => (
                     <TableRow key={entrega.id}>
                       <TableCell className="font-medium">
                         {entrega.fornecedor}
@@ -379,7 +354,7 @@ export default function AdminMercadoRelatorioFornecedores() {
                         <div className="flex flex-col gap-1">
                           <span>{entrega.produto}</span>
                           <div className="flex gap-1">
-                            {entrega.agricultura_familiar && (
+                            {entrega.agriculturaFamiliar && (
                               <Badge variant="secondary" className="text-xs">
                                 Agricultura Familiar
                               </Badge>
@@ -403,15 +378,15 @@ export default function AdminMercadoRelatorioFornecedores() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{entrega.unidade_medida}</TableCell>
+                      <TableCell>{entrega.medida}</TableCell>
                       <TableCell className="text-right">
-                        R$ {entrega.valor_unitario.toFixed(2).replace(".", ",")}
+                        R$ {entrega.valorUnitario.toFixed(2).replace(".", ",")}
                       </TableCell>
                       <TableCell className="text-right">
-                        {entrega.quantidade_entregue}
+                        {entrega.quantidade}
                       </TableCell>
                       <TableCell className="text-right font-semibold text-success">
-                        R$ {entrega.valor_total.toFixed(2).replace(".", ",")}
+                        R$ {entrega.valorTotal.toFixed(2).replace(".", ",")}
                       </TableCell>
                     </TableRow>
                   ))
@@ -420,9 +395,8 @@ export default function AdminMercadoRelatorioFornecedores() {
             </Table>
           </Card>
         ) : (
-          /* Visualização em Cards para Mobile */
           <div className="space-y-3">
-            {filteredEntregas.length === 0 ? (
+            {entregasFiltradas.length === 0 ? (
               <Card>
                 <CardContent className="py-8 text-center">
                   <p className="text-muted-foreground">
@@ -433,7 +407,7 @@ export default function AdminMercadoRelatorioFornecedores() {
                 </CardContent>
               </Card>
             ) : (
-              filteredEntregas.map((entrega) => (
+              entregasFiltradas.map((entrega) => (
                 <Card key={entrega.id}>
                   <CardContent className="p-4 space-y-3">
                     <div className="flex justify-between items-start gap-2">
@@ -447,17 +421,16 @@ export default function AdminMercadoRelatorioFornecedores() {
                           Valor Total
                         </p>
                         <p className="text-lg font-bold text-green-600">
-                          R$ {entrega.valor_total.toFixed(2).replace(".", ",")}
+                          R$ {entrega.valorTotal.toFixed(2).replace(".", ",")}
                         </p>
                       </div>
                     </div>
-
                     <div className="border-t pt-3 space-y-2">
                       <div className="flex justify-between items-start">
                         <div className="space-y-1">
                           <p className="font-medium">{entrega.produto}</p>
                           <div className="flex flex-wrap gap-1">
-                            {entrega.agricultura_familiar && (
+                            {entrega.agriculturaFamiliar && (
                               <Badge variant="secondary" className="text-xs">
                                 Agricultura Familiar
                               </Badge>
@@ -481,15 +454,12 @@ export default function AdminMercadoRelatorioFornecedores() {
                           </div>
                         </div>
                       </div>
-
                       <div className="grid grid-cols-3 gap-2 text-sm">
                         <div>
                           <p className="text-muted-foreground text-xs">
                             Unidade
                           </p>
-                          <p className="font-medium">
-                            {entrega.unidade_medida}
-                          </p>
+                          <p className="font-medium">{entrega.medida}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">
@@ -497,18 +467,14 @@ export default function AdminMercadoRelatorioFornecedores() {
                           </p>
                           <p className="font-medium">
                             R${" "}
-                            {entrega.valor_unitario
-                              .toFixed(2)
-                              .replace(".", ",")}
+                            {entrega.valorUnitario.toFixed(2).replace(".", ",")}
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">
                             Qtd. Entregue
                           </p>
-                          <p className="font-medium">
-                            {entrega.quantidade_entregue}
-                          </p>
+                          <p className="font-medium">{entrega.quantidade}</p>
                         </div>
                       </div>
                     </div>
@@ -519,7 +485,6 @@ export default function AdminMercadoRelatorioFornecedores() {
           </div>
         )}
 
-        {/* Footer Button */}
         <div className="flex justify-start">
           <Button
             variant="outline"
