@@ -1,147 +1,116 @@
-import { useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Search, Download, FileText, Eye, ArrowUpDown } from 'lucide-react';
-import { toast } from 'sonner';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { RoleTitle } from '@/components/layout/RoleTitle';
-
-interface PedidoConsumidor {
-  id: string;
-  consumidor: string;
-  produto: string;
-  fornecedor: string;
-  medida: string;
-  valor_unitario: number;
-  quantidade: number;
-  total: number;
-  agricultura_familiar: boolean;
-  certificacao: 'organico' | 'transicao' | 'convencional';
-}
+import { useState, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  ArrowLeft,
+  Search,
+  Download,
+  FileText,
+  Eye,
+  ArrowUpDown,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { RoleTitle } from "@/components/layout/RoleTitle";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useBuscarCiclo, useListarPedidosPorCiclo } from "@/hooks/graphql";
+import {
+  transformarPedidosParaRelatorio,
+  filtrarPedidos,
+  ordenarPedidos,
+  calcularResumoConsolidadoPedidos,
+  type PedidoConsumidor,
+} from "@/lib/relatorio-consumidores-helpers";
 
 interface PedidoDetalhado extends PedidoConsumidor {
   endereco: string;
   telefone: string;
-  data_pedido: string;
+  dataPedido: string;
 }
 
 export default function AdminMercadoRelatorioConsumidores() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { cicloId } = useParams();
-  const [searchParams] = useSearchParams();
-  const _mercadoId = searchParams.get('mercado');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPedido, setSelectedPedido] = useState<PedidoDetalhado | null>(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPedido, setSelectedPedido] = useState<PedidoDetalhado | null>(
+    null,
+  );
   const [modalOpen, setModalOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<'fornecedor' | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [filtroAgriculturaFamiliar, setFiltroAgriculturaFamiliar] = useState<string>('todos');
-  const [filtroCertificacao, setFiltroCertificacao] = useState<string>('todos');
+  const [sortBy, setSortBy] = useState<"fornecedor" | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [filtroAgriculturaFamiliar, setFiltroAgriculturaFamiliar] =
+    useState<string>("todos");
+  const [filtroCertificacao, setFiltroCertificacao] = useState<string>("todos");
 
-  // Mock data - filtrado para consumidores do mercado do admin
-  const pedidos: PedidoConsumidor[] = [
-    {
-      id: '1',
-      consumidor: 'Maria Silva',
-      produto: 'Tomate',
-      fornecedor: 'Sítio Verde',
-      medida: 'kg',
-      valor_unitario: 5.50,
-      quantidade: 3,
-      total: 16.50,
-      agricultura_familiar: true,
-      certificacao: 'organico'
-    },
-    {
-      id: '2',
-      consumidor: 'Maria Silva',
-      produto: 'Alface',
-      fornecedor: 'Maria Horta',
-      medida: 'unidade',
-      valor_unitario: 2.00,
-      quantidade: 5,
-      total: 10.00,
-      agricultura_familiar: true,
-      certificacao: 'transicao'
-    },
-    {
-      id: '3',
-      consumidor: 'João Santos',
-      produto: 'Cenoura',
-      fornecedor: 'Fazenda Santa Clara',
-      medida: 'kg',
-      valor_unitario: 4.00,
-      quantidade: 2,
-      total: 8.00,
-      agricultura_familiar: false,
-      certificacao: 'convencional'
-    },
-    {
-      id: '4',
-      consumidor: 'Ana Costa',
-      produto: 'Rúcula',
-      fornecedor: 'João Produtor',
-      medida: 'maço',
-      valor_unitario: 3.50,
-      quantidade: 4,
-      total: 14.00,
-      agricultura_familiar: true,
-      certificacao: 'organico'
-    }
-  ];
+  const { data: cicloData, isLoading: isLoadingCiclo } = useBuscarCiclo(
+    parseInt(cicloId || "0"),
+  );
+  const { data: pedidosData, isLoading: isLoadingPedidos } =
+    useListarPedidosPorCiclo(parseInt(cicloId || "0"));
 
-  // Mock data - informações do mercado
-  const _mercadoInfo = {
-    nome: 'Mercado Central',
-    pontoRetirada: 'Praça Central, 123',
-    dataRetirada: '26/11/2025',
-    horaRetirada: '14:00'
-  };
+  const isDataLoading = isLoadingCiclo || isLoadingPedidos;
 
-  const filteredPedidos = pedidos
-    .filter(pedido => {
-      const matchSearch = pedido.consumidor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pedido.produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pedido.fornecedor.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchAgriculturaFamiliar = filtroAgriculturaFamiliar === 'todos' ||
-        (filtroAgriculturaFamiliar === 'sim' && pedido.agricultura_familiar) ||
-        (filtroAgriculturaFamiliar === 'nao' && !pedido.agricultura_familiar);
-      
-      const matchCertificacao = filtroCertificacao === 'todos' ||
-        pedido.certificacao === filtroCertificacao;
-      
-      return matchSearch && matchAgriculturaFamiliar && matchCertificacao;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'fornecedor') {
-        const compareResult = a.fornecedor.localeCompare(b.fornecedor);
-        return sortOrder === 'asc' ? compareResult : -compareResult;
-      }
-      return 0;
-    });
+  const pedidos = useMemo(() => {
+    if (!pedidosData?.listarPedidosPorCiclo) return [];
+    return transformarPedidosParaRelatorio(pedidosData.listarPedidosPorCiclo);
+  }, [pedidosData]);
 
-  const totalConsumidores = new Set(filteredPedidos.map(p => p.consumidor)).size;
-  const totalKg = filteredPedidos
-    .filter(p => p.medida === 'kg')
-    .reduce((acc, p) => acc + p.quantidade, 0);
-  const valorTotalGeral = filteredPedidos.reduce((acc, p) => acc + p.total, 0);
+  const pedidosFiltrados = useMemo(() => {
+    const filtros = {
+      searchTerm,
+      agriculturaFamiliar: filtroAgriculturaFamiliar,
+      certificacao: filtroCertificacao,
+    };
+    const filtrados = filtrarPedidos(pedidos, filtros);
+    return ordenarPedidos(filtrados, sortBy, sortOrder);
+  }, [
+    pedidos,
+    searchTerm,
+    filtroAgriculturaFamiliar,
+    filtroCertificacao,
+    sortBy,
+    sortOrder,
+  ]);
+
+  const resumo = useMemo(() => {
+    return calcularResumoConsolidadoPedidos(pedidosFiltrados);
+  }, [pedidosFiltrados]);
 
   const handleVerPedido = (pedido: PedidoConsumidor) => {
     const pedidoDetalhado: PedidoDetalhado = {
       ...pedido,
-      endereco: 'Rua Exemplo, 123 - Centro',
-      telefone: '(11) 98765-4321',
-      data_pedido: '15/11/2025'
+      endereco: "Rua Exemplo, 123 - Centro",
+      telefone: "(11) 98765-4321",
+      dataPedido: new Date().toLocaleDateString("pt-BR"),
     };
     setSelectedPedido(pedidoDetalhado);
     setModalOpen(true);
@@ -149,43 +118,52 @@ export default function AdminMercadoRelatorioConsumidores() {
 
   const handleExportCSV = async () => {
     try {
-      const ciclosData = [{ id: parseInt(cicloId || '1'), nome: `Ciclo ${cicloId}` }];
-      const { exportConsumidoresCSV } = await import('@/utils/export');
-      exportConsumidoresCSV(filteredPedidos, ciclosData);
-      toast.success('Download do CSV concluído');
+      const ciclosData = [
+        {
+          id: parseInt(cicloId || "0"),
+          nome: cicloData?.buscarCiclo?.nome || `Ciclo ${cicloId}`,
+        },
+      ];
+      const { exportConsumidoresCSV } = await import("@/utils/export");
+      exportConsumidoresCSV(pedidosFiltrados, ciclosData);
+      toast.success("Download do CSV concluído");
     } catch (_error) {
-      toast.error('Erro ao exportar CSV');
+      toast.error("Erro ao exportar CSV");
     }
   };
 
   const handleExportPDF = async () => {
     try {
-      const ciclosData = [{ id: parseInt(cicloId || '1'), nome: `Ciclo ${cicloId}` }];
-      const resumo = { totalConsumidores, totalKg, valorTotal: valorTotalGeral };
-      const { exportConsumidoresPDF } = await import('@/utils/export');
-      exportConsumidoresPDF(filteredPedidos, ciclosData, resumo);
-      toast.success('Download do PDF concluído');
+      const ciclosData = [
+        {
+          id: parseInt(cicloId || "0"),
+          nome: cicloData?.buscarCiclo?.nome || `Ciclo ${cicloId}`,
+        },
+      ];
+      const { exportConsumidoresPDF } = await import("@/utils/export");
+      exportConsumidoresPDF(pedidosFiltrados, ciclosData, resumo);
+      toast.success("Download do PDF concluído");
     } catch (_error) {
-      toast.error('Erro ao exportar PDF');
+      toast.error("Erro ao exportar PDF");
     }
   };
 
   const handleSortByFornecedor = () => {
-    if (sortBy === 'fornecedor') {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    if (sortBy === "fornecedor") {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
-      setSortBy('fornecedor');
-      setSortOrder('asc');
+      setSortBy("fornecedor");
+      setSortOrder("asc");
     }
   };
 
   return (
-    <ResponsiveLayout 
+    <ResponsiveLayout
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate('/adminmercado/ciclo-index')} 
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/adminmercado/ciclo-index")}
           className="text-white hover:bg-white/20"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -194,40 +172,57 @@ export default function AdminMercadoRelatorioConsumidores() {
       headerContent={<UserMenuLarge />}
     >
       <div className="space-y-6">
-        {/* Header */}
         <div>
-          <RoleTitle page="Relatório de Pedidos dos Consumidores" className="text-2xl md:text-3xl" />
+          <RoleTitle
+            page="Relatório de Pedidos dos Consumidores"
+            className="text-2xl md:text-3xl"
+          />
           <p className="text-sm md:text-base text-muted-foreground">
-            Consulte e exporte os pedidos consolidados do seu mercado neste ciclo
+            Consulte e exporte os pedidos consolidados do seu mercado neste
+            ciclo
           </p>
         </div>
 
-        {/* Resumo Card */}
-        <Card className="border-2 border-primary/20">
-          <CardHeader>
-            <CardTitle className="text-lg text-primary">Resumo do Ciclo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Total de Consumidores</p>
-                <p className="text-2xl font-bold text-primary">{totalConsumidores}</p>
+        {isDataLoading ? (
+          <Skeleton className="h-40 w-full" />
+        ) : (
+          <Card className="border-2 border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-lg text-primary">
+                Resumo do Ciclo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Total de Consumidores
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    {resumo.totalConsumidores}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Total de Kg de Alimento
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    {resumo.totalKg.toFixed(2).replace(".", ",")} kg
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Valor Total Comercializado
+                  </p>
+                  <p className="text-2xl font-bold text-success">
+                    R$ {resumo.valorTotal.toFixed(2).replace(".", ",")}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total de Kg de Alimento</p>
-                <p className="text-2xl font-bold text-primary">{totalKg.toFixed(2).replace('.', ',')} kg</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Valor Total Comercializado</p>
-                <p className="text-2xl font-bold text-success">
-                  R$ {valorTotalGeral.toFixed(2).replace('.', ',')}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Toolbar */}
         <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -238,11 +233,16 @@ export default function AdminMercadoRelatorioConsumidores() {
               className="pl-10"
             />
           </div>
-          
+
           <div className="flex flex-wrap gap-2 items-end">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">Agricultura Familiar</label>
-              <Select value={filtroAgriculturaFamiliar} onValueChange={setFiltroAgriculturaFamiliar}>
+              <label className="text-xs font-medium text-muted-foreground">
+                Agricultura Familiar
+              </label>
+              <Select
+                value={filtroAgriculturaFamiliar}
+                onValueChange={setFiltroAgriculturaFamiliar}
+              >
                 <SelectTrigger className="w-[180px] bg-background">
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
@@ -253,10 +253,14 @@ export default function AdminMercadoRelatorioConsumidores() {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">Certificação</label>
-              <Select value={filtroCertificacao} onValueChange={setFiltroCertificacao}>
+              <label className="text-xs font-medium text-muted-foreground">
+                Certificação
+              </label>
+              <Select
+                value={filtroCertificacao}
+                onValueChange={setFiltroCertificacao}
+              >
                 <SelectTrigger className="w-[180px] bg-background">
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
@@ -268,7 +272,6 @@ export default function AdminMercadoRelatorioConsumidores() {
                 </SelectContent>
               </Select>
             </div>
-
             <Button variant="outline" onClick={handleExportCSV}>
               <Download className="h-4 w-4 mr-2" />
               Exportar CSV
@@ -280,24 +283,29 @@ export default function AdminMercadoRelatorioConsumidores() {
           </div>
         </div>
 
-        {/* Table / Cards */}
-        {!isMobile ? (
+        {isDataLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full" />
+            ))}
+          </div>
+        ) : !isMobile ? (
           <Card>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Consumidor(a)</TableHead>
                   <TableHead>Produto</TableHead>
-                  <TableHead 
+                  <TableHead
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={handleSortByFornecedor}
                   >
                     <div className="flex items-center gap-2">
                       Fornecedor(a)
                       <ArrowUpDown className="h-4 w-4" />
-                      {sortBy === 'fornecedor' && (
+                      {sortBy === "fornecedor" && (
                         <span className="text-xs text-muted-foreground">
-                          ({sortOrder === 'asc' ? 'A-Z' : 'Z-A'})
+                          ({sortOrder === "asc" ? "A-Z" : "Z-A"})
                         </span>
                       )}
                     </div>
@@ -310,38 +318,46 @@ export default function AdminMercadoRelatorioConsumidores() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPedidos.length === 0 ? (
+                {pedidosFiltrados.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8">
                       <p className="text-muted-foreground">
-                        {searchTerm ? 'Nenhum resultado encontrado.' : 'Nenhum pedido registrado.'}
+                        {searchTerm
+                          ? "Nenhum resultado encontrado."
+                          : "Nenhum pedido registrado."}
                       </p>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredPedidos.map((pedido) => (
+                  pedidosFiltrados.map((pedido) => (
                     <TableRow key={pedido.id}>
-                      <TableCell className="font-medium">{pedido.consumidor}</TableCell>
+                      <TableCell className="font-medium">
+                        {pedido.consumidor}
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <span>{pedido.produto}</span>
                           <div className="flex gap-1">
-                            {pedido.agricultura_familiar && (
+                            {pedido.agriculturaFamiliar && (
                               <Badge variant="secondary" className="text-xs">
                                 Agricultura Familiar
                               </Badge>
                             )}
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className={`text-xs ${
-                                pedido.certificacao === 'organico' ? 'border-green-600 text-green-600' :
-                                pedido.certificacao === 'transicao' ? 'border-yellow-600 text-yellow-600' :
-                                'border-gray-400 text-gray-600'
+                                pedido.certificacao === "organico"
+                                  ? "border-green-600 text-green-600"
+                                  : pedido.certificacao === "transicao"
+                                    ? "border-yellow-600 text-yellow-600"
+                                    : "border-gray-400 text-gray-600"
                               }`}
                             >
-                              {pedido.certificacao === 'organico' ? 'Orgânico' :
-                               pedido.certificacao === 'transicao' ? 'Transição' :
-                               'Convencional'}
+                              {pedido.certificacao === "organico"
+                                ? "Orgânico"
+                                : pedido.certificacao === "transicao"
+                                  ? "Transição"
+                                  : "Convencional"}
                             </Badge>
                           </div>
                         </div>
@@ -349,11 +365,13 @@ export default function AdminMercadoRelatorioConsumidores() {
                       <TableCell>{pedido.fornecedor}</TableCell>
                       <TableCell>{pedido.medida}</TableCell>
                       <TableCell className="text-right">
-                        R$ {pedido.valor_unitario.toFixed(2).replace('.', ',')}
+                        R$ {pedido.valorUnitario.toFixed(2).replace(".", ",")}
                       </TableCell>
-                      <TableCell className="text-right">{pedido.quantidade}</TableCell>
+                      <TableCell className="text-right">
+                        {pedido.quantidade}
+                      </TableCell>
                       <TableCell className="text-right font-semibold text-success">
-                        R$ {pedido.total.toFixed(2).replace('.', ',')}
+                        R$ {pedido.valorTotal.toFixed(2).replace(".", ",")}
                       </TableCell>
                       <TableCell className="text-center">
                         <Button
@@ -373,74 +391,87 @@ export default function AdminMercadoRelatorioConsumidores() {
             </Table>
           </Card>
         ) : (
-          /* Visualização em Cards para Mobile */
           <div className="space-y-3">
-            {filteredPedidos.length === 0 ? (
+            {pedidosFiltrados.length === 0 ? (
               <Card>
                 <CardContent className="py-8 text-center">
                   <p className="text-muted-foreground">
-                    {searchTerm ? 'Nenhum resultado encontrado.' : 'Nenhum pedido registrado.'}
+                    {searchTerm
+                      ? "Nenhum resultado encontrado."
+                      : "Nenhum pedido registrado."}
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              filteredPedidos.map((pedido) => (
+              pedidosFiltrados.map((pedido) => (
                 <Card key={pedido.id}>
                   <CardContent className="p-4 space-y-3">
                     <div className="flex justify-between items-start gap-2">
                       <div className="space-y-1 flex-1">
                         <p className="font-bold text-lg">{pedido.consumidor}</p>
-                        <p className="text-sm text-muted-foreground">Fornecedor: {pedido.fornecedor}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Fornecedor: {pedido.fornecedor}
+                        </p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-muted-foreground">Total</p>
                         <p className="text-lg font-bold text-green-600">
-                          R$ {pedido.total.toFixed(2).replace('.', ',')}
+                          R$ {pedido.valorTotal.toFixed(2).replace(".", ",")}
                         </p>
                       </div>
                     </div>
-
                     <div className="border-t pt-3 space-y-2">
                       <div className="flex justify-between items-start">
                         <div className="space-y-1">
                           <p className="font-medium">{pedido.produto}</p>
                           <div className="flex flex-wrap gap-1">
-                            {pedido.agricultura_familiar && (
+                            {pedido.agriculturaFamiliar && (
                               <Badge variant="secondary" className="text-xs">
                                 Agricultura Familiar
                               </Badge>
                             )}
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className={`text-xs ${
-                                pedido.certificacao === 'organico' ? 'border-green-600 text-green-600' :
-                                pedido.certificacao === 'transicao' ? 'border-yellow-600 text-yellow-600' :
-                                'border-gray-400 text-gray-600'
+                                pedido.certificacao === "organico"
+                                  ? "border-green-600 text-green-600"
+                                  : pedido.certificacao === "transicao"
+                                    ? "border-yellow-600 text-yellow-600"
+                                    : "border-gray-400 text-gray-600"
                               }`}
                             >
-                              {pedido.certificacao === 'organico' ? 'Orgânico' :
-                               pedido.certificacao === 'transicao' ? 'Transição' :
-                               'Convencional'}
+                              {pedido.certificacao === "organico"
+                                ? "Orgânico"
+                                : pedido.certificacao === "transicao"
+                                  ? "Transição"
+                                  : "Convencional"}
                             </Badge>
                           </div>
                         </div>
                       </div>
-
                       <div className="grid grid-cols-3 gap-2 text-sm">
                         <div>
-                          <p className="text-muted-foreground text-xs">Medida</p>
+                          <p className="text-muted-foreground text-xs">
+                            Medida
+                          </p>
                           <p className="font-medium">{pedido.medida}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground text-xs">Valor Unit.</p>
-                          <p className="font-medium">R$ {pedido.valor_unitario.toFixed(2).replace('.', ',')}</p>
+                          <p className="text-muted-foreground text-xs">
+                            Valor Unit.
+                          </p>
+                          <p className="font-medium">
+                            R${" "}
+                            {pedido.valorUnitario.toFixed(2).replace(".", ",")}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground text-xs">Quantidade</p>
+                          <p className="text-muted-foreground text-xs">
+                            Quantidade
+                          </p>
                           <p className="font-medium">{pedido.quantidade}</p>
                         </div>
                       </div>
-
                       <Button
                         variant="outline"
                         size="sm"
@@ -458,11 +489,10 @@ export default function AdminMercadoRelatorioConsumidores() {
           </div>
         )}
 
-        {/* Footer Button */}
         <div className="flex justify-start">
           <Button
             variant="outline"
-            onClick={() => navigate('/adminmercado/ciclo-index')}
+            onClick={() => navigate("/adminmercado/ciclo-index")}
             className="border-primary text-primary hover:bg-primary/10"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -471,11 +501,12 @@ export default function AdminMercadoRelatorioConsumidores() {
         </div>
       </div>
 
-      {/* Modal de Detalhes */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-primary">Detalhes do Pedido Individual</DialogTitle>
+            <DialogTitle className="text-primary">
+              Detalhes do Pedido Individual
+            </DialogTitle>
             <DialogDescription>
               Informações completas do pedido selecionado
             </DialogDescription>
@@ -484,27 +515,45 @@ export default function AdminMercadoRelatorioConsumidores() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Consumidor</p>
-                  <p className="text-base font-semibold">{selectedPedido.consumidor}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Consumidor
+                  </p>
+                  <p className="text-base font-semibold">
+                    {selectedPedido.consumidor}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Data do Pedido</p>
-                  <p className="text-base font-semibold">{selectedPedido.data_pedido}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Data do Pedido
+                  </p>
+                  <p className="text-base font-semibold">
+                    {selectedPedido.dataPedido}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Telefone</p>
-                  <p className="text-base font-semibold">{selectedPedido.telefone}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Telefone
+                  </p>
+                  <p className="text-base font-semibold">
+                    {selectedPedido.telefone}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Endereço</p>
-                  <p className="text-base font-semibold">{selectedPedido.endereco}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Endereço
+                  </p>
+                  <p className="text-base font-semibold">
+                    {selectedPedido.endereco}
+                  </p>
                 </div>
               </div>
               <div className="border-t pt-4">
                 <h4 className="font-semibold mb-2">Itens do Pedido</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center p-2 bg-muted rounded">
-                    <span className="font-medium">{selectedPedido.produto}</span>
+                    <span className="font-medium">
+                      {selectedPedido.produto}
+                    </span>
                     <span className="text-sm text-muted-foreground">
                       {selectedPedido.quantidade} {selectedPedido.medida}
                     </span>
@@ -512,7 +561,8 @@ export default function AdminMercadoRelatorioConsumidores() {
                   <div className="flex justify-between items-center pt-2 border-t">
                     <span className="font-semibold">Total</span>
                     <span className="text-lg font-bold text-success">
-                      R$ {selectedPedido.total.toFixed(2).replace('.', ',')}
+                      R${" "}
+                      {selectedPedido.valorTotal.toFixed(2).replace(".", ",")}
                     </span>
                   </div>
                 </div>
