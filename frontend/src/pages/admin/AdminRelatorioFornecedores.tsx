@@ -26,7 +26,7 @@ import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RoleTitle } from "@/components/layout/RoleTitle";
 import { useListarCiclos } from "@/hooks/graphql";
-import { formatDateToBR } from "@/lib/date-formatters";
+import { formatDate } from "@/lib/ciclo-helpers";
 
 const AdminRelatorioFornecedores = () => {
   const navigate = useNavigate();
@@ -165,7 +165,7 @@ const AdminRelatorioFornecedores = () => {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4 text-muted-foreground" />
-                              {formatDateToBR(ciclo.ofertaFim)}
+                              {formatDate(ciclo.ofertaFim)}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -221,9 +221,7 @@ const AdminRelatorioFornecedores = () => {
                               </div>
                               <div className="flex items-center gap-2 mt-1">
                                 <Calendar className="w-4 h-4" />
-                                <span>
-                                  Fim: {formatDateToBR(ciclo.ofertaFim)}
-                                </span>
+                                <span>Fim: {formatDate(ciclo.ofertaFim)}</span>
                               </div>
                             </div>
                           </div>
