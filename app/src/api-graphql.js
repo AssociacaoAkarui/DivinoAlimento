@@ -18,6 +18,7 @@ const {
   ComposicaoService,
   CestaService,
   PedidoConsumidoresService,
+  PagamentoService,
 } = require("../src/services/services.js");
 
 async function requiredAuthenticated(context) {
@@ -806,6 +807,86 @@ const rootValue = {
     );
     return pedido;
   },
+
+  // Pagamento queries
+  listarPagamentos: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const filtros = args.filtros || {};
+    const pagamentos = await context.pagamentoService.listarPagamentos(filtros);
+    return pagamentos;
+  },
+
+  buscarPagamento: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pagamento = await context.pagamentoService.buscarPorId(args.id);
+    return pagamento;
+  },
+
+  calcularTotalPorCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const total = await context.pagamentoService.calcularTotalPorCiclo(
+      args.cicloId,
+    );
+    return total;
+  },
+
+  // Pagamento mutations
+  criarPagamento: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pagamento = await context.pagamentoService.criarPagamento(args.input);
+    return pagamento;
+  },
+
+  atualizarPagamento: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pagamento = await context.pagamentoService.atualizarPagamento(
+      args.id,
+      args.input,
+    );
+    return pagamento;
+  },
+
+  deletarPagamento: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await context.pagamentoService.deletarPagamento(args.id);
+    return true;
+  },
+
+  marcarPagamentoComoPago: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pagamento = await context.pagamentoService.marcarComoPago(
+      args.id,
+      args.dataPagamento,
+      args.observacao,
+    );
+    return pagamento;
+  },
+
+  cancelarPagamento: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pagamento = await context.pagamentoService.cancelarPagamento(
+      args.id,
+      args.observacao,
+    );
+    return pagamento;
+  },
+
+  gerarPagamentosPorCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const pagamentos = await context.pagamentoService.gerarPagamentosPorCiclo(
+      args.cicloId,
+    );
+    return pagamentos;
+  },
 };
 
 const schemaSDL = fs.readFileSync(path.join(__dirname, "api.graphql"), "utf8");
@@ -826,6 +907,7 @@ const precoMercadoService = new PrecoMercadoService();
 const composicaoService = new ComposicaoService();
 const cestaService = new CestaService();
 const pedidoConsumidoresService = new PedidoConsumidoresService();
+const pagamentoService = new PagamentoService();
 
 const API = {
   rootValue,
@@ -844,6 +926,7 @@ const API = {
     composicaoService,
     cestaService,
     pedidoConsumidoresService,
+    pagamentoService,
   },
   buildContext(sessionToken) {
     return {
@@ -860,6 +943,7 @@ const API = {
       composicaoService,
       cestaService,
       pedidoConsumidoresService,
+      pagamentoService,
       sessionToken,
     };
   },

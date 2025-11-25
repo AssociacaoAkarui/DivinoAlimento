@@ -400,6 +400,59 @@ input AtualizarStatusPedidoInput {
     status: String!
 }
 
+type Pagamento {
+    id: ID!
+    tipo: String!
+    valorTotal: Float!
+    status: String!
+    dataPagamento: String
+    observacao: String
+    cicloId: Int!
+    ciclo: Ciclo
+    mercadoId: Int!
+    mercado: Mercado
+    usuarioId: Int!
+    usuario: Usuario
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CriarPagamentoInput {
+    tipo: String!
+    valorTotal: Float!
+    status: String
+    dataPagamento: String
+    observacao: String
+    cicloId: Int!
+    mercadoId: Int!
+    usuarioId: Int!
+}
+
+input AtualizarPagamentoInput {
+    tipo: String
+    valorTotal: Float
+    status: String
+    dataPagamento: String
+    observacao: String
+    cicloId: Int
+    mercadoId: Int
+    usuarioId: Int
+}
+
+input FiltrosPagamentoInput {
+    tipo: String
+    status: String
+    cicloId: Int
+    mercadoId: Int
+    usuarioId: Int
+}
+
+type TotalPorCiclo {
+    totalReceber: Float!
+    totalPagar: Float!
+    saldo: Float!
+}
+
 type Mutation {
     sessionLogin(input: LoginInput!): ActiveSession!
     sessionLogout: LogoutResponse!
@@ -482,6 +535,16 @@ type Mutation {
         pedidoId: ID!
         input: AtualizarStatusPedidoInput!
     ): PedidoConsumidores!
+    criarPagamento(input: CriarPagamentoInput!): Pagamento!
+    atualizarPagamento(id: ID!, input: AtualizarPagamentoInput!): Pagamento!
+    deletarPagamento(id: ID!): Boolean!
+    marcarPagamentoComoPago(
+        id: ID!
+        dataPagamento: String
+        observacao: String
+    ): Pagamento!
+    cancelarPagamento(id: ID!, observacao: String): Pagamento!
+    gerarPagamentosPorCiclo(cicloId: Int!): [Pagamento!]!
 }
 
 type Query {
@@ -524,6 +587,9 @@ type Query {
     buscarPedidoConsumidores(id: ID!): PedidoConsumidores!
     listarPedidosPorCiclo(cicloId: Int!): [PedidoConsumidores!]!
     listarPedidosPorUsuario(usuarioId: Int!): [PedidoConsumidores!]!
+    listarPagamentos(filtros: FiltrosPagamentoInput): [Pagamento!]!
+    buscarPagamento(id: ID!): Pagamento!
+    calcularTotalPorCiclo(cicloId: Int!): TotalPorCiclo!
 }
 
 type OfertaProduto {
