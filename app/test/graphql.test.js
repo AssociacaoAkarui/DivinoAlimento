@@ -4968,3 +4968,428 @@ describe("PrecoMercado GraphQL", function () {
     expect(result.errors[0].message).to.match(/Já existe um preço cadastrado/i);
   });
 });
+
+describe("Pagamento GraphQL", function () {
+  const {
+    CicloService,
+    MercadoService,
+    PagamentoService,
+  } = require("../src/services/services.js");
+
+  let adminSession;
+  let fornecedorSession;
+  let consumidorSession;
+  let cicloId;
+  let mercadoId;
+
+  beforeEach(async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "admin-token-pagamento";
+      },
+    });
+    await usuarioService.create(
+      { email: "admin@example.com", senha: "password" },
+      { perfis: ["admin"] },
+    );
+    adminSession = await usuarioService.login("admin@example.com", "password");
+
+    usuarioService.uuid = () => "fornecedor-token";
+    await usuarioService.create(
+      { email: "fornecedor@example.com", senha: "password" },
+      { perfis: ["fornecedor"] },
+    );
+    fornecedorSession = await usuarioService.login(
+      "fornecedor@example.com",
+      "password",
+    );
+
+    usuarioService.uuid = () => "consumidor-token";
+    await usuarioService.create(
+      { email: "consumidor@example.com", senha: "password" },
+      { perfis: ["consumidor"] },
+    );
+    consumidorSession = await usuarioService.login(
+      "consumidor@example.com",
+      "password",
+    );
+
+    const { PontoEntrega } = require("../models/index.js");
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Test",
+      status: "ativo",
+    });
+
+    const cicloService = new CicloService();
+    const ciclo = await cicloService.criarCiclo({
+      nome: "Ciclo Teste",
+      ofertaInicio: "2025-01-01",
+      ofertaFim: "2025-01-15",
+      pontoEntregaId: pontoEntrega.id,
+      status: "oferta",
+    });
+    cicloId = ciclo.id;
+
+    const mercadoService = new MercadoService();
+    const mercado = await mercadoService.criarMercado({
+      nome: "Mercado Teste",
+      tipo: "cesta",
+      responsavelId: adminSession.usuarioId,
+      valorMaximoCesta: 100,
+      status: "ativo",
+    });
+    mercadoId = mercado.id;
+  });
+
+  it("admin user can create pagamento for fornecedor", async function () {
+    const mutation = `
+      mutation CriarPagamento($input: CriarPagamentoInput!) {
+        criarPagamento(input: $input) {
+          id
+          tipo
+          valorTotal
+          status
+          cicloId
+          mercadoId
+          usuarioId
+        }
+      }
+    `;
+
+    const variables = {
+      input: {
+        tipo: "fornecedor",
+        valorTotal: 500.0,
+        status: "pendente",
+        cicloId: cicloId,
+        mercadoId: mercadoId,
+        usuarioId: fornecedorSession.usuarioId,
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarPagamento.tipo).to.equal("fornecedor");
+    expect(result.data.criarPagamento.valorTotal).to.equal(500.0);
+    expect(result.data.criarPagamento.status).to.equal("pendente");
+  });
+
+  it("admin user can create pagamento for consumidor", async function () {
+    const mutation = `
+      mutation CriarPagamento($input: CriarPagamentoInput!) {
+        criarPagamento(input: $input) {
+          id
+          tipo
+          valorTotal
+          status
+        }
+      }
+    `;
+
+    const variables = {
+      input: {
+        tipo: "consumidor",
+        valorTotal: 250.0,
+        status: "pendente",
+        cicloId: cicloId,
+        mercadoId: mercadoId,
+        usuarioId: consumidorSession.usuarioId,
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.criarPagamento.tipo).to.equal("consumidor");
+    expect(result.data.criarPagamento.valorTotal).to.equal(250.0);
+  });
+
+  it("admin user can list pagamentos", async function () {
+    const pagamentoService = new PagamentoService();
+    await pagamentoService.criarPagamento({
+      tipo: "fornecedor",
+      valorTotal: 500.0,
+      status: "pendente",
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      usuarioId: fornecedorSession.usuarioId,
+    });
+
+    await pagamentoService.criarPagamento({
+      tipo: "consumidor",
+      valorTotal: 250.0,
+      status: "pendente",
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      usuarioId: consumidorSession.usuarioId,
+    });
+
+    const query = `
+      query {
+        listarPagamentos {
+          id
+          tipo
+          valorTotal
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarPagamentos).to.have.lengthOf(2);
+  });
+
+  it("admin user can find pagamento by id", async function () {
+    const pagamentoService = new PagamentoService();
+    const pagamento = await pagamentoService.criarPagamento({
+      tipo: "fornecedor",
+      valorTotal: 500.0,
+      status: "pendente",
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      usuarioId: fornecedorSession.usuarioId,
+    });
+
+    const query = `
+      query BuscarPagamento($id: ID!) {
+        buscarPagamento(id: $id) {
+          id
+          tipo
+          valorTotal
+          status
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: { id: pagamento.id },
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.buscarPagamento.id).to.equal(pagamento.id.toString());
+    expect(result.data.buscarPagamento.valorTotal).to.equal(500.0);
+  });
+
+  it("admin user can update pagamento", async function () {
+    const pagamentoService = new PagamentoService();
+    const pagamento = await pagamentoService.criarPagamento({
+      tipo: "fornecedor",
+      valorTotal: 500.0,
+      status: "pendente",
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      usuarioId: fornecedorSession.usuarioId,
+    });
+
+    const mutation = `
+      mutation AtualizarPagamento($id: ID!, $input: AtualizarPagamentoInput!) {
+        atualizarPagamento(id: $id, input: $input) {
+          id
+          valorTotal
+        }
+      }
+    `;
+
+    const variables = {
+      id: pagamento.id,
+      input: {
+        valorTotal: 600.0,
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.atualizarPagamento.valorTotal).to.equal(600.0);
+  });
+
+  it("admin user can mark pagamento as pago", async function () {
+    const pagamentoService = new PagamentoService();
+    const pagamento = await pagamentoService.criarPagamento({
+      tipo: "fornecedor",
+      valorTotal: 500.0,
+      status: "pendente",
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      usuarioId: fornecedorSession.usuarioId,
+    });
+
+    const mutation = `
+      mutation MarcarPagamentoComoPago($id: ID!, $dataPagamento: String, $observacao: String) {
+        marcarPagamentoComoPago(id: $id, dataPagamento: $dataPagamento, observacao: $observacao) {
+          id
+          status
+          dataPagamento
+        }
+      }
+    `;
+
+    const variables = {
+      id: pagamento.id,
+      dataPagamento: "2025-01-20",
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.marcarPagamentoComoPago.status).to.equal("pago");
+    expect(result.data.marcarPagamentoComoPago.dataPagamento).to.equal(
+      "2025-01-20",
+    );
+  });
+
+  it("admin user can cancel pagamento", async function () {
+    const pagamentoService = new PagamentoService();
+    const pagamento = await pagamentoService.criarPagamento({
+      tipo: "fornecedor",
+      valorTotal: 500.0,
+      status: "pendente",
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      usuarioId: fornecedorSession.usuarioId,
+    });
+
+    const mutation = `
+      mutation CancelarPagamento($id: ID!, $observacao: String) {
+        cancelarPagamento(id: $id, observacao: $observacao) {
+          id
+          status
+        }
+      }
+    `;
+
+    const variables = {
+      id: pagamento.id,
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.cancelarPagamento.status).to.equal("cancelado");
+  });
+
+  it("admin user can delete pagamento", async function () {
+    const pagamentoService = new PagamentoService();
+    const pagamento = await pagamentoService.criarPagamento({
+      tipo: "fornecedor",
+      valorTotal: 500.0,
+      status: "pendente",
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      usuarioId: fornecedorSession.usuarioId,
+    });
+
+    const mutation = `
+      mutation DeletarPagamento($id: ID!) {
+        deletarPagamento(id: $id)
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: { id: pagamento.id },
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.deletarPagamento).to.be.true;
+  });
+
+  it("admin user can calculate total by ciclo", async function () {
+    const pagamentoService = new PagamentoService();
+    await pagamentoService.criarPagamento({
+      tipo: "fornecedor",
+      valorTotal: 1000.0,
+      status: "a_receber",
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      usuarioId: fornecedorSession.usuarioId,
+    });
+
+    await pagamentoService.criarPagamento({
+      tipo: "consumidor",
+      valorTotal: 1500.0,
+      status: "a_pagar",
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      usuarioId: consumidorSession.usuarioId,
+    });
+
+    const query = `
+      query CalcularTotalPorCiclo($cicloId: Int!) {
+        calcularTotalPorCiclo(cicloId: $cicloId) {
+          totalReceber
+          totalPagar
+          saldo
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: { cicloId: cicloId },
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.calcularTotalPorCiclo.totalReceber).to.equal(1000.0);
+    expect(result.data.calcularTotalPorCiclo.totalPagar).to.equal(1500.0);
+    expect(result.data.calcularTotalPorCiclo.saldo).to.equal(500.0);
+  });
+});

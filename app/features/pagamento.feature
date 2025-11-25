@@ -55,7 +55,7 @@ Funcionalidade: Gerenciar Pagamentos
     Dado que existe um pagamento de "200.00"
     Quando eu atualizar o valor para "250.00"
     Então o pagamento deve ser atualizado com sucesso
-    E o novo valor deve ser "250.00"
+    E o valor total do pagamento deve ser "250.00"
 
   Cenário: Marcar pagamento como pago
     Dado que existe um pagamento pendente

@@ -1,4 +1,16 @@
 const { filterPayload } = require("../utils/modelUtils");
+const ServiceError = require("../utils/ServiceError");
+const {
+  Pagamento,
+  Ciclo,
+  Mercado,
+  Usuario,
+  Oferta,
+  OfertaProdutos,
+  PedidoConsumidores,
+  PedidoConsumidoresProdutos,
+  sequelize,
+} = require("../../models");
 
 class PagamentoService {
   async listarPagamentos(filtros = {}) {
@@ -82,7 +94,7 @@ class PagamentoService {
       const mercado = await Mercado.findByPk(dados.mercadoId);
       if (!mercado) {
         throw new ServiceError(
-          `Mercado com ID ${dados.mercadoId} não encontrado`
+          `Mercado com ID ${dados.mercadoId} não encontrado`,
         );
       }
 
@@ -93,7 +105,7 @@ class PagamentoService {
       const usuario = await Usuario.findByPk(dados.usuarioId);
       if (!usuario) {
         throw new ServiceError(
-          `Usuário com ID ${dados.usuarioId} não encontrado`
+          `Usuário com ID ${dados.usuarioId} não encontrado`,
         );
       }
 
@@ -111,7 +123,10 @@ class PagamentoService {
       const payloadSeguro = filterPayload(Pagamento, dados, allowedFields);
 
       // Validar valor total
-      if (payloadSeguro.valorTotal === undefined || payloadSeguro.valorTotal < 0) {
+      if (
+        payloadSeguro.valorTotal === undefined ||
+        payloadSeguro.valorTotal < 0
+      ) {
         throw new ServiceError("O valorTotal deve ser maior ou igual a zero.");
       }
 
@@ -135,7 +150,7 @@ class PagamentoService {
         const ciclo = await Ciclo.findByPk(dados.cicloId);
         if (!ciclo) {
           throw new ServiceError(
-            `Ciclo com ID ${dados.cicloId} não encontrado`
+            `Ciclo com ID ${dados.cicloId} não encontrado`,
           );
         }
       }
@@ -145,7 +160,7 @@ class PagamentoService {
         const mercado = await Mercado.findByPk(dados.mercadoId);
         if (!mercado) {
           throw new ServiceError(
-            `Mercado com ID ${dados.mercadoId} não encontrado`
+            `Mercado com ID ${dados.mercadoId} não encontrado`,
           );
         }
       }
@@ -155,7 +170,7 @@ class PagamentoService {
         const usuario = await Usuario.findByPk(dados.usuarioId);
         if (!usuario) {
           throw new ServiceError(
-            `Usuário com ID ${dados.usuarioId} não encontrado`
+            `Usuário com ID ${dados.usuarioId} não encontrado`,
           );
         }
       }
@@ -174,7 +189,10 @@ class PagamentoService {
       const payloadSeguro = filterPayload(Pagamento, dados, allowedFields);
 
       // Validar valor total se fornecido
-      if (payloadSeguro.valorTotal !== undefined && payloadSeguro.valorTotal < 0) {
+      if (
+        payloadSeguro.valorTotal !== undefined &&
+        payloadSeguro.valorTotal < 0
+      ) {
         throw new ServiceError("O valorTotal deve ser maior ou igual a zero.");
       }
 
@@ -265,7 +283,7 @@ class PagamentoService {
       // Verificar se o ciclo está finalizado
       if (ciclo.status !== "finalizado") {
         throw new ServiceError(
-          "Só é possível gerar pagamentos para ciclos finalizados."
+          "Só é possível gerar pagamentos para ciclos finalizados.",
         );
       }
 
@@ -301,10 +319,14 @@ class PagamentoService {
 
       const pagamentosCriados = [];
 
-      // Gerar pagamentos para fornecedores
+      const mercado = await Mercado.findOne();
+      if (!mercado) {
+        throw new ServiceError("Nenhum mercado encontrado");
+      }
+
       for (const oferta of ofertas) {
         const valorTotal = oferta.ofertaProdutos.reduce((sum, produto) => {
-          return sum + parseFloat(produto.valorTotal || 0);
+          return sum + parseFloat(produto.valorOferta || 0);
         }, 0);
 
         if (valorTotal > 0) {
@@ -314,10 +336,10 @@ class PagamentoService {
               valorTotal,
               status: "a_receber",
               cicloId,
-              mercadoId: ciclo.mercadoId || 1, // TODO: ajustar conforme lógica de negócio
+              mercadoId: mercado.id,
               usuarioId: oferta.usuarioId,
             },
-            { transaction }
+            { transaction },
           );
           pagamentosCriados.push(pagamento);
         }
@@ -327,9 +349,9 @@ class PagamentoService {
       for (const pedido of pedidos) {
         const valorTotal = pedido.pedidoConsumidoresProdutos.reduce(
           (sum, produto) => {
-            return sum + parseFloat(produto.valorTotal || 0);
+            return sum + parseFloat(produto.valorCompra || 0);
           },
-          0
+          0,
         );
 
         if (valorTotal > 0) {
@@ -339,10 +361,10 @@ class PagamentoService {
               valorTotal,
               status: "a_pagar",
               cicloId,
-              mercadoId: ciclo.mercadoId || 1, // TODO: ajustar conforme lógica de negócio
+              mercadoId: mercado.id,
               usuarioId: pedido.usuarioId,
             },
-            { transaction }
+            { transaction },
           );
           pagamentosCriados.push(pagamento);
         }
