@@ -11,8 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-} from "@/components/ui/alert-dialog";
+import {} from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import {
   Search,
@@ -39,15 +38,18 @@ import {
 import { useCompositionFilters } from "@/hooks/useCompositionFilters";
 import { CompositionFilters } from "@/components/admin/CompositionFilters";
 import { RoleTitle } from "@/components/layout/RoleTitle";
+import { useListarCiclos, useListarOfertasPorCiclo } from "@/hooks/graphql";
+import { transformarOfertasParaUI } from "@/lib/composicao-helpers";
 
 export default function AdminComposicaoVendaDiretaLiberar() {
-  const { id: _id } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const _mercadoId = searchParams.get("mercado");
+  const cicloId = id ? parseInt(id) : 0;
 
   const [busca, setBusca] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [_showConfirmModal, setShowConfirmModal] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
@@ -67,8 +69,38 @@ export default function AdminComposicaoVendaDiretaLiberar() {
   // composicao: variantId -> quantidade
   const [composicao, setComposicao] = useState<Map<string, number>>(new Map());
 
-  // Dados mock com produto_base
-  const [ofertas] = useState<Oferta[]>([
+  const { data: ciclosData, isLoading: ciclosLoading } = useListarCiclos();
+
+  const ciclo = useMemo(() => {
+    if (!ciclosData?.listarCiclos?.ciclos) return null;
+    return ciclosData.listarCiclos.ciclos.find((c) => c.id === String(cicloId));
+  }, [ciclosData, cicloId]);
+
+  const { data: ofertasData, isLoading: ofertasLoading } =
+    useListarOfertasPorCiclo(cicloId);
+
+  const ofertas = useMemo(() => {
+    if (!ofertasData?.listarOfertasPorCiclo) return [];
+    return transformarOfertasParaUI(ofertasData.listarOfertasPorCiclo);
+  }, [ofertasData]);
+
+  const isDataLoading = ciclosLoading || ofertasLoading;
+
+  const cicloInfo = ciclo
+    ? {
+        nome: ciclo.nome,
+        mercado: "Venda Direta",
+        valorMaximo: 0,
+        tipo: "Venda Direta",
+      }
+    : {
+        nome: "Carregando...",
+        mercado: "Venda Direta",
+        valorMaximo: 0,
+        tipo: "Venda Direta",
+      };
+
+  const [_ofertasMock] = useState<Oferta[]>([
     {
       id: "1",
       produto_base: "Tomate Orgânico",
@@ -137,13 +169,6 @@ export default function AdminComposicaoVendaDiretaLiberar() {
     },
   ]);
 
-  const ciclo = {
-    nome: "1º Ciclo de Novembro 2025",
-    mercado: "Feira do Produtor",
-    valorMaximo: 500.0,
-    tipo: "Venda Direta",
-  };
-
   // Agrupar e filtrar produtos
   const productGroups = useMemo(() => {
     const groups = groupAndSortProducts(ofertas);
@@ -179,8 +204,8 @@ export default function AdminComposicaoVendaDiretaLiberar() {
     return acc + item.valor * item.quantidade;
   }, 0);
 
-  const _saldo = ciclo.valorMaximo - valorTotal;
-  const excedeuValor = valorTotal > ciclo.valorMaximo;
+  const _saldo = cicloInfo.valorMaximo - valorTotal;
+  const excedeuValor = valorTotal > cicloInfo.valorMaximo;
 
   const handleToggleVariant = (groupKey: string, variantId: string) => {
     setSelectedByGroup((prev) => {
@@ -276,11 +301,11 @@ export default function AdminComposicaoVendaDiretaLiberar() {
       pedidos: item.quantidade,
     }));
 
-    setIsLoading(true);
+    setIsSaving(true);
     setShowConfirmModal(false);
 
     setTimeout(() => {
-      setIsLoading(false);
+      setIsSaving(false);
 
       const totalItens = selectedItems.reduce(
         (acc, item) => acc + item.quantidade,
@@ -330,11 +355,11 @@ export default function AdminComposicaoVendaDiretaLiberar() {
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <RoleTitle
-                  page={`Composição de Venda Direta – ${ciclo.nome}`}
+                  page={`Composição de Venda Direta – ${cicloInfo.nome}`}
                   className="text-2xl"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  Tipo: {ciclo.tipo} • {ciclo.mercado}
+                  Tipo: {cicloInfo.tipo} • {cicloInfo.mercado}
                 </p>
               </div>
               <div>
@@ -509,7 +534,7 @@ export default function AdminComposicaoVendaDiretaLiberar() {
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isDataLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : productGroups.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
@@ -546,7 +571,7 @@ export default function AdminComposicaoVendaDiretaLiberar() {
               <Button
                 variant="outline"
                 onClick={() => navigate("/admin/ciclo-index")}
-                disabled={isLoading}
+                disabled={isSaving}
               >
                 Voltar
               </Button>
@@ -556,9 +581,9 @@ export default function AdminComposicaoVendaDiretaLiberar() {
                     <span>
                       <Button
                         onClick={handlePublicarClick}
-                        disabled={!podePublicar || isLoading}
+                        disabled={!podePublicar || isSaving}
                       >
-                        {isLoading ? "Salvando..." : "Salvar Composição"}
+                        {isSaving ? "Salvando..." : "Salvar Composição"}
                       </Button>
                     </span>
                   </TooltipTrigger>
