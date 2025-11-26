@@ -1577,3 +1577,25 @@ export const ATUALIZAR_STATUS_PEDIDO_MUTATION = gql`
     }
   }
 `;
+
+export const LISTAR_ENTREGAS_FORNECEDORES_POR_CICLO_QUERY = gql`
+  query ListarEntregasFornecedoresPorCiclo($cicloId: Int!, $fornecedorId: Int) {
+    listarEntregasFornecedoresPorCiclo(
+      cicloId: $cicloId
+      fornecedorId: $fornecedorId
+    ) {
+      id
+      fornecedor
+      fornecedorId
+      produto
+      produtoId
+      unidadeMedida
+      valorUnitario
+      quantidadeOfertada
+      quantidadeEntregue
+      valorTotal
+      agriculturaFamiliar
+      certificacao
+    }
+  }
+`;
