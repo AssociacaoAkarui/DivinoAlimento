@@ -1882,6 +1882,7 @@ class SubmissaoProdutoService {
 const MercadoService = require("./mercado-service");
 const PrecoMercadoService = require("./precomercado-service");
 const PagamentoService = require("./pagamento-service");
+const CicloMercadoService = require("./ciclomercado-service");
 
 module.exports = {
   CicloService,
@@ -1899,4 +1900,5 @@ module.exports = {
   MercadoService,
   PrecoMercadoService,
   PagamentoService,
+  CicloMercadoService,
 };

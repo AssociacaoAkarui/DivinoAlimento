@@ -44,6 +44,11 @@ module.exports = (sequelize, DataTypes) => {
         as: "PedidoConsumidores",
         onDelete: "CASCADE",
       });
+      Ciclo.hasMany(models.CicloMercados, {
+        foreignKey: "cicloId",
+        as: "cicloMercados",
+        onDelete: "CASCADE",
+      });
     }
   }
   Ciclo.init(
