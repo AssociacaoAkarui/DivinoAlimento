@@ -27,94 +27,52 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { parseISO } from "date-fns";
 import { RoleTitle } from "@/components/layout/RoleTitle";
 import { exportFornecedoresCSV, exportFornecedoresPDF } from "@/utils/export";
-
-interface EntregaFornecedor {
-  id: string;
-  produto: string;
-  unidade_medida: string;
-  valor_unitario: number;
-  quantidade_entregue: number;
-  valor_total: number;
-  data_hora_entrega: string;
-  local_nome: string;
-  local_endereco: string;
-}
+import { useListarEntregasFornecedoresPorCiclo } from "@/hooks/graphql";
+import {
+  sortEntregasByProduto,
+  calcularTotalGeralEntregas,
+  generateEntregasCSV,
+} from "@/lib/entregas-helpers";
 
 export default function FornecedorEntregas() {
   const navigate = useNavigate();
   const { cicloId } = useParams();
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
-  const [orderBy, setOrderBy] = useState<"urgente" | "antiga">("urgente");
+  const [orderBy, setOrderBy] = useState<"produto" | "valor">("produto");
 
-  // Mock data - in production this would come from API filtered by fornecedor_id and ciclo_id
-  const entregas: EntregaFornecedor[] = [
-    {
-      id: "1",
-      produto: "Tomate",
-      unidade_medida: "kg",
-      valor_unitario: 5.5,
-      quantidade_entregue: 120,
-      valor_total: 660.0,
-      data_hora_entrega: "15/11/2025 14:00",
-      local_nome: "Mercado Central",
-      local_endereco: "Rua das Flores, 123 - Centro",
-    },
-    {
-      id: "2",
-      produto: "Alface",
-      unidade_medida: "unidade",
-      valor_unitario: 2.0,
-      quantidade_entregue: 200,
-      valor_total: 400.0,
-      data_hora_entrega: "15/11/2025 14:00",
-      local_nome: "Mercado Central",
-      local_endereco: "Rua das Flores, 123 - Centro",
-    },
-    {
-      id: "3",
-      produto: "Cenoura",
-      unidade_medida: "kg",
-      valor_unitario: 4.0,
-      quantidade_entregue: 80,
-      valor_total: 320.0,
-      data_hora_entrega: "17/11/2025 09:30",
-      local_nome: "Mercado Zona Norte",
-      local_endereco: "Av. Principal, 456 - Zona Norte",
-    },
-  ];
+  // Fetch entregas from GraphQL API
+  const {
+    data: entregasData,
+    isLoading,
+    error,
+  } = useListarEntregasFornecedoresPorCiclo(
+    cicloId ? parseInt(cicloId) : 0,
+    undefined, // fornecedorId - undefined means current user (authenticated)
+  );
+
+  const entregas = entregasData || [];
 
   const filteredEntregas = entregas
     .filter(
       (entrega) =>
         entrega.produto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entrega.local_nome.toLowerCase().includes(searchTerm.toLowerCase()),
+        entrega.fornecedor.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     .sort((a, b) => {
-      const dateA = parseISO(
-        a.data_hora_entrega.split(" ")[0].split("/").reverse().join("-") +
-          "T" +
-          a.data_hora_entrega.split(" ")[1],
-      );
-      const dateB = parseISO(
-        b.data_hora_entrega.split(" ")[0].split("/").reverse().join("-") +
-          "T" +
-          b.data_hora_entrega.split(" ")[1],
-      );
-
-      if (orderBy === "urgente") {
-        return dateA.getTime() - dateB.getTime(); // Mais próxima primeiro
+      if (orderBy === "produto") {
+        return a.produto.localeCompare(b.produto);
       } else {
-        return dateB.getTime() - dateA.getTime(); // Mais antiga primeiro
+        return b.valorTotal - a.valorTotal;
       }
     });
 
   const totalQuantidade = filteredEntregas.reduce(
-    (acc, e) => acc + e.quantidade_entregue,
+    (acc, e) => acc + e.quantidadeEntregue,
     0,
   );
   const valorTotalGeral = filteredEntregas.reduce(
-    (acc, e) => acc + e.valor_total,
+    (acc, e) => acc + e.valorTotal,
     0,
   );
 
@@ -125,10 +83,10 @@ export default function FornecedorEntregas() {
         ciclo: `Ciclo ${cicloId}`,
         fornecedor: "Fornecedor Atual", // Em produção, viria do contexto de autenticação
         produto: e.produto,
-        unidade_medida: e.unidade_medida,
-        valor_unitario: e.valor_unitario,
-        quantidade_entregue: e.quantidade_entregue,
-        valor_total: e.valor_total,
+        unidade_medida: e.unidadeMedida,
+        valor_unitario: e.valorUnitario,
+        quantidade_entregue: e.quantidadeEntregue,
+        valor_total: e.valorTotal,
       }));
 
       const ciclos = [{ id: Number(cicloId), nome: `Ciclo ${cicloId}` }];
@@ -155,10 +113,10 @@ export default function FornecedorEntregas() {
         ciclo: `Ciclo ${cicloId}`,
         fornecedor: "Fornecedor Atual", // Em produção, viria do contexto de autenticação
         produto: e.produto,
-        unidade_medida: e.unidade_medida,
-        valor_unitario: e.valor_unitario,
-        quantidade_entregue: e.quantidade_entregue,
-        valor_total: e.valor_total,
+        unidade_medida: e.unidadeMedida,
+        valor_unitario: e.valorUnitario,
+        quantidade_entregue: e.quantidadeEntregue,
+        valor_total: e.valorTotal,
       }));
 
       const ciclos = [{ id: Number(cicloId), nome: `Ciclo ${cicloId}` }];
@@ -181,6 +139,53 @@ export default function FornecedorEntregas() {
       });
     }
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <ResponsiveLayout
+        headerContent={<UserMenuLarge />}
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/fornecedor/loja")}
+            className="text-white hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        }
+      >
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <p className="text-muted-foreground">Carregando entregas...</p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <ResponsiveLayout
+        headerContent={<UserMenuLarge />}
+        leftHeaderContent={
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/fornecedor/loja")}
+            className="text-white hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        }
+      >
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+          <p className="text-destructive">Erro ao carregar entregas</p>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
 
   // Empty state when no entregas
   if (entregas.length === 0) {
@@ -294,8 +299,8 @@ export default function FornecedorEntregas() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="urgente">Mais urgente</SelectItem>
-                <SelectItem value="antiga">Mais antiga</SelectItem>
+                <SelectItem value="produto">Por produto</SelectItem>
+                <SelectItem value="valor">Por valor</SelectItem>
               </SelectContent>
             </Select>
           </div>
