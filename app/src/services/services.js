@@ -1884,6 +1884,70 @@ const PrecoMercadoService = require("./precomercado-service");
 const PagamentoService = require("./pagamento-service");
 const CicloMercadoService = require("./ciclomercado-service");
 
+class EntregaFornecedorService {
+  async listarEntregasFornecedoresPorCiclo(cicloId, fornecedorId = null) {
+    try {
+      const whereClause = { cicloId };
+      if (fornecedorId) {
+        whereClause.usuarioId = fornecedorId;
+      }
+
+      const ofertas = await Oferta.findAll({
+        where: whereClause,
+        include: [
+          {
+            model: Usuario,
+            as: "usuario",
+            attributes: ["id", "nome"],
+          },
+          {
+            model: OfertaProdutos,
+            as: "ofertaProdutos",
+            include: [
+              {
+                model: Produto,
+                as: "produto",
+                attributes: ["id", "nome"],
+              },
+            ],
+          },
+        ],
+      });
+
+      // Transformar datos para el formato de EntregaFornecedor
+      const entregas = [];
+      ofertas.forEach((oferta) => {
+        oferta.ofertaProdutos.forEach((ofertaProduto) => {
+          entregas.push({
+            id: `${oferta.id}-${ofertaProduto.id}`,
+            fornecedor: oferta.usuario.nome,
+            fornecedorId: oferta.usuarioId,
+            produto: ofertaProduto.produto.nome,
+            produtoId: ofertaProduto.produtoId,
+            unidadeMedida: "kg", // TODO: Obtener de ProdutoComercializavel
+            valorUnitario:
+              ofertaProduto.valorOferta || ofertaProduto.valorReferencia,
+            quantidadeOfertada: ofertaProduto.quantidade,
+            quantidadeEntregue: ofertaProduto.quantidade, // Por ahora igual a ofertada
+            valorTotal:
+              (ofertaProduto.valorOferta || ofertaProduto.valorReferencia) *
+              ofertaProduto.quantidade,
+            agriculturaFamiliar: null, // TODO: Agregar campo en modelo
+            certificacao: null, // TODO: Agregar campo en modelo
+          });
+        });
+      });
+
+      return entregas;
+    } catch (error) {
+      throw new ServiceError(
+        "Falha ao listar entregas de fornecedores por ciclo.",
+        { cause: error },
+      );
+    }
+  }
+}
+
 module.exports = {
   CicloService,
   ProdutoService,
@@ -1901,4 +1965,5 @@ module.exports = {
   PrecoMercadoService,
   PagamentoService,
   CicloMercadoService,
+  EntregaFornecedorService,
 };
