@@ -1,18 +1,52 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { RoleTitle } from '@/components/layout/RoleTitle';
+import { RoleTitle } from "@/components/layout/RoleTitle";
 import { ArrowLeft, Search, Edit2, Check, Trash2 } from "lucide-react";
 import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import {
+  useListarPagamentos,
+  useAtualizarPagamento,
+  useDeletarPagamento,
+  useMarcarPagamentoPago,
+} from "@/hooks/graphql";
 
 interface Pagamento {
   id: string;
@@ -28,77 +62,65 @@ interface Pagamento {
 
 const AdminPagamentosGerir = () => {
   const navigate = useNavigate();
-  const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
   const [busca, setBusca] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState<"Todos" | "Pendentes" | "Pagos">("Todos");
+  const [filtroStatus, setFiltroStatus] = useState<
+    "Todos" | "Pendentes" | "Pagos"
+  >("Todos");
   const [ordenacao, setOrdenacao] = useState<"nome" | "data" | "valor">("nome");
-  const [editandoPagamento, setEditandoPagamento] = useState<Pagamento | null>(null);
+  const [editandoPagamento, setEditandoPagamento] = useState<Pagamento | null>(
+    null,
+  );
   const [novoValor, setNovoValor] = useState<string>("");
   const [novoStatus, setNovoStatus] = useState<"Pendente" | "Pago">("Pendente");
   const [novaDataPagamento, setNovaDataPagamento] = useState<string>("");
   const [novaObservacao, setNovaObservacao] = useState<string>("");
   const [dialogAberto, setDialogAberto] = useState(false);
-  const [pagamentoParaExcluir, setPagamentoParaExcluir] = useState<string | null>(null);
+  const [pagamentoParaExcluir, setPagamentoParaExcluir] = useState<
+    string | null
+  >(null);
 
-  useEffect(() => {
-    // Carregar dados do localStorage
-    const dadosSalvos = localStorage.getItem("pagamentosGerados");
-    if (dadosSalvos) {
-      const pagamentosIniciais = JSON.parse(dadosSalvos).map((p: Record<string, unknown>) => ({
-        ...p,
-        status: "Pendente" as const,
-        dataPagamento: undefined,
-      }));
-      setPagamentos(pagamentosIniciais);
-    } else {
-      // Dados mock caso não tenha vindo da tela de geração
-      const mockPagamentos: Pagamento[] = [
-        {
-          id: "1",
-          tipo: "Fornecedor",
-          nome: "Sítio Verde",
-          ciclo: "Ciclo 01/2025",
-          mercado: "Mercado Central",
-          valorTotal: 450.00,
-          status: "Pendente",
-        },
-        {
-          id: "2",
-          tipo: "Consumidor",
-          nome: "Ana Souza",
-          ciclo: "Ciclo 01/2025",
-          mercado: "Mercado Central",
-          valorTotal: 120.00,
-          status: "Pago",
-          dataPagamento: "2025-01-10",
-          observacao: "Pagamento via PIX",
-        },
-        {
-          id: "3",
-          tipo: "Fornecedor",
-          nome: "Maria Horta",
-          ciclo: "Ciclo 02/2025",
-          mercado: "Mercado Norte",
-          valorTotal: 300.00,
-          status: "Pendente",
-        },
-      ];
-      setPagamentos(mockPagamentos);
+  // GraphQL hooks
+  const { data: pagamentosData, refetch: refetchPagamentos } =
+    useListarPagamentos();
+  const atualizarPagamentoMutation = useAtualizarPagamento();
+  const deletarPagamentoMutation = useDeletarPagamento();
+  const marcarPagoMutation = useMarcarPagamentoPago();
+
+  // Obtener pagamentos desde GraphQL
+  const allPagamentos = pagamentosData || [];
+  const pagamentos: Pagamento[] = Array.isArray(allPagamentos)
+    ? allPagamentos.map((p: any) => ({
+        id: p.id.toString(),
+        tipo: p.tipo === "fornecedor" ? "Fornecedor" : "Consumidor",
+        nome: p.usuario?.nome || "-",
+        ciclo: p.ciclo?.nome || "-",
+        mercado: p.mercado?.nome || "-",
+        valorTotal: parseFloat(p.valorTotal) || 0,
+        status: p.status === "pago" ? "Pago" : "Pendente",
+        dataPagamento: p.dataPagamento || undefined,
+        observacao: p.observacao || undefined,
+      }))
+    : [];
+
+  const handleMarcarPago = async (id: string) => {
+    try {
+      await marcarPagoMutation.mutateAsync({
+        id,
+        dataPagamento: new Date().toISOString().split("T")[0],
+      });
+      await refetchPagamentos();
+      toast({
+        title: "Pagamento registrado com sucesso.",
+        description: "O status foi atualizado para 'Pago'.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao marcar pagamento",
+        description:
+          error.message || "Ocorreu um erro ao marcar o pagamento como pago.",
+        variant: "destructive",
+      });
     }
-  }, []);
-
-  const handleMarcarPago = (id: string) => {
-    setPagamentos(prev =>
-      prev.map(p =>
-        p.id === id
-          ? { ...p, status: "Pago" as const, dataPagamento: new Date().toISOString().split("T")[0] }
-          : p
-      )
-    );
-    toast({
-      title: "Pagamento registrado com sucesso.",
-      description: "O status foi atualizado para 'Pago'.",
-    });
   };
 
   const handleEditarPagamento = (pagamento: Pagamento) => {
@@ -110,39 +132,68 @@ const AdminPagamentosGerir = () => {
     setDialogAberto(true);
   };
 
-  const handleSalvarEdicao = () => {
+  const handleSalvarEdicao = async () => {
     if (editandoPagamento) {
-      const valorFormatado = parseFloat(novoValor.replace(",", "."));
-      setPagamentos(prev =>
-        prev.map(p =>
-          p.id === editandoPagamento.id
-            ? { 
-                ...p, 
-                valorTotal: valorFormatado,
-                status: novoStatus,
-                dataPagamento: novaDataPagamento || undefined,
-                observacao: novaObservacao || undefined
-              }
-            : p
-        )
-      );
-      toast({
-        title: "Pagamento atualizado!",
-        description: "O pagamento foi editado com sucesso.",
-      });
-      setDialogAberto(false);
-      setEditandoPagamento(null);
+      try {
+        const valorFormatado = parseFloat(novoValor.replace(",", "."));
+
+        // Atualizar valor si cambió
+        await atualizarPagamentoMutation.mutateAsync({
+          id: editandoPagamento.id,
+          input: {
+            valorTotal: valorFormatado,
+            observacao: novaObservacao || undefined,
+          },
+        });
+
+        // Marcar como pago si el status cambió a "Pago"
+        if (novoStatus === "Pago" && editandoPagamento.status === "Pendente") {
+          await marcarPagoMutation.mutateAsync({
+            id: editandoPagamento.id,
+            dataPagamento:
+              novaDataPagamento || new Date().toISOString().split("T")[0],
+            observacao: novaObservacao || undefined,
+          });
+        }
+
+        await refetchPagamentos();
+        toast({
+          title: "Pagamento atualizado!",
+          description: "O pagamento foi editado com sucesso.",
+        });
+        setDialogAberto(false);
+        setEditandoPagamento(null);
+      } catch (error: any) {
+        toast({
+          title: "Erro ao atualizar",
+          description:
+            error.message || "Ocorreu um erro ao atualizar o pagamento.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  const handleExcluirPagamento = () => {
+  const handleExcluirPagamento = async () => {
     if (pagamentoParaExcluir) {
-      setPagamentos(prev => prev.filter(p => p.id !== pagamentoParaExcluir));
-      toast({
-        title: "Pagamento excluído",
-        description: "O registro de pagamento foi removido com sucesso.",
-      });
-      setPagamentoParaExcluir(null);
+      try {
+        await deletarPagamentoMutation.mutateAsync({
+          id: pagamentoParaExcluir,
+        });
+        await refetchPagamentos();
+        toast({
+          title: "Pagamento excluído",
+          description: "O registro de pagamento foi removido com sucesso.",
+        });
+        setPagamentoParaExcluir(null);
+      } catch (error: any) {
+        toast({
+          title: "Erro ao excluir",
+          description:
+            error.message || "Ocorreu um erro ao excluir o pagamento.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -160,13 +211,13 @@ const AdminPagamentosGerir = () => {
   };
 
   // Filtros e ordenação
-  let pagamentosFiltrados = pagamentos.filter(p => {
-    const matchBusca = 
+  let pagamentosFiltrados = pagamentos.filter((p) => {
+    const matchBusca =
       p.nome.toLowerCase().includes(busca.toLowerCase()) ||
       p.ciclo.toLowerCase().includes(busca.toLowerCase()) ||
       p.mercado.toLowerCase().includes(busca.toLowerCase()) ||
       p.tipo.toLowerCase().includes(busca.toLowerCase());
-    
+
     const matchStatus =
       filtroStatus === "Todos" ||
       (filtroStatus === "Pendentes" && p.status === "Pendente") ||
@@ -189,8 +240,12 @@ const AdminPagamentosGerir = () => {
   });
 
   // Cálculos do resumo
-  const pagamentosPendentes = pagamentos.filter(p => p.status === "Pendente").length;
-  const pagamentosRealizados = pagamentos.filter(p => p.status === "Pago").length;
+  const pagamentosPendentes = pagamentos.filter(
+    (p) => p.status === "Pendente",
+  ).length;
+  const pagamentosRealizados = pagamentos.filter(
+    (p) => p.status === "Pago",
+  ).length;
   const totalMovimentado = pagamentos.reduce((acc, p) => acc + p.valorTotal, 0);
 
   return (
@@ -209,7 +264,10 @@ const AdminPagamentosGerir = () => {
     >
       <div className="container max-w-6xl mx-auto py-8 px-4">
         <div className="mb-6">
-          <RoleTitle page="Gerir Lista de Pagamentos" className="text-3xl mb-2" />
+          <RoleTitle
+            page="Gerir Lista de Pagamentos"
+            className="text-3xl mb-2"
+          />
           <p className="text-muted-foreground">
             Acompanhe, edite e registre os pagamentos pendentes e realizados.
           </p>
@@ -231,7 +289,10 @@ const AdminPagamentosGerir = () => {
                   className="pl-10"
                 />
               </div>
-              <Select value={filtroStatus} onValueChange={(v: Record<string, unknown>) => setFiltroStatus(v)}>
+              <Select
+                value={filtroStatus}
+                onValueChange={(v: any) => setFiltroStatus(v)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Mostrar" />
                 </SelectTrigger>
@@ -241,7 +302,10 @@ const AdminPagamentosGerir = () => {
                   <SelectItem value="Pagos">Pagos</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={ordenacao} onValueChange={(v: Record<string, unknown>) => setOrdenacao(v)}>
+              <Select
+                value={ordenacao}
+                onValueChange={(v: any) => setOrdenacao(v)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Ordenar por" />
                 </SelectTrigger>
@@ -258,7 +322,9 @@ const AdminPagamentosGerir = () => {
         {/* Tabela de Pagamentos */}
         <Card className="mb-6 shadow-md">
           <CardHeader>
-            <CardTitle className="text-primary">Registros de Pagamento</CardTitle>
+            <CardTitle className="text-primary">
+              Registros de Pagamento
+            </CardTitle>
             <CardDescription>
               {pagamentosFiltrados.length} registro(s) encontrado(s)
             </CardDescription>
@@ -268,14 +334,30 @@ const AdminPagamentosGerir = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-semibold text-primary">Tipo</th>
-                    <th className="text-left py-3 px-4 font-semibold text-primary">Nome</th>
-                    <th className="text-left py-3 px-4 font-semibold text-primary">Ciclo</th>
-                    <th className="text-left py-3 px-4 font-semibold text-primary">Mercado</th>
-                    <th className="text-left py-3 px-4 font-semibold text-primary">Valor Total</th>
-                    <th className="text-left py-3 px-4 font-semibold text-primary">Status</th>
-                    <th className="text-left py-3 px-4 font-semibold text-primary">Data do Pagamento</th>
-                    <th className="text-left py-3 px-4 font-semibold text-primary">Ações</th>
+                    <th className="text-left py-3 px-4 font-semibold text-primary">
+                      Tipo
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-primary">
+                      Nome
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-primary">
+                      Ciclo
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-primary">
+                      Mercado
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-primary">
+                      Valor Total
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-primary">
+                      Status
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-primary">
+                      Data do Pagamento
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-primary">
+                      Ações
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -287,20 +369,34 @@ const AdminPagamentosGerir = () => {
                       }`}
                     >
                       <td className="py-3 px-4">
-                        <Badge variant={pagamento.tipo === "Fornecedor" ? "default" : "secondary"}>
+                        <Badge
+                          variant={
+                            pagamento.tipo === "Fornecedor"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
                           {pagamento.tipo}
                         </Badge>
                       </td>
                       <td className="py-3 px-4">{pagamento.nome}</td>
                       <td className="py-3 px-4">{pagamento.ciclo}</td>
                       <td className="py-3 px-4">{pagamento.mercado}</td>
-                      <td className="py-3 px-4 font-semibold">{formatarValor(pagamento.valorTotal)}</td>
+                      <td className="py-3 px-4 font-semibold">
+                        {formatarValor(pagamento.valorTotal)}
+                      </td>
                       <td className="py-3 px-4">
-                        <Badge variant={pagamento.status === "Pago" ? "success" : "outline"}>
+                        <Badge
+                          variant={
+                            pagamento.status === "Pago" ? "success" : "outline"
+                          }
+                        >
                           {pagamento.status}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4">{formatarData(pagamento.dataPagamento)}</td>
+                      <td className="py-3 px-4">
+                        {formatarData(pagamento.dataPagamento)}
+                      </td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
                           {pagamento.status === "Pendente" && (
@@ -326,7 +422,9 @@ const AdminPagamentosGerir = () => {
                           <Button
                             variant="outline"
                             size="icon-sm"
-                            onClick={() => setPagamentoParaExcluir(pagamento.id)}
+                            onClick={() =>
+                              setPagamentoParaExcluir(pagamento.id)
+                            }
                             title="Excluir"
                             className="border-red-500 text-red-600 hover:bg-red-50"
                           >
@@ -346,7 +444,9 @@ const AdminPagamentosGerir = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card className="shadow-md bg-success/10">
             <CardHeader>
-              <CardTitle className="text-primary text-lg">Pagamentos Pendentes</CardTitle>
+              <CardTitle className="text-primary text-lg">
+                Pagamentos Pendentes
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{pagamentosPendentes}</p>
@@ -354,7 +454,9 @@ const AdminPagamentosGerir = () => {
           </Card>
           <Card className="shadow-md bg-success/10">
             <CardHeader>
-              <CardTitle className="text-primary text-lg">Pagamentos Realizados</CardTitle>
+              <CardTitle className="text-primary text-lg">
+                Pagamentos Realizados
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">{pagamentosRealizados}</p>
@@ -362,10 +464,14 @@ const AdminPagamentosGerir = () => {
           </Card>
           <Card className="shadow-md bg-success/10">
             <CardHeader>
-              <CardTitle className="text-primary text-lg">Total Movimentado</CardTitle>
+              <CardTitle className="text-primary text-lg">
+                Total Movimentado
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{formatarValor(totalMovimentado)}</p>
+              <p className="text-3xl font-bold">
+                {formatarValor(totalMovimentado)}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -401,7 +507,10 @@ const AdminPagamentosGerir = () => {
               </div>
               <div>
                 <Label htmlFor="status">Status</Label>
-                <Select value={novoStatus} onValueChange={(v: Record<string, unknown>) => setNovoStatus(v)}>
+                <Select
+                  value={novoStatus}
+                  onValueChange={(v: any) => setNovoStatus(v)}
+                >
                   <SelectTrigger id="status">
                     <SelectValue />
                   </SelectTrigger>
@@ -434,20 +543,22 @@ const AdminPagamentosGerir = () => {
               <Button variant="outline" onClick={() => setDialogAberto(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleSalvarEdicao}>
-                Salvar
-              </Button>
+              <Button onClick={handleSalvarEdicao}>Salvar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
         {/* AlertDialog para Confirmar Exclusão */}
-        <AlertDialog open={!!pagamentoParaExcluir} onOpenChange={() => setPagamentoParaExcluir(null)}>
+        <AlertDialog
+          open={!!pagamentoParaExcluir}
+          onOpenChange={() => setPagamentoParaExcluir(null)}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja excluir este registro de pagamento? Esta ação não pode ser desfeita.
+                Tem certeza que deseja excluir este registro de pagamento? Esta
+                ação não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
