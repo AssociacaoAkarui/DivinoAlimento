@@ -125,6 +125,7 @@ import {
   ATUALIZAR_QUANTIDADE_PRODUTO_PEDIDO_MUTATION,
   REMOVER_PRODUTO_PEDIDO_MUTATION,
   ATUALIZAR_STATUS_PEDIDO_MUTATION,
+  LISTAR_ENTREGAS_FORNECEDORES_POR_CICLO_QUERY,
   LISTAR_PAGAMENTOS_QUERY,
   BUSCAR_PAGAMENTO_QUERY,
   CRIAR_PAGAMENTO_MUTATION,
@@ -2498,5 +2499,49 @@ export function useAtualizarStatusPedido() {
         queryKey: ["listar_pedidos_por_usuario"],
       });
     },
+  });
+}
+
+// EntregaFornecedor interfaces
+export interface EntregaFornecedor {
+  id: string;
+  fornecedor: string;
+  fornecedorId: number;
+  produto: string;
+  produtoId: number;
+  unidadeMedida: string;
+  valorUnitario: number;
+  quantidadeOfertada: number;
+  quantidadeEntregue: number;
+  valorTotal: number;
+  agriculturaFamiliar: boolean;
+  certificacao: string | null;
+}
+
+export interface ListarEntregasFornecedoresPorCicloQuery {
+  listarEntregasFornecedoresPorCiclo: EntregaFornecedor[];
+}
+
+// EntregaFornecedor hooks
+export function useListarEntregasFornecedoresPorCiclo(
+  cicloId: number,
+  fornecedorId?: number,
+) {
+  return useQuery<EntregaFornecedor[], Error>({
+    queryKey: ["listar_entregas_fornecedores_por_ciclo", cicloId, fornecedorId],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(
+        token,
+      ).request<ListarEntregasFornecedoresPorCicloQuery>(
+        LISTAR_ENTREGAS_FORNECEDORES_POR_CICLO_QUERY,
+        { cicloId, fornecedorId },
+      );
+      return response.listarEntregasFornecedoresPorCiclo;
+    },
+    enabled: !!cicloId,
   });
 }
