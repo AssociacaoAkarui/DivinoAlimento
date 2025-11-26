@@ -100,6 +100,172 @@ export const LISTAR_CATEGORIAS_QUERY = gql`
   }
 `;
 
+export const LISTAR_PAGAMENTOS_QUERY = gql`
+  query ListarPagamentos($tipo: String, $status: String, $cicloId: Int) {
+    listarPagamentos(tipo: $tipo, status: $status, cicloId: $cicloId) {
+      id
+      tipo
+      valorTotal
+      status
+      dataPagamento
+      observacao
+      cicloId
+      mercadoId
+      usuarioId
+      ciclo {
+        id
+        nome
+      }
+      mercado {
+        id
+        nome
+      }
+      usuario {
+        id
+        nome
+        email
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const BUSCAR_PAGAMENTO_QUERY = gql`
+  query BuscarPagamento($id: ID!) {
+    buscarPagamento(id: $id) {
+      id
+      tipo
+      valorTotal
+      status
+      dataPagamento
+      observacao
+      cicloId
+      mercadoId
+      usuarioId
+      ciclo {
+        id
+        nome
+      }
+      mercado {
+        id
+        nome
+      }
+      usuario {
+        id
+        nome
+        email
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const CRIAR_PAGAMENTO_MUTATION = gql`
+  mutation CriarPagamento($input: CriarPagamentoInput!) {
+    criarPagamento(input: $input) {
+      id
+      tipo
+      valorTotal
+      status
+      dataPagamento
+      observacao
+      cicloId
+      mercadoId
+      usuarioId
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const ATUALIZAR_PAGAMENTO_MUTATION = gql`
+  mutation AtualizarPagamento($id: ID!, $input: AtualizarPagamentoInput!) {
+    atualizarPagamento(id: $id, input: $input) {
+      id
+      tipo
+      valorTotal
+      status
+      dataPagamento
+      observacao
+      cicloId
+      mercadoId
+      usuarioId
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const MARCAR_PAGAMENTO_COMO_PAGO_MUTATION = gql`
+  mutation MarcarPagamentoComoPago(
+    $id: ID!
+    $dataPagamento: String
+    $observacao: String
+  ) {
+    marcarPagamentoComoPago(
+      id: $id
+      dataPagamento: $dataPagamento
+      observacao: $observacao
+    ) {
+      id
+      tipo
+      valorTotal
+      status
+      dataPagamento
+      observacao
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const CANCELAR_PAGAMENTO_MUTATION = gql`
+  mutation CancelarPagamento($id: ID!, $observacao: String) {
+    cancelarPagamento(id: $id, observacao: $observacao) {
+      id
+      tipo
+      valorTotal
+      status
+      observacao
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const DELETAR_PAGAMENTO_MUTATION = gql`
+  mutation DeletarPagamento($id: ID!) {
+    deletarPagamento(id: $id)
+  }
+`;
+
+export const GERAR_PAGAMENTOS_POR_CICLO_MUTATION = gql`
+  mutation GerarPagamentosPorCiclo($cicloId: Int!) {
+    gerarPagamentosPorCiclo(cicloId: $cicloId) {
+      id
+      tipo
+      valorTotal
+      status
+      cicloId
+      mercadoId
+      usuarioId
+      createdAt
+    }
+  }
+`;
+
+export const CALCULAR_TOTAL_POR_CICLO_QUERY = gql`
+  query CalcularTotalPorCiclo($cicloId: Int!) {
+    calcularTotalPorCiclo(cicloId: $cicloId) {
+      totalReceber
+      totalPagar
+      saldo
+    }
+  }
+`;
+
 export const BUSCAR_CATEGORIA_QUERY = gql`
   query BuscarCategoria($id: ID!) {
     buscarCategoria(id: $id) {
