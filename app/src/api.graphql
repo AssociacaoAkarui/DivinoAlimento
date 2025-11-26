@@ -263,6 +263,64 @@ type ListarCiclosResponse {
     nextCursor: String
 }
 
+type CicloMercados {
+    id: ID!
+    cicloId: Int!
+    ciclo: Ciclo
+    mercadoId: Int!
+    mercado: Mercado
+    tipoVenda: String!
+    ordemAtendimento: Int!
+    quantidadeCestas: Int
+    valorAlvoCesta: Float
+    valorAlvoLote: Float
+    pontoEntregaId: Int
+    pontoEntrega: PontoEntrega
+    periodoEntregaFornecedorInicio: String
+    periodoEntregaFornecedorFim: String
+    periodoRetiradaInicio: String
+    periodoRetiradaFim: String
+    periodoComprasInicio: String
+    periodoComprasFim: String
+    status: String!
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CriarCicloMercadosInput {
+    cicloId: Int!
+    mercadoId: Int!
+    tipoVenda: String!
+    ordemAtendimento: Int
+    quantidadeCestas: Int
+    valorAlvoCesta: Float
+    valorAlvoLote: Float
+    pontoEntregaId: Int
+    periodoEntregaFornecedorInicio: String
+    periodoEntregaFornecedorFim: String
+    periodoRetiradaInicio: String
+    periodoRetiradaFim: String
+    periodoComprasInicio: String
+    periodoComprasFim: String
+    status: String
+}
+
+input AtualizarCicloMercadosInput {
+    tipoVenda: String
+    ordemAtendimento: Int
+    quantidadeCestas: Int
+    valorAlvoCesta: Float
+    valorAlvoLote: Float
+    pontoEntregaId: Int
+    periodoEntregaFornecedorInicio: String
+    periodoEntregaFornecedorFim: String
+    periodoRetiradaInicio: String
+    periodoRetiradaFim: String
+    periodoComprasInicio: String
+    periodoComprasFim: String
+    status: String
+}
+
 input CriarCicloInput {
     nome: String!
     ofertaInicio: String!
@@ -491,6 +549,12 @@ type Mutation {
     criarCiclo(input: CriarCicloInput!): Ciclo!
     atualizarCiclo(id: ID!, input: AtualizarCicloInput!): Ciclo!
     deletarCiclo(id: ID!): Boolean!
+    adicionarMercadoCiclo(input: CriarCicloMercadosInput!): CicloMercados!
+    atualizarMercadoCiclo(
+        id: ID!
+        input: AtualizarCicloMercadosInput!
+    ): CicloMercados!
+    removerMercadoCiclo(id: ID!): Boolean!
     criarPontoEntrega(input: CriarPontoEntregaInput!): PontoEntrega!
     atualizarPontoEntrega(
         id: ID!
@@ -567,6 +631,8 @@ type Query {
     listarSubmissoesPorFornecedor(fornecedorId: Int!): [SubmissaoProduto!]!
     listarCiclos(limite: Int, cursor: String): ListarCiclosResponse!
     buscarCiclo(id: ID!): Ciclo!
+    listarMercadosPorCiclo(cicloId: Int!): [CicloMercados!]!
+    buscarCicloMercado(id: ID!): CicloMercados!
     listarPontosEntrega: [PontoEntrega!]!
     listarPontosEntregaAtivos: [PontoEntrega!]!
     buscarPontoEntrega(id: ID!): PontoEntrega!

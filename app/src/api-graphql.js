@@ -19,6 +19,7 @@ const {
   CestaService,
   PedidoConsumidoresService,
   PagamentoService,
+  CicloMercadoService,
 } = require("../src/services/services.js");
 
 async function requiredAuthenticated(context) {
@@ -887,6 +888,52 @@ const rootValue = {
     );
     return pagamentos;
   },
+
+  // CicloMercados resolvers
+  adicionarMercadoCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { input } = args;
+    const cicloMercado =
+      await context.cicloMercadoService.adicionarMercadoCiclo(input);
+    return cicloMercado;
+  },
+
+  atualizarMercadoCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const { id, input } = args;
+    const cicloMercado =
+      await context.cicloMercadoService.atualizarMercadoCiclo(id, input);
+    return cicloMercado;
+  },
+
+  removerMercadoCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+    const result = await context.cicloMercadoService.removerMercadoCiclo(
+      args.id,
+    );
+    return result;
+  },
+
+  listarMercadosPorCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const cicloMercados =
+      await context.cicloMercadoService.listarMercadosPorCiclo(args.cicloId);
+    return cicloMercados;
+  },
+
+  buscarCicloMercado: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const cicloMercado = await context.cicloMercadoService.buscarPorId(args.id);
+    return cicloMercado;
+  },
 };
 
 const schemaSDL = fs.readFileSync(path.join(__dirname, "api.graphql"), "utf8");
@@ -903,6 +950,7 @@ const cicloService = new CicloService();
 const ofertaService = new OfertaService();
 const pontoEntregaService = new PontoEntregaService();
 const mercadoService = new MercadoService();
+const cicloMercadoService = new CicloMercadoService();
 const precoMercadoService = new PrecoMercadoService();
 const composicaoService = new ComposicaoService();
 const cestaService = new CestaService();
@@ -922,6 +970,7 @@ const API = {
     ofertaService,
     pontoEntregaService,
     mercadoService,
+    cicloMercadoService,
     precoMercadoService,
     composicaoService,
     cestaService,
@@ -939,6 +988,7 @@ const API = {
       ofertaService,
       pontoEntregaService,
       mercadoService,
+      cicloMercadoService,
       precoMercadoService,
       composicaoService,
       cestaService,
