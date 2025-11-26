@@ -21,36 +21,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { roleLabel } from "@/utils/labels";
 import leafTitleIcon from "@/assets/leaf-title-icon.png";
 
-// Mock data - in real app would come from API/context
-const mockFornecedorData = {
-  nomeFornecedor: "Sítio Bela Vista",
-  ciclos: [
-    {
-      id: "c_nov_1",
-      nome: "1º Ciclo de Novembro 2025",
-      status: "Ativo",
-      periodoOferta: { inicio: "31/10/2025", fim: "03/11/2025" },
-      dataEntrega: "15/11/2025 18:25",
-      localEntrega: "Mercado Central",
-      dentroJanelaOferta: true,
-    },
-    {
-      id: "c_out_2",
-      nome: "2º Ciclo de Outubro 2025",
-      status: "Finalizado",
-      periodoOferta: { inicio: "20/10/2025", fim: "23/10/2025" },
-      dataEntrega: "30/10/2025 14:00",
-      localEntrega: "Feira Livre",
-      dentroJanelaOferta: false,
-    },
-  ],
-};
-
 const LojaProdutor = () => {
   const navigate = useNavigate();
   const { activeRole, user } = useAuth();
-  const { nomeFornecedor: _nomeFornecedor, ciclos: _ciclos } =
-    mockFornecedorData;
 
   const roleText = activeRole ? roleLabel(activeRole, user?.gender) : "";
   const pageTitle = `Painel ${roleText}`;
