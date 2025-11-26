@@ -41,11 +41,19 @@ import {
   getNomeMercado,
   getTipoVendaLabel,
 } from "@/utils/ciclo";
-import { useListarPontosEntregaAtivos } from "@/hooks/graphql";
-
-// Constante para o administrador logado
-const CURRENT_ADMIN_ID = "1";
-const CURRENT_ADMIN_NAME = "João Silva";
+import {
+  useListarPontosEntregaAtivos,
+  useListarMercadosPorResponsavel,
+  useBuscarCiclo,
+  useCriarCiclo,
+  useAtualizarCiclo,
+  useListarMercadosPorCiclo,
+  useAdicionarMercadoCiclo,
+  useAtualizarMercadoCiclo,
+  useRemoverMercadoCiclo,
+} from "@/hooks/graphql";
+import { useAuth } from "@/contexts/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type TipoVenda = "cesta" | "lote" | "venda_direta";
 
@@ -72,16 +80,11 @@ interface MercadoCiclo {
   periodo_compras_fim?: string;
 }
 
-// Mercados disponíveis apenas para o administrador logado
-const mercadosDoAdmin = [
-  { id: "1", nome: "Mercado Central", admin: "João Silva" },
-  { id: "2", nome: "Mercado Zona Norte", admin: "João Silva" },
-];
-
 const AdminMercadoCiclo = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = !!id;
+  const { user } = useAuth();
 
   const [nome, setNome] = useState("");
   const [inicioOfertas, setInicioOfertas] = useState("");
@@ -89,49 +92,61 @@ const AdminMercadoCiclo = () => {
   const [observacoes, setObservacoes] = useState("");
   const [mercados, setMercados] = useState<MercadoCiclo[]>([]);
 
+  // Buscar dados do backend
   const { data: pontosEntregaData } = useListarPontosEntregaAtivos();
   const pontosEntrega = pontosEntregaData?.listarPontosEntregaAtivos ?? [];
 
-  const administradorResponsavel = CURRENT_ADMIN_NAME;
+  const { data: mercadosData } = useListarMercadosPorResponsavel(
+    user?.id ? parseInt(user.id) : 0,
+  );
+  const mercadosDoAdmin = mercadosData?.listarMercadosPorResponsavel ?? [];
+
+  const { data: cicloData, isLoading: isLoadingCiclo } = useBuscarCiclo(
+    id ? parseInt(id) : 0,
+  );
+
+  const { mutate: criarCiclo, isPending: isPendingCriar } = useCriarCiclo();
+  const { mutate: atualizarCiclo, isPending: isPendingAtualizar } =
+    useAtualizarCiclo();
+
+  // CicloMercados hooks
+  const { data: cicloMercadosData, isLoading: isLoadingCicloMercados } =
+    useListarMercadosPorCiclo(id ? parseInt(id) : 0);
+  const { mutate: adicionarMercadoCiclo } = useAdicionarMercadoCiclo();
+  const { mutate: atualizarMercadoCiclo } = useAtualizarMercadoCiclo();
+  const { mutate: removerMercadoCiclo } = useRemoverMercadoCiclo();
+
+  const isPending = isPendingCriar || isPendingAtualizar;
+  const administradorResponsavel = user?.name ?? "Administrador";
 
   // Carregar dados do ciclo em modo de edição
   useEffect(() => {
-    if (isEdit && id) {
-      // Mock data - substituir por API call
-      const mockCiclo = {
-        nome: "1º Ciclo de Novembro 2025",
-        inicio_ofertas: "2025-11-03T08:00",
-        fim_ofertas: "2025-11-18T18:00",
-        observacoes: "Ciclo de teste",
-        admin_responsavel_id: CURRENT_ADMIN_ID,
-        mercados: [
-          {
-            id: "1",
-            mercado_id: "1",
-            tipo_venda: "cesta" as TipoVenda,
-            ordem_atendimento: 1,
-            quantidade_cestas: 50,
-            valor_alvo_cesta: "45,00",
-            ponto_entrega: "centro",
-          },
-          {
-            id: "2",
-            mercado_id: "2",
-            tipo_venda: "lote" as TipoVenda,
-            ordem_atendimento: 2,
-            valor_alvo_lote: "200,00",
-            ponto_entrega: "zona_norte",
-          },
-        ] as MercadoCiclo[],
-      };
-
-      setNome(mockCiclo.nome);
-      setInicioOfertas(mockCiclo.inicio_ofertas);
-      setFimOfertas(mockCiclo.fim_ofertas);
-      setObservacoes(mockCiclo.observacoes);
-      setMercados(mockCiclo.mercados);
+    if (isEdit && cicloData?.buscarCiclo) {
+      const ciclo = cicloData.buscarCiclo;
+      setNome(ciclo.nome);
+      setInicioOfertas(ciclo.ofertaInicio);
+      setFimOfertas(ciclo.ofertaFim);
+      setObservacoes(ciclo.observacoes || "");
     }
-  }, [id, isEdit]);
+  }, [isEdit, cicloData]);
+
+  // Carregar mercados do ciclo em modo de edição
+  useEffect(() => {
+    if (isEdit && cicloMercadosData?.listarMercadosPorCiclo) {
+      const cicloMercados = cicloMercadosData.listarMercadosPorCiclo;
+      const mercadosFormatados: MercadoCiclo[] = cicloMercados.map((cm) => ({
+        id: cm.id,
+        mercado_id: cm.mercadoId.toString(),
+        tipo_venda: cm.tipoVenda as TipoVenda,
+        ordem_atendimento: cm.ordemAtendimento,
+        quantidade_cestas: cm.quantidadeCestas || undefined,
+        valor_alvo_cesta: cm.valorAlvoCesta?.toString() || undefined,
+        valor_alvo_lote: cm.valorAlvoLote?.toString() || undefined,
+        ponto_entrega: cm.pontoEntregaId?.toString() || undefined,
+      }));
+      setMercados(mercadosFormatados);
+    }
+  }, [isEdit, cicloMercadosData]);
 
   // Drag & drop sensors
   const sensors = useSensors(
@@ -215,6 +230,65 @@ const AdminMercadoCiclo = () => {
     }
   };
 
+  const saveMercadosCiclo = async (cicloId: number) => {
+    try {
+      // Guardar cada mercado del ciclo
+      for (const mercado of mercados) {
+        const inputMercado = {
+          cicloId,
+          mercadoId: parseInt(mercado.mercado_id),
+          tipoVenda: mercado.tipo_venda,
+          ordemAtendimento: mercado.ordem_atendimento,
+          pontoEntregaId: mercado.ponto_entrega
+            ? parseInt(mercado.ponto_entrega)
+            : undefined,
+          quantidadeCestas: mercado.quantidade_cestas || undefined,
+          valorAlvoCesta: mercado.valor_alvo_cesta
+            ? parseFloat(mercado.valor_alvo_cesta.replace(",", "."))
+            : undefined,
+          valorAlvoLote: mercado.valor_alvo_lote
+            ? parseFloat(mercado.valor_alvo_lote.replace(",", "."))
+            : undefined,
+          status: "ativo" as const,
+        };
+
+        // Si el mercado tiene id (ya existe), actualizar, sino crear
+        if (mercado.id && !mercado.id.startsWith("Date")) {
+          await new Promise<void>((resolve, reject) => {
+            atualizarMercadoCiclo(
+              { id: parseInt(mercado.id), input: inputMercado },
+              {
+                onSuccess: () => resolve(),
+                onError: (error: Error) => reject(error),
+              },
+            );
+          });
+        } else {
+          await new Promise<void>((resolve, reject) => {
+            adicionarMercadoCiclo(
+              { input: inputMercado },
+              {
+                onSuccess: () => resolve(),
+                onError: (error: Error) => reject(error),
+              },
+            );
+          });
+        }
+      }
+
+      toast.success(
+        isEdit
+          ? "Ciclo e mercados atualizados com sucesso!"
+          : "Ciclo criado com sucesso!",
+      );
+      navigate("/adminmercado/ciclo-index");
+    } catch (error) {
+      toast.error(
+        `Erro ao guardar mercados: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
+      );
+    }
+  };
+
   const handleSubmit = () => {
     // Validações
     if (!nome || nome.length < 3) {
@@ -270,13 +344,53 @@ const AdminMercadoCiclo = () => {
       }
     }
 
-    // Simular save com status sempre "ativo"
-    toast.success(
-      isEdit
-        ? "Ciclo atualizado com sucesso!"
-        : "Ciclo criado com sucesso e atribuído ao seu perfil de administrador.",
-    );
-    navigate("/adminmercado/ciclo-index");
+    // Preparar dados para o backend
+    const pontoEntregaId = pontosEntrega[0]?.id
+      ? parseInt(pontosEntrega[0].id)
+      : undefined;
+
+    if (!pontoEntregaId) {
+      toast.error("Nenhum ponto de entrega disponível.");
+      return;
+    }
+
+    const input = {
+      nome,
+      ofertaInicio: inicioOfertas,
+      ofertaFim: fimOfertas,
+      observacoes: observacoes || undefined,
+      pontoEntregaId,
+      status: "ativo" as const,
+    };
+
+    if (isEdit && id) {
+      atualizarCiclo(
+        { id: parseInt(id), input },
+        {
+          onSuccess: () => {
+            // Guardar mercados del ciclo
+            saveMercadosCiclo(parseInt(id));
+          },
+          onError: (error: Error) => {
+            toast.error(`Erro ao atualizar ciclo: ${error.message}`);
+          },
+        },
+      );
+    } else {
+      criarCiclo(
+        { input },
+        {
+          onSuccess: (data) => {
+            // Guardar mercados del ciclo recién creado
+            const novoCicloId = data.criarCiclo.id;
+            saveMercadosCiclo(parseInt(novoCicloId));
+          },
+          onError: (error: Error) => {
+            toast.error(`Erro ao criar ciclo: ${error.message}`);
+          },
+        },
+      );
+    }
   };
 
   return (
@@ -294,663 +408,705 @@ const AdminMercadoCiclo = () => {
       headerContent={<UserMenuLarge />}
     >
       <div className="space-y-6 pb-20">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <RoleTitle
-              page={isEdit ? "Editar Ciclo" : "Novo Ciclo"}
-              className="text-2xl md:text-3xl"
-            />
-            <p className="text-sm text-muted-foreground mt-1">
-              Responsável: {administradorResponsavel}
-            </p>
+        {/* Loading state */}
+        {isEdit && isLoadingCiclo ? (
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
           </div>
-          <Badge className="bg-green-500">Ativo</Badge>
-        </div>
-
-        {/* Layout em duas colunas */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Coluna Principal */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Seção 1: Informações do Ciclo */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  🧾 Informações do Ciclo
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="nome">Nome do Ciclo *</Label>
-                  <Input
-                    id="nome"
-                    placeholder="Ex: 1º Ciclo de Novembro 2025"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Nome gerado automaticamente baseado na data de início
-                    (editável)
-                  </p>
-                </div>
-
-                <div>
-                  <Label>Administrador(a)</Label>
-                  <Input
-                    value={administradorResponsavel}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Você é o responsável por este ciclo (não editável)
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Seção 2: Mercados do Ciclo */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    🏪 Mercados do Ciclo
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddMercado}
-                    className="border-primary text-primary"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Adicionar Mercado
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {mercados.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    Nenhum mercado adicionado. Clique em "Adicionar Mercado"
-                    para começar.
-                  </p>
-                ) : (
-                  mercados.map((mercado) => (
-                    <Card
-                      key={mercado.id}
-                      id={`mercado-${mercado.id}`}
-                      className="border-2 border-primary/20 transition-all duration-300"
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <CardTitle className="text-base">
-                              Mercado #{mercado.ordem_atendimento}
-                            </CardTitle>
-                            {mercado.mercado_id && (
-                              <Badge variant="secondary" className="text-xs">
-                                {CURRENT_ADMIN_NAME}
-                              </Badge>
-                            )}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveMercado(mercado.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label>Selecionar Mercado *</Label>
-                            <Select
-                              value={mercado.mercado_id}
-                              onValueChange={(value) =>
-                                handleUpdateMercado(
-                                  mercado.id,
-                                  "mercado_id",
-                                  value,
-                                )
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o mercado" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {mercadosDoAdmin.map((m) => (
-                                  <SelectItem key={m.id} value={m.id}>
-                                    {m.nome}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Apenas mercados sob sua administração
-                            </p>
-                          </div>
-
-                          <div>
-                            <Label>Tipo de Venda *</Label>
-                            <Select
-                              value={mercado.tipo_venda}
-                              onValueChange={(value) =>
-                                handleUpdateMercado(
-                                  mercado.id,
-                                  "tipo_venda",
-                                  value,
-                                )
-                              }
-                              disabled={!mercado.mercado_id}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o tipo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {mercado.mercado_id &&
-                                  getTiposVendaPermitidos(
-                                    mercado.mercado_id,
-                                  ).map((tipo) => (
-                                    <SelectItem key={tipo} value={tipo}>
-                                      {getTipoVendaLabel(tipo)}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        {/* Configurações por tipo de venda */}
-                        {mercado.tipo_venda === "cesta" && (
-                          <div className="space-y-4 pt-4 border-t">
-                            <h4 className="font-medium text-sm">
-                              Configurações de Cesta
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label>Quantidade de cestas *</Label>
-                                <Input
-                                  type="number"
-                                  value={mercado.quantidade_cestas || ""}
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "quantidade_cestas",
-                                      parseInt(e.target.value),
-                                    )
-                                  }
-                                  placeholder="0"
-                                  min="1"
-                                />
-                              </div>
-                              <div>
-                                <Label>Valor alvo por cesta (R$) *</Label>
-                                <Input
-                                  type="text"
-                                  value={mercado.valor_alvo_cesta || ""}
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "valor_alvo_cesta",
-                                      formatBRLInput(e.target.value),
-                                    )
-                                  }
-                                  placeholder="0,00"
-                                />
-                              </div>
-                            </div>
-                            <div>
-                              <Label>Ponto de entrega *</Label>
-                              <Select
-                                value={mercado.ponto_entrega}
-                                onValueChange={(value) =>
-                                  handleUpdateMercado(
-                                    mercado.id,
-                                    "ponto_entrega",
-                                    value,
-                                  )
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o ponto" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {pontosEntrega.map((ponto) => (
-                                    <SelectItem key={ponto.id} value={ponto.id}>
-                                      {ponto.nome}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label>
-                                  Período entrega fornecedores (início)
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={
-                                    mercado.periodo_entrega_fornecedor_inicio ||
-                                    ""
-                                  }
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_entrega_fornecedor_inicio",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <Label>
-                                  Período entrega fornecedores (fim)
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={
-                                    mercado.periodo_entrega_fornecedor_fim || ""
-                                  }
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_entrega_fornecedor_fim",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label>
-                                  Período retirada consumidores (início)
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={mercado.periodo_retirada_inicio || ""}
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_retirada_inicio",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <Label>
-                                  Período retirada consumidores (fim)
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={mercado.periodo_retirada_fim || ""}
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_retirada_fim",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {mercado.tipo_venda === "lote" && (
-                          <div className="space-y-4 pt-4 border-t">
-                            <h4 className="font-medium text-sm">
-                              Configurações de Lote
-                            </h4>
-                            <div>
-                              <Label>Valor alvo por lote (R$) *</Label>
-                              <Input
-                                type="text"
-                                value={mercado.valor_alvo_lote || ""}
-                                onChange={(e) =>
-                                  handleUpdateMercado(
-                                    mercado.id,
-                                    "valor_alvo_lote",
-                                    formatBRLInput(e.target.value),
-                                  )
-                                }
-                                placeholder="0,00"
-                              />
-                            </div>
-                            <div>
-                              <Label>Ponto de entrega *</Label>
-                              <Select
-                                value={mercado.ponto_entrega}
-                                onValueChange={(value) =>
-                                  handleUpdateMercado(
-                                    mercado.id,
-                                    "ponto_entrega",
-                                    value,
-                                  )
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o ponto" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {pontosEntrega.map((ponto) => (
-                                    <SelectItem key={ponto.id} value={ponto.id}>
-                                      {ponto.nome}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label>
-                                  Período entrega fornecedores (início)
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={
-                                    mercado.periodo_entrega_fornecedor_inicio ||
-                                    ""
-                                  }
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_entrega_fornecedor_inicio",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <Label>
-                                  Período entrega fornecedores (fim)
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={
-                                    mercado.periodo_entrega_fornecedor_fim || ""
-                                  }
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_entrega_fornecedor_fim",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {mercado.tipo_venda === "venda_direta" && (
-                          <div className="space-y-4 pt-4 border-t">
-                            <h4 className="font-medium text-sm">
-                              Configurações de Venda Direta
-                            </h4>
-                            <div>
-                              <Label>Ponto de entrega *</Label>
-                              <Select
-                                value={mercado.ponto_entrega}
-                                onValueChange={(value) =>
-                                  handleUpdateMercado(
-                                    mercado.id,
-                                    "ponto_entrega",
-                                    value,
-                                  )
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o ponto" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {pontosEntrega.map((ponto) => (
-                                    <SelectItem key={ponto.id} value={ponto.id}>
-                                      {ponto.nome}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label>Período de compras (início)</Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={mercado.periodo_compras_inicio || ""}
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_compras_inicio",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <Label>Período de compras (fim)</Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={mercado.periodo_compras_fim || ""}
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_compras_fim",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label>
-                                  Período entrega fornecedores (início)
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={
-                                    mercado.periodo_entrega_fornecedor_inicio ||
-                                    ""
-                                  }
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_entrega_fornecedor_inicio",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <Label>
-                                  Período entrega fornecedores (fim)
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={
-                                    mercado.periodo_entrega_fornecedor_fim || ""
-                                  }
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_entrega_fornecedor_fim",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label>
-                                  Período retirada consumidores (início)
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={mercado.periodo_retirada_inicio || ""}
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_retirada_inicio",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <Label>
-                                  Período retirada consumidores (fim)
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={mercado.periodo_retirada_fim || ""}
-                                  onChange={(e) =>
-                                    handleUpdateMercado(
-                                      mercado.id,
-                                      "periodo_retirada_fim",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Seção 3: Período Global */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  🕒 Período do Ciclo
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="inicio">Início das ofertas *</Label>
-                    <Input
-                      id="inicio"
-                      type="datetime-local"
-                      value={inicioOfertas}
-                      onChange={(e) => setInicioOfertas(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="fim">Fim das ofertas *</Label>
-                    <Input
-                      id="fim"
-                      type="datetime-local"
-                      value={fimOfertas}
-                      onChange={(e) => setFimOfertas(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Seção 4: Observações */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  📋 Observações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  id="observacoes"
-                  placeholder="Informações adicionais sobre o ciclo..."
-                  value={observacoes}
-                  onChange={(e) => setObservacoes(e.target.value)}
-                  rows={4}
+        ) : (
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <RoleTitle
+                  page={isEdit ? "Editar Ciclo" : "Novo Ciclo"}
+                  className="text-2xl md:text-3xl"
                 />
-              </CardContent>
-            </Card>
-          </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Responsável: {administradorResponsavel}
+                </p>
+              </div>
+              <Badge className="bg-green-500">Ativo</Badge>
+            </div>
 
-          {/* Coluna Lateral - Ordenação (Sticky) */}
-          <div className="space-y-6 lg:sticky lg:top-4 h-fit">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Ordem de Atendimento
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {mercados.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Adicione mercados para definir a ordem
-                  </p>
-                ) : (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext
-                      items={mercados.map((m) => m.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div className="space-y-2">
-                        {mercados.map((mercado) => (
-                          <SortableItem
-                            key={mercado.id}
-                            id={mercado.id}
-                            mercado={mercado}
-                            onScroll={scrollToMercado}
-                          />
-                        ))}
+            {/* Layout em duas colunas */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Coluna Principal */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Seção 1: Informações do Ciclo */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      🧾 Informações do Ciclo
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="nome">Nome do Ciclo *</Label>
+                      <Input
+                        id="nome"
+                        placeholder="Ex: 1º Ciclo de Novembro 2025"
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Nome gerado automaticamente baseado na data de início
+                        (editável)
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label>Administrador(a)</Label>
+                      <Input
+                        value={administradorResponsavel}
+                        disabled
+                        className="bg-muted"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Você é o responsável por este ciclo (não editável)
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Seção 2: Mercados do Ciclo */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        🏪 Mercados do Ciclo
+                      </CardTitle>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddMercado}
+                        className="border-primary text-primary"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Adicionar Mercado
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {mercados.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-8">
+                        Nenhum mercado adicionado. Clique em "Adicionar Mercado"
+                        para começar.
+                      </p>
+                    ) : (
+                      mercados.map((mercado) => (
+                        <Card
+                          key={mercado.id}
+                          id={`mercado-${mercado.id}`}
+                          className="border-2 border-primary/20 transition-all duration-300"
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <CardTitle className="text-base">
+                                  Mercado #{mercado.ordem_atendimento}
+                                </CardTitle>
+                                {mercado.mercado_id && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    {mercadosDoAdmin.find(
+                                      (m) => m.id === mercado.mercado_id,
+                                    )?.nome || "Mercado"}
+                                  </Badge>
+                                )}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveMercado(mercado.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label>Selecionar Mercado *</Label>
+                                <Select
+                                  value={mercado.mercado_id}
+                                  onValueChange={(value) =>
+                                    handleUpdateMercado(
+                                      mercado.id,
+                                      "mercado_id",
+                                      value,
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o mercado" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {mercadosDoAdmin.map((m) => (
+                                      <SelectItem key={m.id} value={m.id}>
+                                        {m.nome}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Apenas mercados sob sua administração
+                                </p>
+                              </div>
+
+                              <div>
+                                <Label>Tipo de Venda *</Label>
+                                <Select
+                                  value={mercado.tipo_venda}
+                                  onValueChange={(value) =>
+                                    handleUpdateMercado(
+                                      mercado.id,
+                                      "tipo_venda",
+                                      value,
+                                    )
+                                  }
+                                  disabled={!mercado.mercado_id}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o tipo" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {mercado.mercado_id &&
+                                      getTiposVendaPermitidos(
+                                        mercado.mercado_id,
+                                      ).map((tipo) => (
+                                        <SelectItem key={tipo} value={tipo}>
+                                          {getTipoVendaLabel(tipo)}
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+
+                            {/* Configurações por tipo de venda */}
+                            {mercado.tipo_venda === "cesta" && (
+                              <div className="space-y-4 pt-4 border-t">
+                                <h4 className="font-medium text-sm">
+                                  Configurações de Cesta
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>Quantidade de cestas *</Label>
+                                    <Input
+                                      type="number"
+                                      value={mercado.quantidade_cestas || ""}
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "quantidade_cestas",
+                                          parseInt(e.target.value),
+                                        )
+                                      }
+                                      placeholder="0"
+                                      min="1"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>Valor alvo por cesta (R$) *</Label>
+                                    <Input
+                                      type="text"
+                                      value={mercado.valor_alvo_cesta || ""}
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "valor_alvo_cesta",
+                                          formatBRLInput(e.target.value),
+                                        )
+                                      }
+                                      placeholder="0,00"
+                                    />
+                                  </div>
+                                </div>
+                                <div>
+                                  <Label>Ponto de entrega *</Label>
+                                  <Select
+                                    value={mercado.ponto_entrega}
+                                    onValueChange={(value) =>
+                                      handleUpdateMercado(
+                                        mercado.id,
+                                        "ponto_entrega",
+                                        value,
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione o ponto" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {pontosEntrega.map((ponto) => (
+                                        <SelectItem
+                                          key={ponto.id}
+                                          value={ponto.id}
+                                        >
+                                          {ponto.nome}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>
+                                      Período entrega fornecedores (início)
+                                    </Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={
+                                        mercado.periodo_entrega_fornecedor_inicio ||
+                                        ""
+                                      }
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_entrega_fornecedor_inicio",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>
+                                      Período entrega fornecedores (fim)
+                                    </Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={
+                                        mercado.periodo_entrega_fornecedor_fim ||
+                                        ""
+                                      }
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_entrega_fornecedor_fim",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>
+                                      Período retirada consumidores (início)
+                                    </Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={
+                                        mercado.periodo_retirada_inicio || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_retirada_inicio",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>
+                                      Período retirada consumidores (fim)
+                                    </Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={mercado.periodo_retirada_fim || ""}
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_retirada_fim",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {mercado.tipo_venda === "lote" && (
+                              <div className="space-y-4 pt-4 border-t">
+                                <h4 className="font-medium text-sm">
+                                  Configurações de Lote
+                                </h4>
+                                <div>
+                                  <Label>Valor alvo por lote (R$) *</Label>
+                                  <Input
+                                    type="text"
+                                    value={mercado.valor_alvo_lote || ""}
+                                    onChange={(e) =>
+                                      handleUpdateMercado(
+                                        mercado.id,
+                                        "valor_alvo_lote",
+                                        formatBRLInput(e.target.value),
+                                      )
+                                    }
+                                    placeholder="0,00"
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Ponto de entrega *</Label>
+                                  <Select
+                                    value={mercado.ponto_entrega}
+                                    onValueChange={(value) =>
+                                      handleUpdateMercado(
+                                        mercado.id,
+                                        "ponto_entrega",
+                                        value,
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione o ponto" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {pontosEntrega.map((ponto) => (
+                                        <SelectItem
+                                          key={ponto.id}
+                                          value={ponto.id}
+                                        >
+                                          {ponto.nome}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>
+                                      Período entrega fornecedores (início)
+                                    </Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={
+                                        mercado.periodo_entrega_fornecedor_inicio ||
+                                        ""
+                                      }
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_entrega_fornecedor_inicio",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>
+                                      Período entrega fornecedores (fim)
+                                    </Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={
+                                        mercado.periodo_entrega_fornecedor_fim ||
+                                        ""
+                                      }
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_entrega_fornecedor_fim",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {mercado.tipo_venda === "venda_direta" && (
+                              <div className="space-y-4 pt-4 border-t">
+                                <h4 className="font-medium text-sm">
+                                  Configurações de Venda Direta
+                                </h4>
+                                <div>
+                                  <Label>Ponto de entrega *</Label>
+                                  <Select
+                                    value={mercado.ponto_entrega}
+                                    onValueChange={(value) =>
+                                      handleUpdateMercado(
+                                        mercado.id,
+                                        "ponto_entrega",
+                                        value,
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione o ponto" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {pontosEntrega.map((ponto) => (
+                                        <SelectItem
+                                          key={ponto.id}
+                                          value={ponto.id}
+                                        >
+                                          {ponto.nome}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>Período de compras (início)</Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={
+                                        mercado.periodo_compras_inicio || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_compras_inicio",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>Período de compras (fim)</Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={mercado.periodo_compras_fim || ""}
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_compras_fim",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>
+                                      Período entrega fornecedores (início)
+                                    </Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={
+                                        mercado.periodo_entrega_fornecedor_inicio ||
+                                        ""
+                                      }
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_entrega_fornecedor_inicio",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>
+                                      Período entrega fornecedores (fim)
+                                    </Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={
+                                        mercado.periodo_entrega_fornecedor_fim ||
+                                        ""
+                                      }
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_entrega_fornecedor_fim",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>
+                                      Período retirada consumidores (início)
+                                    </Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={
+                                        mercado.periodo_retirada_inicio || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_retirada_inicio",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>
+                                      Período retirada consumidores (fim)
+                                    </Label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={mercado.periodo_retirada_fim || ""}
+                                      onChange={(e) =>
+                                        handleUpdateMercado(
+                                          mercado.id,
+                                          "periodo_retirada_fim",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Seção 3: Período Global */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      🕒 Período do Ciclo
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="inicio">Início das ofertas *</Label>
+                        <Input
+                          id="inicio"
+                          type="datetime-local"
+                          value={inicioOfertas}
+                          onChange={(e) => setInicioOfertas(e.target.value)}
+                        />
                       </div>
-                    </SortableContext>
-                  </DndContext>
-                )}
-              </CardContent>
-            </Card>
+                      <div>
+                        <Label htmlFor="fim">Fim das ofertas *</Label>
+                        <Input
+                          id="fim"
+                          type="datetime-local"
+                          value={fimOfertas}
+                          onChange={(e) => setFimOfertas(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <Card className="bg-gradient-to-br from-primary/5 to-accent/5">
-              <CardContent className="pt-6 flex flex-col items-center text-center space-y-4">
-                <div className="p-4 bg-primary/10 rounded-full">
-                  <Calendar className="h-12 w-12 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Gestão de Ciclos</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Configure períodos de oferta e vendas para cada mercado
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                {/* Seção 4: Observações */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      📋 Observações
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      id="observacoes"
+                      placeholder="Informações adicionais sobre o ciclo..."
+                      value={observacoes}
+                      onChange={(e) => setObservacoes(e.target.value)}
+                      rows={4}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
 
-        {/* Footer fixo */}
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg p-4 z-10">
-          <div className="max-w-7xl mx-auto flex justify-end gap-4">
-            <Button
-              variant="outline"
-              onClick={() => navigate("/adminmercado/ciclo-index")}
-              className="border-primary text-primary"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              className="bg-primary hover:bg-primary/90"
-            >
-              {isEdit ? "Salvar Alterações" : "Salvar Ciclo"}
-            </Button>
-          </div>
-        </div>
+              {/* Coluna Lateral - Ordenação (Sticky) */}
+              <div className="space-y-6 lg:sticky lg:top-4 h-fit">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Ordem de Atendimento
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {mercados.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Adicione mercados para definir a ordem
+                      </p>
+                    ) : (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <SortableContext
+                          items={mercados.map((m) => m.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div className="space-y-2">
+                            {mercados.map((mercado) => (
+                              <SortableItem
+                                key={mercado.id}
+                                id={mercado.id}
+                                mercado={mercado}
+                                onScroll={scrollToMercado}
+                              />
+                            ))}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-primary/5 to-accent/5">
+                  <CardContent className="pt-6 flex flex-col items-center text-center space-y-4">
+                    <div className="p-4 bg-primary/10 rounded-full">
+                      <Calendar className="h-12 w-12 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-2">Gestão de Ciclos</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Configure períodos de oferta e vendas para cada mercado
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Footer fixo */}
+            <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg p-4 z-10">
+              <div className="max-w-7xl mx-auto flex justify-end gap-4">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/adminmercado/ciclo-index")}
+                  className="border-primary text-primary"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  className="bg-primary hover:bg-primary/90"
+                  disabled={isPending || isLoadingCiclo}
+                >
+                  {isPending
+                    ? isEdit
+                      ? "Salvando..."
+                      : "Criando..."
+                    : isEdit
+                      ? "Salvar Alterações"
+                      : "Salvar Ciclo"}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </ResponsiveLayout>
   );
