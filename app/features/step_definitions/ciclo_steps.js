@@ -43,6 +43,7 @@ Given("que existe um ponto de entrega ativo", async function () {
     });
   }
   currentPontoEntrega = pontoEntrega;
+  this.currentPontoEntrega = pontoEntrega; // Compartir en contexto
   assert(pontoEntrega, "Ponto de entrega não encontrado");
 });
 
@@ -61,6 +62,7 @@ Given("que existe um ciclo cadastrado", async function () {
     });
   }
   currentPontoEntrega = pontoEntrega;
+  this.currentPontoEntrega = pontoEntrega; // Compartir en contexto
 
   const agora = new Date();
   const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -72,6 +74,7 @@ Given("que existe um ciclo cadastrado", async function () {
     pontoEntregaId: pontoEntrega.id,
   });
   createdCiclos.push(currentCiclo);
+  this.currentCiclo = currentCiclo; // Compartir en contexto
 });
 
 Given("que existem ciclos cadastrados", async function () {
