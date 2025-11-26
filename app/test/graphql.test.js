@@ -1,4 +1,10 @@
-import { UsuarioService } from "../src/services/services.js";
+import {
+  UsuarioService,
+  PontoEntregaService,
+  CicloService,
+  MercadoService,
+  CicloMercadoService,
+} from "../src/services/services.js";
 import { createRequire } from "module";
 import { buildSchema, graphql } from "graphql";
 
@@ -4377,6 +4383,9 @@ describe("Mercado GraphQL", function () {
       variableValues: variables,
     });
 
+    if (result.errors) {
+      console.log("GraphQL Errors:", JSON.stringify(result.errors, null, 2));
+    }
     expect(result.errors).to.be.undefined;
     expect(result.data.criarMercado.nome).to.equal("Mercado Central");
     expect(result.data.criarMercado.tipo).to.equal("cesta");
@@ -5391,5 +5400,314 @@ describe("Pagamento GraphQL", function () {
     expect(result.data.calcularTotalPorCiclo.totalReceber).to.equal(1000.0);
     expect(result.data.calcularTotalPorCiclo.totalPagar).to.equal(1500.0);
     expect(result.data.calcularTotalPorCiclo.saldo).to.equal(500.0);
+  });
+});
+
+describe("CicloMercados GraphQL", function () {
+  this.timeout(10000);
+  let adminSession;
+  let cicloId;
+  let mercadoId;
+  let pontoEntregaId;
+
+  beforeEach(async function () {
+    await sequelize.sync({ force: true });
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "admin-token-ciclomercados";
+      },
+    });
+    await usuarioService.create(
+      { email: "admin@example.com", senha: "password" },
+      { perfis: ["admin"] },
+    );
+    adminSession = await usuarioService.login("admin@example.com", "password");
+
+    // Criar ponto de entrega
+    const pontoEntregaService = new PontoEntregaService();
+    const pontoEntrega = await pontoEntregaService.criarPontoEntrega({
+      nome: "Ponto Teste",
+      endereco: "Rua Teste",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      status: "ativo",
+    });
+    pontoEntregaId = pontoEntrega.id;
+
+    // Criar ciclo
+    const cicloService = new CicloService();
+    const agora = new Date();
+    const umaSemanaDepois = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const ciclo = await cicloService.criarCiclo({
+      nome: "Ciclo Teste",
+      ofertaInicio: agora,
+      ofertaFim: umaSemanaDepois,
+      pontoEntregaId: pontoEntregaId,
+    });
+    cicloId = ciclo.id;
+
+    // Criar mercado
+    const mercadoService = new MercadoService();
+    const mercado = await mercadoService.criarMercado({
+      nome: "Mercado Teste",
+      tipo: "cesta",
+      responsavelId: adminSession.usuarioId,
+      valorMaximoCesta: 150.0,
+      taxaAdministrativa: 5.0,
+      status: "ativo",
+      pontosEntrega: [{ nome: "Ponto Mercado", status: "ativo" }],
+    });
+    mercadoId = mercado.id;
+  });
+
+  it("admin user can add mercado tipo cesta to ciclo", async function () {
+    const mutation = `
+      mutation AdicionarMercadoCiclo($input: CriarCicloMercadosInput!) {
+        adicionarMercadoCiclo(input: $input) {
+          id
+          cicloId
+          mercadoId
+          tipoVenda
+          ordemAtendimento
+          quantidadeCestas
+          valorAlvoCesta
+          status
+        }
+      }
+    `;
+
+    const variables = {
+      input: {
+        cicloId: cicloId,
+        mercadoId: mercadoId,
+        tipoVenda: "cesta",
+        ordemAtendimento: 1,
+        quantidadeCestas: 50,
+        valorAlvoCesta: 80.0,
+        pontoEntregaId: pontoEntregaId,
+        status: "ativo",
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    if (result.errors) {
+      console.log("GraphQL Errors:", JSON.stringify(result.errors, null, 2));
+    }
+    expect(result.errors).to.be.undefined;
+    expect(result.data.adicionarMercadoCiclo.cicloId).to.equal(cicloId);
+    expect(result.data.adicionarMercadoCiclo.mercadoId).to.equal(mercadoId);
+    expect(result.data.adicionarMercadoCiclo.tipoVenda).to.equal("cesta");
+    expect(result.data.adicionarMercadoCiclo.quantidadeCestas).to.equal(50);
+    expect(result.data.adicionarMercadoCiclo.valorAlvoCesta).to.equal(80.0);
+  });
+
+  it("admin user can add mercado tipo lote to ciclo", async function () {
+    const mutation = `
+      mutation AdicionarMercadoCiclo($input: CriarCicloMercadosInput!) {
+        adicionarMercadoCiclo(input: $input) {
+          id
+          cicloId
+          mercadoId
+          tipoVenda
+          valorAlvoLote
+          status
+        }
+      }
+    `;
+
+    const variables = {
+      input: {
+        cicloId: cicloId,
+        mercadoId: mercadoId,
+        tipoVenda: "lote",
+        ordemAtendimento: 1,
+        valorAlvoLote: 500.0,
+        pontoEntregaId: pontoEntregaId,
+        status: "ativo",
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.adicionarMercadoCiclo.tipoVenda).to.equal("lote");
+    expect(result.data.adicionarMercadoCiclo.valorAlvoLote).to.equal(500.0);
+  });
+
+  it("admin user can list mercados by ciclo", async function () {
+    // Adicionar mercado ao ciclo primeiro
+    const cicloMercadoService = new CicloMercadoService();
+    await cicloMercadoService.adicionarMercadoCiclo({
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      tipoVenda: "cesta",
+      ordemAtendimento: 1,
+      quantidadeCestas: 50,
+      valorAlvoCesta: 80.0,
+      pontoEntregaId: pontoEntregaId,
+      status: "ativo",
+    });
+
+    const query = `
+      query ListarMercadosPorCiclo($cicloId: Int!) {
+        listarMercadosPorCiclo(cicloId: $cicloId) {
+          id
+          cicloId
+          mercadoId
+          tipoVenda
+          ordemAtendimento
+        }
+      }
+    `;
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: { cicloId: cicloId },
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarMercadosPorCiclo).to.have.lengthOf(1);
+    expect(result.data.listarMercadosPorCiclo[0].cicloId).to.equal(cicloId);
+    expect(result.data.listarMercadosPorCiclo[0].mercadoId).to.equal(mercadoId);
+  });
+
+  it("admin user can update mercado ciclo", async function () {
+    // Adicionar mercado ao ciclo primeiro
+    const cicloMercadoService = new CicloMercadoService();
+    const cicloMercado = await cicloMercadoService.adicionarMercadoCiclo({
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      tipoVenda: "cesta",
+      ordemAtendimento: 1,
+      quantidadeCestas: 50,
+      valorAlvoCesta: 80.0,
+      pontoEntregaId: pontoEntregaId,
+      status: "ativo",
+    });
+
+    const mutation = `
+      mutation AtualizarMercadoCiclo($id: ID!, $input: AtualizarCicloMercadosInput!) {
+        atualizarMercadoCiclo(id: $id, input: $input) {
+          id
+          ordemAtendimento
+          quantidadeCestas
+          valorAlvoCesta
+        }
+      }
+    `;
+
+    const variables = {
+      id: cicloMercado.id.toString(),
+      input: {
+        ordemAtendimento: 2,
+        quantidadeCestas: 100,
+        valorAlvoCesta: 90.0,
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.atualizarMercadoCiclo.ordemAtendimento).to.equal(2);
+    expect(result.data.atualizarMercadoCiclo.quantidadeCestas).to.equal(100);
+    expect(result.data.atualizarMercadoCiclo.valorAlvoCesta).to.equal(90.0);
+  });
+
+  it("admin user can remove mercado from ciclo", async function () {
+    // Adicionar mercado ao ciclo primeiro
+    const cicloMercadoService = new CicloMercadoService();
+    const cicloMercado = await cicloMercadoService.adicionarMercadoCiclo({
+      cicloId: cicloId,
+      mercadoId: mercadoId,
+      tipoVenda: "cesta",
+      ordemAtendimento: 1,
+      quantidadeCestas: 50,
+      valorAlvoCesta: 80.0,
+      pontoEntregaId: pontoEntregaId,
+      status: "ativo",
+    });
+
+    const mutation = `
+      mutation RemoverMercadoCiclo($id: ID!) {
+        removerMercadoCiclo(id: $id)
+      }
+    `;
+
+    const variables = {
+      id: cicloMercado.id.toString(),
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.removerMercadoCiclo).to.be.true;
+  });
+
+  it("error when adding mercado tipo cesta without quantidadeCestas", async function () {
+    const mutation = `
+      mutation AdicionarMercadoCiclo($input: CriarCicloMercadosInput!) {
+        adicionarMercadoCiclo(input: $input) {
+          id
+        }
+      }
+    `;
+
+    const variables = {
+      input: {
+        cicloId: cicloId,
+        mercadoId: mercadoId,
+        tipoVenda: "cesta",
+        ordemAtendimento: 1,
+        pontoEntregaId: pontoEntregaId,
+        // Falta quantidadeCestas e valorAlvoCesta
+      },
+    };
+
+    const context = APIGraphql.buildContext(adminSession.token);
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: mutation,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.not.be.undefined;
+    expect(result.errors[0].message).to.match(/obrigat/i);
   });
 });
