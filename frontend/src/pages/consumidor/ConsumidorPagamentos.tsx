@@ -1,92 +1,100 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Search, Eye } from 'lucide-react';
-import { formatBRL } from '@/utils/currency';
-import { UserMenuLarge } from '@/components/layout/UserMenuLarge';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { RoleTitle } from '@/components/layout/RoleTitle';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Search, Eye } from "lucide-react";
+import { formatBRL } from "@/utils/currency";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { RoleTitle } from "@/components/layout/RoleTitle";
+import { useListarPagamentos } from "@/hooks/graphql";
 
 interface Pagamento {
   id: string;
   data: string;
   descricao: string;
   valor: number;
-  status: 'A Pagar' | 'Pago';
+  status: "A Pagar" | "Pago";
 }
 
 export default function ConsumidorPagamentos() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('todos');
-  const [sortOrder, setSortOrder] = useState<string>('recente');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [sortOrder, setSortOrder] = useState<string>("recente");
 
-  // Mock data - in production this would come from API filtered by current user
-  const pagamentos: Pagamento[] = [
-    {
-      id: '1',
-      data: '15/11/2025',
-      descricao: 'Ciclo Novembro - 1ª Quinzena',
-      valor: 156.50,
-      status: 'A Pagar'
-    },
-    {
-      id: '2',
-      data: '01/11/2025',
-      descricao: 'Ciclo Outubro - 2ª Quinzena',
-      valor: 142.00,
-      status: 'Pago'
-    },
-    {
-      id: '3',
-      data: '15/10/2025',
-      descricao: 'Ciclo Outubro - 1ª Quinzena',
-      valor: 168.30,
-      status: 'Pago'
-    },
-    {
-      id: '4',
-      data: '01/10/2025',
-      descricao: 'Ciclo Setembro - 2ª Quinzena',
-      valor: 135.80,
-      status: 'Pago'
-    }
-  ];
+  // GraphQL hook - filtrar solo pagamentos do tipo "consumidor"
+  const { data: pagamentosData } = useListarPagamentos({ tipo: "consumidor" });
+
+  // Transformar datos de GraphQL a formato local
+  const allPagamentos = pagamentosData || [];
+  const pagamentos: Pagamento[] = Array.isArray(allPagamentos)
+    ? allPagamentos.map((p: any) => ({
+        id: p.id.toString(),
+        data: p.createdAt
+          ? new Date(p.createdAt).toLocaleDateString("pt-BR")
+          : "-",
+        descricao: p.ciclo?.nome ? `Ciclo ${p.ciclo.nome}` : "Pagamento",
+        valor: parseFloat(p.valorTotal) || 0,
+        status: p.status === "pago" ? "Pago" : "A Pagar",
+      }))
+    : [];
 
   const filteredPagamentos = pagamentos
-    .filter(p => 
-      (statusFilter === 'todos' || p.status === statusFilter) &&
-      (p.descricao.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(
+      (p) =>
+        (statusFilter === "todos" || p.status === statusFilter) &&
+        p.descricao.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     .sort((a, b) => {
-      if (sortOrder === 'recente') {
-        return new Date(b.data.split('/').reverse().join('-')).getTime() - 
-               new Date(a.data.split('/').reverse().join('-')).getTime();
+      if (sortOrder === "recente") {
+        return (
+          new Date(b.data.split("/").reverse().join("-")).getTime() -
+          new Date(a.data.split("/").reverse().join("-")).getTime()
+        );
       } else {
-        return new Date(a.data.split('/').reverse().join('-')).getTime() - 
-               new Date(b.data.split('/').reverse().join('-')).getTime();
+        return (
+          new Date(a.data.split("/").reverse().join("-")).getTime() -
+          new Date(b.data.split("/").reverse().join("-")).getTime()
+        );
       }
     });
 
-  const aReceber = pagamentos.filter(p => p.status === 'A Pagar').reduce((acc, p) => acc + p.valor, 0);
-  const pagos = pagamentos.filter(p => p.status === 'Pago').reduce((acc, p) => acc + p.valor, 0);
+  const aReceber = pagamentos
+    .filter((p) => p.status === "A Pagar")
+    .reduce((acc, p) => acc + p.valor, 0);
+  const pagos = pagamentos
+    .filter((p) => p.status === "Pago")
+    .reduce((acc, p) => acc + p.valor, 0);
   const total = aReceber + pagos;
 
   return (
-    <ResponsiveLayout 
+    <ResponsiveLayout
       headerContent={<UserMenuLarge />}
       leftHeaderContent={
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate('/dashboard')} 
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/dashboard")}
           className="text-white hover:bg-white/20"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -179,21 +187,28 @@ export default function ConsumidorPagamentos() {
                   <CardContent className="p-4 space-y-2">
                     <div className="space-y-1.5">
                       <p className="text-sm text-muted-foreground">
-                        <span className="font-medium">Data:</span> {pagamento.data}
+                        <span className="font-medium">Data:</span>{" "}
+                        {pagamento.data}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        <span className="font-medium">Descrição:</span> {pagamento.descricao}
+                        <span className="font-medium">Descrição:</span>{" "}
+                        {pagamento.descricao}
                       </p>
                       <p className="text-base font-semibold text-primary">
-                        <span className="font-medium text-sm text-muted-foreground">Valor:</span> {formatBRL(pagamento.valor)}
+                        <span className="font-medium text-sm text-muted-foreground">
+                          Valor:
+                        </span>{" "}
+                        {formatBRL(pagamento.valor)}
                       </p>
                       <div className="flex items-center gap-2 pt-1">
-                        <span className="text-sm font-medium text-muted-foreground">Status:</span>
-                        <Badge 
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Status:
+                        </span>
+                        <Badge
                           className={
-                            pagamento.status === 'Pago' 
-                              ? 'bg-primary text-primary-foreground' 
-                              : 'bg-[hsl(var(--warning))] text-white'
+                            pagamento.status === "Pago"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-[hsl(var(--warning))] text-white"
                           }
                         >
                           {pagamento.status}
@@ -229,15 +244,25 @@ export default function ConsumidorPagamentos() {
                 ) : (
                   filteredPagamentos.map((pagamento) => (
                     <TableRow key={pagamento.id}>
-                      <TableCell className="font-medium">{pagamento.data}</TableCell>
+                      <TableCell className="font-medium">
+                        {pagamento.data}
+                      </TableCell>
                       <TableCell>{pagamento.descricao}</TableCell>
                       <TableCell className="text-right font-semibold">
                         {formatBRL(pagamento.valor)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge 
-                          variant={pagamento.status === 'Pago' ? 'default' : 'secondary'}
-                          className={pagamento.status === 'Pago' ? 'bg-success' : 'bg-warning'}
+                        <Badge
+                          variant={
+                            pagamento.status === "Pago"
+                              ? "default"
+                              : "secondary"
+                          }
+                          className={
+                            pagamento.status === "Pago"
+                              ? "bg-success"
+                              : "bg-warning"
+                          }
                         >
                           {pagamento.status}
                         </Badge>
@@ -264,7 +289,7 @@ export default function ConsumidorPagamentos() {
         <div className="flex justify-start">
           <Button
             variant="outline"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate("/dashboard")}
             className="border-primary text-primary hover:bg-primary/10"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
