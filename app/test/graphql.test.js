@@ -5711,3 +5711,237 @@ describe("CicloMercados GraphQL", function () {
     expect(result.errors[0].message).to.match(/obrigat/i);
   });
 });
+
+describe("EntregasFornecedores GraphQL", function () {
+  this.timeout(10000);
+  let adminSession;
+  let fornecedorSession;
+  let cicloId;
+  let fornecedorId;
+
+  const {
+    PontoEntrega,
+    Ciclo,
+    CategoriaProdutos,
+    Produto,
+    Oferta,
+    OfertaProdutos,
+  } = require("../models");
+
+  beforeEach(async function () {
+    await sequelize.sync({ force: true });
+
+    const usuarioService = new UsuarioService({
+      uuid4() {
+        return "admin-token-entregas";
+      },
+    });
+
+    // Criar admin usando usuarioService
+    await usuarioService.create(
+      { email: "admin@test.com", senha: "password" },
+      { perfis: ["admin"] },
+    );
+    adminSession = await usuarioService.login("admin@test.com", "password");
+
+    // Criar fornecedor usando usuarioService
+    usuarioService.uuid = () => "fornecedor-token-entregas";
+    await usuarioService.create(
+      {
+        email: "fornecedor@test.com",
+        senha: "password",
+      },
+      { perfis: ["fornecedor"], nome: "João Fornecedor" },
+    );
+    fornecedorSession = await usuarioService.login(
+      "fornecedor@test.com",
+      "password",
+    );
+
+    // Pegar o ID do fornecedor
+    const fornecedor = await Usuario.findOne({
+      where: { email: "fornecedor@test.com" },
+    });
+    fornecedorId = fornecedor.id;
+
+    // Criar ponto de entrega
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Central",
+      endereco: "Rua A",
+      status: "ativo",
+    });
+
+    // Criar ciclo
+    const ciclo = await Ciclo.create({
+      nome: "Ciclo Test",
+      ofertaInicio: "2025-01-01",
+      ofertaFim: "2025-01-31",
+      pontoEntregaId: pontoEntrega.id,
+      status: "oferta",
+    });
+    cicloId = ciclo.id;
+
+    // Criar categoria e produto
+    const categoria = await CategoriaProdutos.create({
+      nome: "Verduras",
+      status: "ativo",
+    });
+
+    const produto = await Produto.create({
+      nome: "Tomate",
+      categoriaId: categoria.id,
+      status: "ativo",
+    });
+
+    // Criar oferta
+    const oferta = await Oferta.create({
+      cicloId: ciclo.id,
+      usuarioId: fornecedor.id,
+      status: "ativo",
+    });
+
+    // Adicionar produto à oferta
+    await OfertaProdutos.create({
+      ofertaId: oferta.id,
+      produtoId: produto.id,
+      quantidade: 50,
+      valorReferencia: 5.5,
+      valorOferta: 5.0,
+    });
+  });
+
+  it("authenticated user can list entregas by ciclo", async function () {
+    const query = `
+      query ListarEntregas($cicloId: Int!) {
+        listarEntregasFornecedoresPorCiclo(cicloId: $cicloId) {
+          id
+          fornecedor
+          fornecedorId
+          produto
+          produtoId
+          unidadeMedida
+          valorUnitario
+          quantidadeOfertada
+          quantidadeEntregue
+          valorTotal
+        }
+      }
+    `;
+
+    const variables = { cicloId };
+    const context = APIGraphql.buildContext(adminSession.token);
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarEntregasFornecedoresPorCiclo).to.be.an("array");
+    expect(result.data.listarEntregasFornecedoresPorCiclo).to.have.lengthOf(1);
+
+    const entrega = result.data.listarEntregasFornecedoresPorCiclo[0];
+    expect(entrega.fornecedor).to.equal("João Fornecedor");
+    expect(entrega.produto).to.equal("Tomate");
+    expect(entrega.quantidadeOfertada).to.equal(50);
+    expect(entrega.valorUnitario).to.equal(5.0);
+  });
+
+  it("fornecedor can list only their entregas", async function () {
+    const query = `
+      query ListarEntregas($cicloId: Int!, $fornecedorId: Int) {
+        listarEntregasFornecedoresPorCiclo(
+          cicloId: $cicloId
+          fornecedorId: $fornecedorId
+        ) {
+          id
+          fornecedor
+          produto
+        }
+      }
+    `;
+
+    const variables = { cicloId, fornecedorId };
+    const context = APIGraphql.buildContext(fornecedorSession.token);
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarEntregasFornecedoresPorCiclo).to.be.an("array");
+    expect(result.data.listarEntregasFornecedoresPorCiclo).to.have.lengthOf(1);
+  });
+
+  it("returns empty array for ciclo without ofertas", async function () {
+    // Criar ciclo vazio
+    const pontoEntrega = await PontoEntrega.create({
+      nome: "Ponto Vazio",
+      endereco: "Rua B",
+      status: "ativo",
+    });
+
+    const cicloVazio = await Ciclo.create({
+      nome: "Ciclo Vazio",
+      ofertaInicio: "2025-02-01",
+      ofertaFim: "2025-02-28",
+      pontoEntregaId: pontoEntrega.id,
+      status: "oferta",
+    });
+
+    const query = `
+      query ListarEntregas($cicloId: Int!) {
+        listarEntregasFornecedoresPorCiclo(cicloId: $cicloId) {
+          id
+          fornecedor
+        }
+      }
+    `;
+
+    const variables = { cicloId: cicloVazio.id };
+    const context = APIGraphql.buildContext(adminSession.token);
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.be.undefined;
+    expect(result.data.listarEntregasFornecedoresPorCiclo).to.be.an("array");
+    expect(result.data.listarEntregasFornecedoresPorCiclo).to.have.lengthOf(0);
+  });
+
+  it("error when not authenticated", async function () {
+    const query = `
+      query ListarEntregas($cicloId: Int!) {
+        listarEntregasFornecedoresPorCiclo(cicloId: $cicloId) {
+          id
+        }
+      }
+    `;
+
+    const variables = { cicloId };
+    const context = APIGraphql.buildContext(null);
+
+    const result = await graphql({
+      schema: APIGraphql.schema,
+      source: query,
+      rootValue: APIGraphql.rootValue,
+      contextValue: context,
+      variableValues: variables,
+    });
+
+    expect(result.errors).to.not.be.undefined;
+    expect(result.errors[0].message).to.equal("Unauthorized");
+  });
+});
