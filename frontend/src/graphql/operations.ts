@@ -674,6 +674,118 @@ export const DELETAR_CICLO_MUTATION = gql`
   }
 `;
 
+// CicloMercados operations
+export const LISTAR_MERCADOS_POR_CICLO_QUERY = gql`
+  query ListarMercadosPorCiclo($cicloId: Int!) {
+    listarMercadosPorCiclo(cicloId: $cicloId) {
+      id
+      cicloId
+      mercadoId
+      mercado {
+        id
+        nome
+        tipo
+      }
+      tipoVenda
+      ordemAtendimento
+      quantidadeCestas
+      valorAlvoCesta
+      valorAlvoLote
+      pontoEntregaId
+      pontoEntrega {
+        id
+        nome
+      }
+      periodoEntregaFornecedorInicio
+      periodoEntregaFornecedorFim
+      periodoRetiradaInicio
+      periodoRetiradaFim
+      periodoComprasInicio
+      periodoComprasFim
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const BUSCAR_CICLO_MERCADO_QUERY = gql`
+  query BuscarCicloMercado($id: ID!) {
+    buscarCicloMercado(id: $id) {
+      id
+      cicloId
+      mercadoId
+      mercado {
+        id
+        nome
+        tipo
+      }
+      tipoVenda
+      ordemAtendimento
+      quantidadeCestas
+      valorAlvoCesta
+      valorAlvoLote
+      pontoEntregaId
+      pontoEntrega {
+        id
+        nome
+      }
+      periodoEntregaFornecedorInicio
+      periodoEntregaFornecedorFim
+      periodoRetiradaInicio
+      periodoRetiradaFim
+      periodoComprasInicio
+      periodoComprasFim
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const ADICIONAR_MERCADO_CICLO_MUTATION = gql`
+  mutation AdicionarMercadoCiclo($input: CriarCicloMercadosInput!) {
+    adicionarMercadoCiclo(input: $input) {
+      id
+      cicloId
+      mercadoId
+      tipoVenda
+      ordemAtendimento
+      quantidadeCestas
+      valorAlvoCesta
+      valorAlvoLote
+      pontoEntregaId
+      status
+    }
+  }
+`;
+
+export const ATUALIZAR_MERCADO_CICLO_MUTATION = gql`
+  mutation AtualizarMercadoCiclo(
+    $id: ID!
+    $input: AtualizarCicloMercadosInput!
+  ) {
+    atualizarMercadoCiclo(id: $id, input: $input) {
+      id
+      cicloId
+      mercadoId
+      tipoVenda
+      ordemAtendimento
+      quantidadeCestas
+      valorAlvoCesta
+      valorAlvoLote
+      pontoEntregaId
+      status
+    }
+  }
+`;
+
+export const REMOVER_MERCADO_CICLO_MUTATION = gql`
+  mutation RemoverMercadoCiclo($id: ID!) {
+    removerMercadoCiclo(id: $id)
+  }
+`;
+
 // Oferta operations
 export const BUSCAR_OFERTA_QUERY = gql`
   query BuscarOferta($id: ID!) {
