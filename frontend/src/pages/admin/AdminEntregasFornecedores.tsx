@@ -30,7 +30,10 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { useListarEntregasFornecedoresPorCiclo } from "@/hooks/graphql";
+import {
+  useListarEntregasFornecedoresPorCiclo,
+  useBuscarCiclo,
+} from "@/hooks/graphql";
 import {
   sortEntregasByFornecedor,
   generateEntregasCSV,
@@ -52,6 +55,9 @@ export default function AdminEntregasFornecedores() {
     isLoading,
     error,
   } = useListarEntregasFornecedoresPorCiclo(id ? parseInt(id) : 0);
+
+  // Fetch ciclo data for export
+  const { data: cicloData } = useBuscarCiclo(id || "");
 
   const entregas = entregasData || [];
 
@@ -91,7 +97,9 @@ export default function AdminEntregasFornecedores() {
 
   const handleExportCSV = async () => {
     try {
-      const ciclosData = [{ id: parseInt(id || "1"), nome: `Ciclo ${id}` }];
+      const ciclosData = cicloData
+        ? [{ id: cicloData.id, nome: cicloData.nome }]
+        : [{ id: parseInt(id || "1"), nome: `Ciclo ${id}` }];
       const { exportFornecedoresCSV } = await import("@/utils/export");
       exportFornecedoresCSV(filteredEntregas, ciclosData);
       toast({ title: "Sucesso", description: "Download do CSV concluído" });
@@ -106,7 +114,9 @@ export default function AdminEntregasFornecedores() {
 
   const handleExportPDF = async () => {
     try {
-      const ciclosData = [{ id: parseInt(id || "1"), nome: `Ciclo ${id}` }];
+      const ciclosData = cicloData
+        ? [{ id: cicloData.id, nome: cicloData.nome }]
+        : [{ id: parseInt(id || "1"), nome: `Ciclo ${id}` }];
       const resumo = { totalQuantidade, valorTotal: valorTotalGeral };
       const { exportFornecedoresPDF } = await import("@/utils/export");
       exportFornecedoresPDF(filteredEntregas, ciclosData, resumo);

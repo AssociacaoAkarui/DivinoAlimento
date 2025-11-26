@@ -27,7 +27,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { parseISO } from "date-fns";
 import { RoleTitle } from "@/components/layout/RoleTitle";
 import { exportFornecedoresCSV, exportFornecedoresPDF } from "@/utils/export";
-import { useListarEntregasFornecedoresPorCiclo } from "@/hooks/graphql";
+import {
+  useListarEntregasFornecedoresPorCiclo,
+  useBuscarCiclo,
+} from "@/hooks/graphql";
 import {
   sortEntregasByProduto,
   calcularTotalGeralEntregas,
@@ -50,6 +53,9 @@ export default function FornecedorEntregas() {
     cicloId ? parseInt(cicloId) : 0,
     undefined, // fornecedorId - undefined means current user (authenticated)
   );
+
+  // Fetch ciclo data for export
+  const { data: cicloData } = useBuscarCiclo(cicloId || "");
 
   const entregas = entregasData || [];
 
@@ -80,7 +86,7 @@ export default function FornecedorEntregas() {
     try {
       // Preparar dados para exportação com campos necessários
       const entregasParaExportar = filteredEntregas.map((e) => ({
-        ciclo: `Ciclo ${cicloId}`,
+        ciclo: cicloData?.nome || `Ciclo ${cicloId}`,
         fornecedor: "Fornecedor Atual", // Em produção, viria do contexto de autenticação
         produto: e.produto,
         unidade_medida: e.unidadeMedida,
@@ -89,7 +95,9 @@ export default function FornecedorEntregas() {
         valor_total: e.valorTotal,
       }));
 
-      const ciclos = [{ id: Number(cicloId), nome: `Ciclo ${cicloId}` }];
+      const ciclos = cicloData
+        ? [{ id: cicloData.id, nome: cicloData.nome }]
+        : [{ id: Number(cicloId), nome: `Ciclo ${cicloId}` }];
 
       exportFornecedoresCSV(entregasParaExportar, ciclos);
 
@@ -110,7 +118,7 @@ export default function FornecedorEntregas() {
     try {
       // Preparar dados para exportação com campos necessários
       const entregasParaExportar = filteredEntregas.map((e) => ({
-        ciclo: `Ciclo ${cicloId}`,
+        ciclo: cicloData?.nome || `Ciclo ${cicloId}`,
         fornecedor: "Fornecedor Atual", // Em produção, viria do contexto de autenticação
         produto: e.produto,
         unidade_medida: e.unidadeMedida,
@@ -119,7 +127,9 @@ export default function FornecedorEntregas() {
         valor_total: e.valorTotal,
       }));
 
-      const ciclos = [{ id: Number(cicloId), nome: `Ciclo ${cicloId}` }];
+      const ciclos = cicloData
+        ? [{ id: cicloData.id, nome: cicloData.nome }]
+        : [{ id: Number(cicloId), nome: `Ciclo ${cicloId}` }];
       const resumo = {
         totalQuantidade,
         valorTotal: valorTotalGeral,
