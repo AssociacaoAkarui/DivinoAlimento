@@ -30,18 +30,11 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-
-interface EntregaFornecedor {
-  id: string;
-  fornecedor: string;
-  produto: string;
-  unidade_medida: string;
-  valor_unitario: number;
-  quantidade_entregue: number;
-  valor_total: number;
-  agricultura_familiar: boolean;
-  certificacao: "organico" | "transicao" | "convencional";
-}
+import { useListarEntregasFornecedoresPorCiclo } from "@/hooks/graphql";
+import {
+  sortEntregasByFornecedor,
+  generateEntregasCSV,
+} from "@/lib/entregas-helpers";
 
 export default function AdminEntregasFornecedores() {
   const navigate = useNavigate();
@@ -53,53 +46,14 @@ export default function AdminEntregasFornecedores() {
     useState<string>("todos");
   const [filtroCertificacao, setFiltroCertificacao] = useState<string>("todos");
 
-  // Mock data - in production this would come from API
-  const entregas: EntregaFornecedor[] = [
-    {
-      id: "1",
-      fornecedor: "Fazenda Verde",
-      produto: "Tomate",
-      unidade_medida: "kg",
-      valor_unitario: 5.5,
-      quantidade_entregue: 120,
-      valor_total: 660.0,
-      agricultura_familiar: true,
-      certificacao: "organico",
-    },
-    {
-      id: "2",
-      fornecedor: "Fazenda Verde",
-      produto: "Alface",
-      unidade_medida: "unidade",
-      valor_unitario: 2.0,
-      quantidade_entregue: 200,
-      valor_total: 400.0,
-      agricultura_familiar: true,
-      certificacao: "transicao",
-    },
-    {
-      id: "3",
-      fornecedor: "Sítio do Sol",
-      produto: "Cenoura",
-      unidade_medida: "kg",
-      valor_unitario: 4.0,
-      quantidade_entregue: 80,
-      valor_total: 320.0,
-      agricultura_familiar: false,
-      certificacao: "convencional",
-    },
-    {
-      id: "4",
-      fornecedor: "Horta Orgânica",
-      produto: "Rúcula",
-      unidade_medida: "maço",
-      valor_unitario: 3.5,
-      quantidade_entregue: 150,
-      valor_total: 525.0,
-      agricultura_familiar: true,
-      certificacao: "organico",
-    },
-  ];
+  // Fetch entregas from GraphQL API
+  const {
+    data: entregasData,
+    isLoading,
+    error,
+  } = useListarEntregasFornecedoresPorCiclo(id ? parseInt(id) : 0);
+
+  const entregas = entregasData || [];
 
   const filteredEntregas = entregas
     .filter((entrega) => {
@@ -109,8 +63,8 @@ export default function AdminEntregasFornecedores() {
 
       const matchAgriculturaFamiliar =
         filtroAgriculturaFamiliar === "todos" ||
-        (filtroAgriculturaFamiliar === "sim" && entrega.agricultura_familiar) ||
-        (filtroAgriculturaFamiliar === "nao" && !entrega.agricultura_familiar);
+        (filtroAgriculturaFamiliar === "sim" && entrega.agriculturaFamiliar) ||
+        (filtroAgriculturaFamiliar === "nao" && !entrega.agriculturaFamiliar);
 
       const matchCertificacao =
         filtroCertificacao === "todos" ||
@@ -127,11 +81,11 @@ export default function AdminEntregasFornecedores() {
     });
 
   const totalQuantidade = filteredEntregas.reduce(
-    (acc, e) => acc + e.quantidade_entregue,
+    (acc, e) => acc + e.quantidadeEntregue,
     0,
   );
   const valorTotalGeral = filteredEntregas.reduce(
-    (acc, e) => acc + e.valor_total,
+    (acc, e) => acc + e.valorTotal,
     0,
   );
 
@@ -174,6 +128,29 @@ export default function AdminEntregasFornecedores() {
       setSortOrder("asc");
     }
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <ResponsiveLayout headerContent={<UserMenuLarge />}>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <p className="text-muted-foreground">Carregando entregas...</p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <ResponsiveLayout headerContent={<UserMenuLarge />}>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+          <p className="text-destructive">Erro ao carregar entregas</p>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
 
   return (
     <ResponsiveLayout
@@ -358,7 +335,7 @@ export default function AdminEntregasFornecedores() {
                       <div className="flex flex-col gap-1">
                         <span>{entrega.produto}</span>
                         <div className="flex gap-1">
-                          {entrega.agricultura_familiar && (
+                          {entrega.agriculturaFamiliar && (
                             <Badge variant="secondary" className="text-xs">
                               Agricultura Familiar
                             </Badge>
