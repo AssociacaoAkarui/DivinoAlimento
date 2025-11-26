@@ -120,6 +120,15 @@ import {
   ATUALIZAR_QUANTIDADE_PRODUTO_PEDIDO_MUTATION,
   REMOVER_PRODUTO_PEDIDO_MUTATION,
   ATUALIZAR_STATUS_PEDIDO_MUTATION,
+  LISTAR_PAGAMENTOS_QUERY,
+  BUSCAR_PAGAMENTO_QUERY,
+  CRIAR_PAGAMENTO_MUTATION,
+  ATUALIZAR_PAGAMENTO_MUTATION,
+  MARCAR_PAGAMENTO_COMO_PAGO_MUTATION,
+  CANCELAR_PAGAMENTO_MUTATION,
+  DELETAR_PAGAMENTO_MUTATION,
+  GERAR_PAGAMENTOS_POR_CICLO_MUTATION,
+  CALCULAR_TOTAL_POR_CICLO_QUERY,
 } from "../graphql/operations";
 
 // Ciclo interfaces
@@ -284,6 +293,177 @@ export function useSystemInformation() {
         SystemInformationDocument,
       );
     },
+  });
+}
+
+export function useListarPagamentos(filters?: {
+  tipo?: string;
+  status?: string;
+  cicloId?: number;
+}) {
+  return useQuery({
+    queryKey: ["listar_pagamentos", filters],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request(
+        LISTAR_PAGAMENTOS_QUERY,
+        filters,
+      );
+      return response.listarPagamentos;
+    },
+  });
+}
+
+export function useBuscarPagamento(id: string) {
+  return useQuery({
+    queryKey: ["buscar_pagamento", id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request(
+        BUSCAR_PAGAMENTO_QUERY,
+        { id },
+      );
+      return response.buscarPagamento;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCriarPagamento() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        CRIAR_PAGAMENTO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_pagamentos"] });
+    },
+  });
+}
+
+export function useAtualizarPagamento() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        ATUALIZAR_PAGAMENTO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_pagamentos"] });
+    },
+  });
+}
+
+export function useMarcarPagamentoPago() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        MARCAR_PAGAMENTO_COMO_PAGO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_pagamentos"] });
+    },
+  });
+}
+
+export function useCancelarPagamento() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        CANCELAR_PAGAMENTO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_pagamentos"] });
+    },
+  });
+}
+
+export function useDeletarPagamento() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        DELETAR_PAGAMENTO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_pagamentos"] });
+    },
+  });
+}
+
+export function useGerarPagamentosPorCiclo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: any) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        GERAR_PAGAMENTOS_POR_CICLO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_pagamentos"] });
+    },
+  });
+}
+
+export function useCalcularTotalPorCiclo(cicloId: number) {
+  return useQuery({
+    queryKey: ["calcular_total_ciclo", cicloId],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const response = await graphqlClientSecure(token).request(
+        CALCULAR_TOTAL_POR_CICLO_QUERY,
+        { cicloId },
+      );
+      return response.calcularTotalPorCiclo;
+    },
+    enabled: !!cicloId,
   });
 }
 
