@@ -79,6 +79,11 @@ import {
   CRIAR_CICLO_MUTATION,
   ATUALIZAR_CICLO_MUTATION,
   DELETAR_CICLO_MUTATION,
+  LISTAR_MERCADOS_POR_CICLO_QUERY,
+  BUSCAR_CICLO_MERCADO_QUERY,
+  ADICIONAR_MERCADO_CICLO_MUTATION,
+  ATUALIZAR_MERCADO_CICLO_MUTATION,
+  REMOVER_MERCADO_CICLO_MUTATION,
   BUSCAR_OFERTA_QUERY,
   LISTAR_OFERTAS_POR_CICLO_QUERY,
   LISTAR_OFERTAS_POR_USUARIO_QUERY,
@@ -1622,6 +1627,109 @@ export function useDeletarCiclo() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["listar_ciclos"],
+      });
+    },
+  });
+}
+
+// CicloMercados hooks
+export function useListarMercadosPorCiclo(cicloId: number) {
+  return useQuery({
+    queryKey: ["listar_mercados_por_ciclo", cicloId],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const data = await graphqlClientSecure(token).request(
+        LISTAR_MERCADOS_POR_CICLO_QUERY,
+        { cicloId },
+      );
+      return data.listarMercadosPorCiclo;
+    },
+    enabled: !!cicloId,
+  });
+}
+
+export function useBuscarCicloMercado(id: number) {
+  return useQuery({
+    queryKey: ["buscar_ciclo_mercado", id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const data = await graphqlClientSecure(token).request(
+        BUSCAR_CICLO_MERCADO_QUERY,
+        { id: id.toString() },
+      );
+      return data.buscarCicloMercado;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useAdicionarMercadoCiclo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: { input: any }) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        ADICIONAR_MERCADO_CICLO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listar_mercados_por_ciclo"],
+      });
+    },
+  });
+}
+
+export function useAtualizarMercadoCiclo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: { id: string; input: any }) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        ATUALIZAR_MERCADO_CICLO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listar_mercados_por_ciclo"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["buscar_ciclo_mercado"],
+      });
+    },
+  });
+}
+
+export function useRemoverMercadoCiclo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: { id: string }) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      return await graphqlClientSecure(token).request(
+        REMOVER_MERCADO_CICLO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listar_mercados_por_ciclo"],
       });
     },
   });
