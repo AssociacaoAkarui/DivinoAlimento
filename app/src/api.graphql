@@ -656,6 +656,25 @@ type Query {
     listarPagamentos(filtros: FiltrosPagamentoInput): [Pagamento!]!
     buscarPagamento(id: ID!): Pagamento!
     calcularTotalPorCiclo(cicloId: Int!): TotalPorCiclo!
+    listarEntregasFornecedoresPorCiclo(
+        cicloId: Int!
+        fornecedorId: Int
+    ): [EntregaFornecedor!]!
+}
+
+type EntregaFornecedor {
+    id: ID!
+    fornecedor: String!
+    fornecedorId: Int!
+    produto: String!
+    produtoId: Int!
+    unidadeMedida: String!
+    valorUnitario: Float!
+    quantidadeOfertada: Float!
+    quantidadeEntregue: Float!
+    valorTotal: Float!
+    agriculturaFamiliar: Boolean
+    certificacao: String
 }
 
 type OfertaProduto {

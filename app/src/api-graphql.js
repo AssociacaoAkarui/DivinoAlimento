@@ -20,6 +20,7 @@ const {
   PedidoConsumidoresService,
   PagamentoService,
   CicloMercadoService,
+  EntregaFornecedorService,
 } = require("../src/services/services.js");
 
 async function requiredAuthenticated(context) {
@@ -834,6 +835,17 @@ const rootValue = {
     return total;
   },
 
+  listarEntregasFornecedoresPorCiclo: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    const entregas =
+      await context.entregaFornecedorService.listarEntregasFornecedoresPorCiclo(
+        args.cicloId,
+        args.fornecedorId,
+      );
+    return entregas;
+  },
+
   // Pagamento mutations
   criarPagamento: async (args, context) => {
     await requiredAuthenticated(context);
@@ -956,6 +968,7 @@ const composicaoService = new ComposicaoService();
 const cestaService = new CestaService();
 const pedidoConsumidoresService = new PedidoConsumidoresService();
 const pagamentoService = new PagamentoService();
+const entregaFornecedorService = new EntregaFornecedorService();
 
 const API = {
   rootValue,
@@ -976,6 +989,7 @@ const API = {
     cestaService,
     pedidoConsumidoresService,
     pagamentoService,
+    entregaFornecedorService,
   },
   buildContext(sessionToken) {
     return {
@@ -994,6 +1008,7 @@ const API = {
       cestaService,
       pedidoConsumidoresService,
       pagamentoService,
+      entregaFornecedorService,
       sessionToken,
     };
   },
