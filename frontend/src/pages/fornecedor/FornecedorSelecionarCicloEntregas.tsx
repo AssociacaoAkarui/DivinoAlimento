@@ -1,5 +1,3 @@
-import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
 import { Card } from "@/components/ui/card";
@@ -13,56 +11,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Truck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 import { formatarDataBR } from "@/utils/ciclo";
-import { Ciclo } from "@/types/ciclo-mercado";
+import { useListarCiclos } from "@/hooks/graphql";
 import { RoleTitle } from "@/components/layout/RoleTitle";
 
 export default function FornecedorSelecionarCicloEntregas() {
   const navigate = useNavigate();
 
-  // Mock data - apenas ciclos ativos
-  const [ciclos] = useState<Ciclo[]>([
-    {
-      id: "1",
-      nome: "1º Ciclo de Novembro 2025",
-      inicio_ofertas: "2025-11-03",
-      fim_ofertas: "2025-11-18",
-      status: "ativo",
-      admin_responsavel_id: "1",
-      admin_responsavel_nome: "João Silva",
-      mercados: [],
-    },
-    {
-      id: "2",
-      nome: "2º Ciclo de Outubro 2025",
-      inicio_ofertas: "2025-10-22",
-      fim_ofertas: "2025-10-30",
-      status: "ativo",
-      admin_responsavel_id: "2",
-      admin_responsavel_nome: "Anna Cardoso",
-      mercados: [],
-    },
-    {
-      id: "3",
-      nome: "1º Ciclo de Outubro 2025",
-      inicio_ofertas: "2025-10-13",
-      fim_ofertas: "2025-10-20",
-      status: "ativo",
-      admin_responsavel_id: "3",
-      admin_responsavel_nome: "Maria Santos",
-      mercados: [],
-    },
-  ]);
+  // Buscar ciclos do backend
+  const { data: ciclosData, isLoading, error } = useListarCiclos();
+  const ciclos = ciclosData?.listarCiclos?.ciclos ?? [];
 
-  // Filtra apenas ciclos ativos
+  // Filtra apenas ciclos ativos e ordena por data
   const ciclosAtivos = useMemo(() => {
     return ciclos
       .filter((ciclo) => ciclo.status === "ativo")
       .sort(
         (a, b) =>
-          new Date(b.inicio_ofertas).getTime() -
-          new Date(a.inicio_ofertas).getTime(),
+          new Date(b.ofertaInicio).getTime() -
+          new Date(a.ofertaInicio).getTime(),
       );
   }, [ciclos]);
 
@@ -109,7 +80,21 @@ export default function FornecedorSelecionarCicloEntregas() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {ciclosAtivos.length === 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={4}>
+                      <Skeleton className="h-10 w-full" />
+                    </TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8">
+                      <p className="text-destructive">
+                        Erro ao carregar ciclos. Tente novamente.
+                      </p>
+                    </TableCell>
+                  </TableRow>
+                ) : ciclosAtivos.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8">
                       <p className="text-muted-foreground">
@@ -124,8 +109,8 @@ export default function FornecedorSelecionarCicloEntregas() {
                         {ciclo.nome}
                       </TableCell>
                       <TableCell>
-                        {formatarDataBR(ciclo.inicio_ofertas)} –{" "}
-                        {formatarDataBR(ciclo.fim_ofertas)}
+                        {formatarDataBR(ciclo.ofertaInicio)} –{" "}
+                        {formatarDataBR(ciclo.ofertaFim)}
                       </TableCell>
                       <TableCell>
                         <Badge variant="success">Ativo</Badge>
@@ -149,7 +134,17 @@ export default function FornecedorSelecionarCicloEntregas() {
 
         {/* Mobile Cards */}
         <div className="md:hidden space-y-4">
-          {ciclosAtivos.length === 0 ? (
+          {isLoading ? (
+            <Card className="p-6 text-center">
+              <Skeleton className="h-24 w-full" />
+            </Card>
+          ) : error ? (
+            <Card className="p-6 text-center">
+              <p className="text-destructive">
+                Erro ao carregar ciclos. Tente novamente.
+              </p>
+            </Card>
+          ) : ciclosAtivos.length === 0 ? (
             <Card className="p-6 text-center">
               <p className="text-muted-foreground">
                 Nenhum ciclo ativo disponível no momento.
@@ -166,8 +161,8 @@ export default function FornecedorSelecionarCicloEntregas() {
                   <div className="text-sm text-muted-foreground">
                     <p>
                       <span className="font-medium">Período:</span>{" "}
-                      {formatarDataBR(ciclo.inicio_ofertas)} –{" "}
-                      {formatarDataBR(ciclo.fim_ofertas)}
+                      {formatarDataBR(ciclo.ofertaInicio)} –{" "}
+                      {formatarDataBR(ciclo.ofertaFim)}
                     </p>
                   </div>
                 </div>

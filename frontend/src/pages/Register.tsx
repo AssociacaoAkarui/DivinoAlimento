@@ -54,23 +54,6 @@ const getDefaultRoute = (role: UserRole): string => {
   }
 };
 
-// Mock data for markets with types (not currently used but kept for future features)
-// const mockMarkets = [
-//   { id: "1", name: "Mercado Central de São Paulo", type: "cesta" as const },
-//   { id: "2", name: "Mercado Municipal de Campinas", type: "cesta" as const },
-//   { id: "3", name: "Feira Orgânica de Santos", type: "venda_direta" as const },
-//   {
-//     id: "4",
-//     name: "Mercado Verde de Ribeirão Preto",
-//     type: "venda_direta" as const,
-//   },
-// ];
-
-// const mockPriorityMarkets = [
-//   { id: "1", name: "Mercado Central de São Paulo", priority: "Alta" },
-//   { id: "2", name: "Mercado Municipal de Campinas", priority: "Média" },
-// ];
-
 type FormData = {
   name: string;
   phone: string;
