@@ -36,10 +36,12 @@ import {
   calcularTotalGeralEntregas,
   generateEntregasCSV,
 } from "@/lib/entregas-helpers";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function FornecedorEntregas() {
   const navigate = useNavigate();
   const { cicloId } = useParams();
+  const { user } = useAuth();
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [orderBy, setOrderBy] = useState<"produto" | "valor">("produto");
@@ -87,7 +89,7 @@ export default function FornecedorEntregas() {
       // Preparar dados para exportação com campos necessários
       const entregasParaExportar = filteredEntregas.map((e) => ({
         ciclo: cicloData?.nome || `Ciclo ${cicloId}`,
-        fornecedor: "Fornecedor Atual", // Em produção, viria do contexto de autenticação
+        fornecedor: user?.nome || "Fornecedor",
         produto: e.produto,
         unidade_medida: e.unidadeMedida,
         valor_unitario: e.valorUnitario,
@@ -119,7 +121,7 @@ export default function FornecedorEntregas() {
       // Preparar dados para exportação com campos necessários
       const entregasParaExportar = filteredEntregas.map((e) => ({
         ciclo: cicloData?.nome || `Ciclo ${cicloId}`,
-        fornecedor: "Fornecedor Atual", // Em produção, viria do contexto de autenticação
+        fornecedor: user?.nome || "Fornecedor",
         produto: e.produto,
         unidade_medida: e.unidadeMedida,
         valor_unitario: e.valorUnitario,
