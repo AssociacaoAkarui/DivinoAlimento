@@ -291,3 +291,197 @@ SELECT setval('"Oferta_id_seq"', COALESCE((SELECT MAX(id) FROM "Oferta"), 1));
 SELECT setval('"OfertaProdutos_id_seq"', COALESCE((SELECT MAX(id) FROM "OfertaProdutos"), 1));
 SELECT setval('"PedidoConsumidores_id_seq"', COALESCE((SELECT MAX(id) FROM "PedidoConsumidores"), 1));
 SELECT setval('"PedidoConsumidoresProdutos_id_seq"', COALESCE((SELECT MAX(id) FROM "PedidoConsumidoresProdutos"), 1));
+
+-- ========================================
+-- DATOS EXPANDIDOS PARA TESTING Y RELATÓRIOS
+-- ========================================
+
+-- Más fornecedores para diversificar ofertas
+INSERT INTO "Usuarios" (id, nome, nomeoficial, celular, banco, agencia, conta, "chavePix", email, cientepolitica, senha, perfis, status, "createdAt", "updatedAt")
+SELECT 7, 'Ana Horta Orgânica', 'Ana Hortaliças LTDA', '11933333333', 'Itaú', '2222', '33333-3', '11933333333', 'ana@horta.com', 'sim', 'fornecedor123', ARRAY['fornecedor'::"enum_Usuarios_perfis"], 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE id = 7);
+
+INSERT INTO "Usuarios" (id, nome, nomeoficial, celular, banco, agencia, conta, "chavePix", email, cientepolitica, senha, perfis, status, "createdAt", "updatedAt")
+SELECT 8, 'Sítio Bela Vista', 'Fazenda Bela Vista', '11922222222', 'Bradesco', '3333', '44444-4', 'sitio@belavista.com', 'sitio@belavista.com', 'sim', 'fornecedor123', ARRAY['fornecedor'::"enum_Usuarios_perfis"], 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE id = 8);
+
+-- Más consumidores para testing de relatórios
+INSERT INTO "Usuarios" (id, nome, nomeoficial, celular, banco, agencia, conta, "chavePix", email, cientepolitica, senha, perfis, status, "createdAt", "updatedAt")
+SELECT 9, 'Lucia Santos', 'Lucia', '11911111111', 'Nubank', '0001', '55555-5', 'lucia@email.com', 'lucia@email.com', 'sim', 'consumidor123', ARRAY['consumidor'::"enum_Usuarios_perfis"], 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE id = 9);
+
+INSERT INTO "Usuarios" (id, nome, nomeoficial, celular, banco, agencia, conta, "chavePix", email, cientepolitica, senha, perfis, status, "createdAt", "updatedAt")
+SELECT 10, 'Roberto Lima', 'Roberto', '11900000000', 'Inter', '0001', '66666-6', 'roberto@email.com', 'roberto@email.com', 'sim', 'consumidor123', ARRAY['consumidor'::"enum_Usuarios_perfis"], 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE id = 10);
+
+INSERT INTO "Usuarios" (id, nome, nomeoficial, celular, banco, agencia, conta, "chavePix", email, cientepolitica, senha, perfis, status, "createdAt", "updatedAt")
+SELECT 11, 'Fernanda Costa', 'Fernanda', '11899999999', 'C6', '0001', '77777-7', 'fernanda@email.com', 'fernanda@email.com', 'sim', 'consumidor123', ARRAY['consumidor'::"enum_Usuarios_perfis"], 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Usuarios" WHERE id = 11);
+
+-- Más categorias
+INSERT INTO "CategoriaProdutos" (id, nome, status, "createdAt", "updatedAt")
+SELECT 3, 'legumes', 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "CategoriaProdutos" WHERE id = 3);
+
+INSERT INTO "CategoriaProdutos" (id, nome, status, "createdAt", "updatedAt")
+SELECT 4, 'tuberculos', 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "CategoriaProdutos" WHERE id = 4);
+
+-- Más productos
+INSERT INTO "Produtos" (id, nome, "categoriaId", status, "createdAt", "updatedAt")
+SELECT 6, 'Tomate Cereja', 3, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Produtos" WHERE id = 6);
+
+INSERT INTO "Produtos" (id, nome, "categoriaId", status, "createdAt", "updatedAt")
+SELECT 7, 'Cenoura', 4, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Produtos" WHERE id = 7);
+
+INSERT INTO "Produtos" (id, nome, "categoriaId", status, "createdAt", "updatedAt")
+SELECT 8, 'Batata Doce', 4, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Produtos" WHERE id = 8);
+
+INSERT INTO "Produtos" (id, nome, "categoriaId", status, "createdAt", "updatedAt")
+SELECT 9, 'Rúcula', 2, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Produtos" WHERE id = 9);
+
+INSERT INTO "Produtos" (id, nome, "categoriaId", status, "createdAt", "updatedAt")
+SELECT 10, 'Espinafre', 2, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Produtos" WHERE id = 10);
+
+-- CicloMercados: Vincular mercados a ciclos (UC010)
+-- Ciclo 1 tiene mercados tipo cesta y venda_direta
+INSERT INTO "CicloMercados" (id, "cicloId", "mercadoId", "pontoEntregaId", "tipoVenda", "ordemAtendimento", "quantidadeCestas", "valorAlvoCesta", status, "createdAt", "updatedAt")
+SELECT 1, 1, 1, 1, 'cesta', 1, 50, 25.00, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "CicloMercados" WHERE id = 1);
+
+INSERT INTO "CicloMercados" (id, "cicloId", "mercadoId", "pontoEntregaId", "tipoVenda", "ordemAtendimento", status, "createdAt", "updatedAt")
+SELECT 2, 1, 2, 3, 'venda_direta', 2, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "CicloMercados" WHERE id = 2);
+
+-- Ciclo 2 tiene mercado tipo lote
+INSERT INTO "CicloMercados" (id, "cicloId", "mercadoId", "pontoEntregaId", "tipoVenda", "ordemAtendimento", "valorAlvoLote", status, "createdAt", "updatedAt")
+SELECT 3, 2, 3, 4, 'lote', 1, 500.00, 'ativo', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "CicloMercados" WHERE id = 3);
+
+-- Más ofertas de otros fornecedores
+INSERT INTO "Oferta" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 3, 1, 7, 'ativo', 'Oferta Ana Horta', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Oferta" WHERE id = 3);
+
+INSERT INTO "Oferta" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 4, 1, 8, 'ativo', 'Oferta Sítio Bela Vista', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Oferta" WHERE id = 4);
+
+INSERT INTO "Oferta" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 5, 2, 7, 'ativo', 'Oferta ciclo 2 Ana', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Oferta" WHERE id = 5);
+
+-- OfertaProdutos: más variedad
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 6, 3, 6, 30, 15.00, 14.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 6);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 7, 3, 7, 60, 5.00, 4.80, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 7);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 8, 3, 9, 40, 6.50, 6.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 8);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 9, 4, 8, 100, 7.00, 6.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 9);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 10, 4, 10, 50, 8.00, 7.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 10);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 11, 5, 6, 25, 15.00, 14.00, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 11);
+
+INSERT INTO "OfertaProdutos" (id, "ofertaId", "produtoId", quantidade, "valorReferencia", "valorOferta", "createdAt", "updatedAt")
+SELECT 12, 5, 7, 50, 5.00, 4.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "OfertaProdutos" WHERE id = 12);
+
+-- Más pedidos de consumidores (para relatórios)
+INSERT INTO "PedidoConsumidores" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 5, 1, 9, 'confirmado', 'Pedido Lucia', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidores" WHERE id = 5);
+
+INSERT INTO "PedidoConsumidores" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 6, 1, 10, 'confirmado', 'Pedido Roberto', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidores" WHERE id = 6);
+
+INSERT INTO "PedidoConsumidores" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 7, 1, 11, 'pendente', 'Pedido Fernanda', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidores" WHERE id = 7);
+
+INSERT INTO "PedidoConsumidores" (id, "cicloId", "usuarioId", status, observacao, "createdAt", "updatedAt")
+SELECT 8, 2, 9, 'confirmado', 'Pedido Lucia ciclo 2', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidores" WHERE id = 8);
+
+-- PedidoConsumidoresProdutos: más variedad
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 7, 5, 6, 2, 14.50, 14.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 7);
+
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 8, 5, 7, 3, 4.80, 4.80, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 8);
+
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 9, 6, 8, 4, 6.50, 6.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 9);
+
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 10, 6, 10, 2, 7.50, 7.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 10);
+
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 11, 7, 1, 5, 8.50, 8.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 11);
+
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 12, 7, 9, 3, 6.50, 6.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 12);
+
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 13, 8, 6, 4, 14.00, 14.00, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 13);
+
+INSERT INTO "PedidoConsumidoresProdutos" (id, "pedidoConsumidorId", "produtoId", quantidade, "valorOferta", "valorCompra", "createdAt", "updatedAt")
+SELECT 14, 8, 7, 5, 4.50, 4.50, CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "PedidoConsumidoresProdutos" WHERE id = 14);
+
+-- Pagamentos: generar pagamentos para fornecedores (UC022/UC023)
+INSERT INTO "Pagamentos" (id, "cicloId", "mercadoId", "usuarioId", tipo, "valorTotal", "dataPagamento", status, "createdAt", "updatedAt")
+SELECT 1, 3, 1, 2, 'fornecedor', 850.00, NULL, 'pendente', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Pagamentos" WHERE id = 1);
+
+INSERT INTO "Pagamentos" (id, "cicloId", "mercadoId", "usuarioId", tipo, "valorTotal", "dataPagamento", status, "createdAt", "updatedAt")
+SELECT 2, 3, 1, 7, 'fornecedor', 420.00, CURRENT_DATE - INTERVAL '5 days', 'pago', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Pagamentos" WHERE id = 2);
+
+INSERT INTO "Pagamentos" (id, "cicloId", "mercadoId", "usuarioId", tipo, "valorTotal", "dataPagamento", status, "createdAt", "updatedAt")
+SELECT 3, 3, 1, 8, 'fornecedor', 650.00, NULL, 'pendente', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Pagamentos" WHERE id = 3);
+
+-- Pagamentos de consumidores
+INSERT INTO "Pagamentos" (id, "cicloId", "mercadoId", "usuarioId", tipo, "valorTotal", "dataPagamento", status, "createdAt", "updatedAt")
+SELECT 4, 1, 1, 3, 'consumidor', 49.50, CURRENT_DATE - INTERVAL '3 days', 'pago', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Pagamentos" WHERE id = 4);
+
+INSERT INTO "Pagamentos" (id, "cicloId", "mercadoId", "usuarioId", tipo, "valorTotal", "dataPagamento", status, "createdAt", "updatedAt")
+SELECT 5, 1, 1, 9, 'consumidor', 43.40, NULL, 'pendente', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Pagamentos" WHERE id = 5);
+
+INSERT INTO "Pagamentos" (id, "cicloId", "mercadoId", "usuarioId", tipo, "valorTotal", "dataPagamento", status, "createdAt", "updatedAt")
+SELECT 6, 1, 1, 10, 'consumidor', 41.00, NULL, 'pendente', CURRENT_DATE, CURRENT_DATE
+WHERE NOT EXISTS (SELECT 1 FROM "Pagamentos" WHERE id = 6);
+
+-- Actualizar sequences de las nuevas tablas
+SELECT setval('"CicloMercados_id_seq"', COALESCE((SELECT MAX(id) FROM "CicloMercados"), 1));
+SELECT setval('"Pagamentos_id_seq"', COALESCE((SELECT MAX(id) FROM "Pagamentos"), 1));
+
