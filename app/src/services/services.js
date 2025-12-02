@@ -549,10 +549,20 @@ class ComposicaoService {
   async sincronizarProdutos(composicaoId, produtos) {
     const transaction = await sequelize.transaction();
     try {
+      console.log(
+        "[sincronizarProdutos] Iniciando para composicaoId:",
+        composicaoId,
+      );
+      console.log(
+        "[sincronizarProdutos] Produtos recebidos:",
+        JSON.stringify(produtos, null, 2),
+      );
+
       await ComposicaoOfertaProdutos.destroy({
         where: { composicaoId: composicaoId },
         transaction,
       });
+      console.log("[sincronizarProdutos] Produtos antigos deletados");
 
       if (produtos && produtos.length > 0) {
         const produtosParaCriar = produtos
@@ -564,15 +574,31 @@ class ComposicaoService {
             ofertaProdutoId: p.ofertaProdutoId,
           }));
 
+        console.log(
+          "[sincronizarProdutos] Produtos para criar:",
+          JSON.stringify(produtosParaCriar, null, 2),
+        );
+
         if (produtosParaCriar.length > 0) {
           await ComposicaoOfertaProdutos.bulkCreate(produtosParaCriar, {
             transaction,
           });
+          console.log("[sincronizarProdutos] Produtos criados com sucesso");
         }
       }
 
       await transaction.commit();
+      console.log("[sincronizarProdutos] Transaction committed");
     } catch (error) {
+      console.error("[sincronizarProdutos] ERRO:", error);
+      console.error("[sincronizarProdutos] Error stack:", error.stack);
+      console.error("[sincronizarProdutos] Error message:", error.message);
+      if (error.errors) {
+        console.error(
+          "[sincronizarProdutos] Validation errors:",
+          JSON.stringify(error.errors, null, 2),
+        );
+      }
       await transaction.rollback();
       throw new ServiceError("Falha ao sincronizar produtos da composição.", {
         cause: error,
