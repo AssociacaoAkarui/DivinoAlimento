@@ -11,7 +11,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "@/hooks/use-toast";
-import { Search, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import {
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+  ArrowLeft,
+} from "lucide-react";
 import { formatBRL } from "@/utils/currency";
 import {
   Table,
@@ -39,9 +45,6 @@ import {
   useBuscarMercado,
 } from "@/hooks/graphql";
 import { transformarOfertasParaUI } from "@/lib/composicao-helpers";
-
-
-
 
 export default function AdminMercadoComposicaoLote() {
   const { cicloId } = useParams();
