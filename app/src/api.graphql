@@ -117,6 +117,11 @@ type DeletarCategoriaResponse {
     message: String!
 }
 
+type DeletarUsuarioResponse {
+    success: Boolean!
+    message: String!
+}
+
 type Produto {
     id: ID!
     nome: String!
@@ -516,6 +521,7 @@ type Mutation {
     sessionLogout: LogoutResponse!
     criarUsuario(input: CriarUsuarioInput!): Usuario!
     atualizarUsuario(id: ID!, input: AtualizarUsuarioInput!): Usuario!
+    deletarUsuario(id: ID!): DeletarUsuarioResponse!
     criarCategoria(input: CriarCategoriaProdutosInput!): CategoriaProdutos!
     atualizarCategoria(
         id: ID!

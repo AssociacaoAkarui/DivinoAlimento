@@ -62,6 +62,15 @@ export const ATUALIZAR_USUARIO_MUTATION = gql`
   }
 `;
 
+export const DELETAR_USUARIO_MUTATION = gql`
+  mutation DeletarUsuario($id: ID!) {
+    deletarUsuario(id: $id) {
+      success
+      message
+    }
+  }
+`;
+
 export const HEALTHCHECK_QUERY = gql`
   query Healthcheck {
     healthcheck {

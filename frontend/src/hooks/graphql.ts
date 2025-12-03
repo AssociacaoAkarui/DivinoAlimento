@@ -911,6 +911,33 @@ export function useAtualizarUsuario() {
   });
 }
 
+export function useDeletarUsuario() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { deletarUsuario: { success: boolean; message: string } },
+    Error,
+    { id: string }
+  >({
+    mutationFn: async (variables: { id: string }) => {
+      const token = getSessionToken();
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      const { DELETAR_USUARIO_MUTATION } = await import(
+        "../graphql/operations"
+      );
+      return await graphqlClientSecure(token).request(
+        DELETAR_USUARIO_MUTATION,
+        variables,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listar_usuarios"] });
+    },
+  });
+}
+
 export function useListarCategorias() {
   return useQuery<CategoriaProdutos[], Error>({
     queryKey: ["listar_categorias"],

@@ -119,6 +119,16 @@ const rootValue = {
     const usuario = await context.usuarioService.atualizarUsuario(id, input);
     return usuario;
   },
+
+  deletarUsuario: async (args, context) => {
+    await requiredAuthenticated(context);
+    await setupSession(context);
+    await requiredAdmin(context);
+
+    const resultado = await context.usuarioService.deletarUsuario(args.id);
+    return resultado;
+  },
+
   systemInformation: async (args, context) => {
     await requiredAuthenticated(context);
     await setupSession(context);

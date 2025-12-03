@@ -1479,6 +1479,67 @@ class UsuarioService {
       throw new ServiceError("Falha ao atualizar usuario.", { cause: error });
     }
   }
+
+  async deletarUsuario(id) {
+    try {
+      const usuarioId = parseInt(id);
+      console.log("Deletando usuario ID:", usuarioId);
+
+      const usuario = await Usuario.findByPk(usuarioId);
+      if (!usuario) {
+        console.log("Usuario not found:", usuarioId);
+        throw new Error("Usuario not found");
+      }
+
+      console.log("Usuario encontrado:", usuario.id, usuario.nome);
+
+      // Verificar si tiene relaciones
+      const [ofertas, pedidos, submissoes] = await Promise.all([
+        Oferta.count({ where: { usuarioId: usuarioId } }),
+        PedidoConsumidores.count({ where: { usuarioId: usuarioId } }),
+        SubmissaoProduto.count({ where: { fornecedorId: usuarioId } }),
+      ]);
+
+      console.log(
+        "Relaciones - Ofertas:",
+        ofertas,
+        "Pedidos:",
+        pedidos,
+        "Submissoes:",
+        submissoes,
+      );
+
+      const totalRelaciones = ofertas + pedidos + submissoes;
+
+      if (totalRelaciones > 0) {
+        console.log("Usuario tiene relaciones, no se puede eliminar");
+        return {
+          success: false,
+          message: `Não é possível deletar o usuário. Existem ${totalRelaciones} registro(s) relacionado(s) (${ofertas} oferta(s), ${pedidos} pedido(s), ${submissoes} submissão(ões)).`,
+        };
+      }
+
+      // Eliminar sesiones del usuario
+      console.log("Eliminando sesiones del usuario...");
+      const sessionsDeleted = await Session.destroy({
+        where: { usuarioId: usuarioId },
+      });
+      console.log("Sesiones eliminadas:", sessionsDeleted);
+
+      // Eliminar usuario
+      console.log("Eliminando usuario...");
+      await usuario.destroy();
+      console.log("Usuario eliminado exitosamente");
+
+      return {
+        success: true,
+        message: "Usuário deletado com sucesso.",
+      };
+    } catch (error) {
+      console.error("Error al deletar usuario:", error);
+      throw new ServiceError("Falha ao deletar usuario.", { cause: error });
+    }
+  }
 }
 
 class CategoriaProdutosService {

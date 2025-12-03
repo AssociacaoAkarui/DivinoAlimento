@@ -34,7 +34,11 @@ import { StatusToggle } from "@/components/ui/status-toggle";
 
 import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
 import { RoleTitle } from "@/components/layout/RoleTitle";
-import { useListarUsuarios, useAtualizarUsuario } from "@/hooks/graphql";
+import {
+  useListarUsuarios,
+  useAtualizarUsuario,
+  useDeletarUsuario,
+} from "@/hooks/graphql";
 import {
   applyAllFilters,
   normalizeUsuarios,
@@ -54,6 +58,7 @@ const UsuarioIndex = () => {
   const { toast } = useToast();
   const { data: usuariosBackend = [], isLoading, error } = useListarUsuarios();
   const atualizarUsuario = useAtualizarUsuario();
+  const deletarUsuario = useDeletarUsuario();
   const {
     filters,
     debouncedSearch,
@@ -84,11 +89,30 @@ const UsuarioIndex = () => {
     navigate(`/usuario/${id}`);
   };
 
-  const handleDelete = (_id: string) => {
-    toast({
-      title: "Usuário excluído",
-      description: "O usuário foi removido com sucesso.",
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      const resultado = await deletarUsuario.mutateAsync({ id });
+
+      if (resultado.deletarUsuario.success) {
+        toast({
+          title: "Sucesso",
+          description: resultado.deletarUsuario.message,
+          className: "bg-green-600 text-white",
+        });
+      } else {
+        toast({
+          title: "Não foi possível deletar",
+          description: resultado.deletarUsuario.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao deletar usuário",
+        description: String(error),
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddUser = () => {
