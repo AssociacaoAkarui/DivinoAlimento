@@ -25,6 +25,7 @@ export function transformarOfertasParaUI(ofertasAPI: OfertaAPI[]): Oferta[] {
       if (op.produto) {
         resultado.push({
           id: op.id,
+          produtoId: op.produtoId,
           produto_base: op.produto.nome,
           nome: `${op.produto.nome} (${op.produto.medida || "un"})`,
           unidade: op.produto.medida || "un",
@@ -41,7 +42,7 @@ export function transformarOfertasParaUI(ofertasAPI: OfertaAPI[]): Oferta[] {
 }
 
 export function calcularValorTotalComposicao(
-  selectedItems: Array<{ valor: number; quantidade: number }>
+  selectedItems: Array<{ valor: number; quantidade: number }>,
 ): number {
   return selectedItems.reduce((acc, item) => {
     return acc + item.valor * item.quantidade;
@@ -49,7 +50,7 @@ export function calcularValorTotalComposicao(
 }
 
 export function calcularTotalItens(
-  selectedItems: Array<{ quantidade: number }>
+  selectedItems: Array<{ quantidade: number }>,
 ): number {
   return selectedItems.reduce((acc, item) => acc + item.quantidade, 0);
 }

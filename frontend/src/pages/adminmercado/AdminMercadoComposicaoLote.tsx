@@ -94,7 +94,8 @@ export default function AdminMercadoComposicaoLote() {
   const { data: mercadoData } = useBuscarMercado(mercadoId || "");
   const { data: ofertasData, isLoading: ofertasLoading } =
     useListarOfertasPorCiclo(cicloId ? parseInt(cicloId) : 0);
-  const { data: composicoesData } = useListarComposicoesPorCiclo(cicloId || "");
+  const { data: composicoesData, refetch: refetchComposicoes } =
+    useListarComposicoesPorCiclo(cicloId || "");
   const { data: cestasData } = useListarCestas();
   const criarComposicaoMutation = useCriarComposicao();
   const sincronizarProdutosMutation = useSincronizarProdutosComposicao();
@@ -103,6 +104,47 @@ export default function AdminMercadoComposicaoLote() {
     if (!ofertasData?.listarOfertasPorCiclo) return [];
     return transformarOfertasParaUI(ofertasData.listarOfertasPorCiclo);
   }, [ofertasData]);
+
+  // Cargar composición existente de la API cuando está disponible
+  useEffect(() => {
+    if (composicoesData && composicoesData.length > 0 && ofertas.length > 0) {
+      const cicloCesta = composicoesData[0];
+      const composicao = cicloCesta.composicoes?.[0];
+
+      if (
+        composicao?.composicaoOfertaProdutos &&
+        composicao.composicaoOfertaProdutos.length > 0
+      ) {
+        console.log("Cargando composición existente:", composicao.id);
+
+        // Crear mapa de cantidades
+        const novaComposicao = new Map<string, number>();
+        const novoSelectedByGroup = new Map<string, Set<string>>();
+
+        composicao.composicaoOfertaProdutos.forEach((item) => {
+          const ofertaProdutoId = item.ofertaProdutoId?.toString();
+          if (ofertaProdutoId) {
+            novaComposicao.set(ofertaProdutoId, item.quantidade);
+
+            // Encontrar la oferta correspondiente para obtener el grupo
+            const oferta = ofertas.find((o) => o.id === ofertaProdutoId);
+            if (oferta) {
+              const groupKey = oferta.produto_base;
+              if (!novoSelectedByGroup.has(groupKey)) {
+                novoSelectedByGroup.set(groupKey, new Set());
+              }
+              novoSelectedByGroup.get(groupKey)?.add(ofertaProdutoId);
+            }
+          }
+        });
+
+        setComposicao(novaComposicao);
+        setSelectedByGroup(novoSelectedByGroup);
+
+        console.log("Composición cargada:", novaComposicao.size, "productos");
+      }
+    }
+  }, [composicoesData, ofertas]);
 
   const cicloAPI = cicloData?.buscarCiclo;
   const mercadoAPI = mercadoData?.buscarMercado;
@@ -239,11 +281,14 @@ export default function AdminMercadoComposicaoLote() {
   };
 
   const executarPublicacao = async () => {
-    const produtos = selectedItems.map((item) => ({
-      produtoId: parseInt(item.id),
-      quantidade: item.quantidade,
-      ofertaProdutoId: parseInt(item.id),
-    }));
+    const produtos = selectedItems.map((item) => {
+      const oferta = ofertas.find((o) => o.id === item.id);
+      return {
+        produtoId: oferta?.produtoId || parseInt(item.id),
+        quantidade: item.quantidade,
+        ofertaProdutoId: parseInt(item.id),
+      };
+    });
 
     setIsLoading(true);
     setShowConfirmModal(false);
@@ -252,11 +297,16 @@ export default function AdminMercadoComposicaoLote() {
       const composicaoExistente = composicoesData?.[0]?.composicoes?.[0];
 
       if (composicaoExistente) {
+        console.log(
+          "Actualizando composición existente:",
+          composicaoExistente.id,
+        );
         await sincronizarProdutosMutation.mutateAsync({
           composicaoId: composicaoExistente.id,
           produtos,
         });
       } else if (cicloId && cestasData?.[0]) {
+        console.log("Creando nueva composición para ciclo:", cicloId);
         const novaComposicao = await criarComposicaoMutation.mutateAsync({
           input: {
             cicloId: parseInt(cicloId),
@@ -264,11 +314,19 @@ export default function AdminMercadoComposicaoLote() {
             quantidadeCestas: 1,
           },
         });
+        console.log(
+          "Nueva composición creada:",
+          novaComposicao.criarComposicao.id,
+        );
         await sincronizarProdutosMutation.mutateAsync({
           composicaoId: novaComposicao.criarComposicao.id,
           produtos,
         });
       }
+
+      // Refrescar datos de composiciones inmediatamente
+      await refetchComposicoes();
+      console.log("Composición guardada y datos actualizados");
 
       toast({
         title: "Composição lote salva com sucesso",
@@ -281,6 +339,7 @@ export default function AdminMercadoComposicaoLote() {
         navigate("/adminmercado/ciclo-index");
       }, 1000);
     } catch (error) {
+      console.error("Erro ao salvar composição:", error);
       toast({
         title: "Erro ao salvar composição lote.",
         description: String(error),
