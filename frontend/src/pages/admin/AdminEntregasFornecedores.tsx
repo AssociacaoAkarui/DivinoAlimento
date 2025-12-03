@@ -371,13 +371,17 @@ export default function AdminEntregasFornecedores() {
                     </TableCell>
                     <TableCell>{entrega.unidade_medida}</TableCell>
                     <TableCell className="text-right">
-                      R$ {entrega.valor_unitario.toFixed(2).replace(".", ",")}
+                      R${" "}
+                      {(entrega.valor_unitario || 0)
+                        .toFixed(2)
+                        .replace(".", ",")}
                     </TableCell>
                     <TableCell className="text-right">
                       {entrega.quantidade_entregue}
                     </TableCell>
                     <TableCell className="text-right font-semibold text-success">
-                      R$ {entrega.valor_total.toFixed(2).replace(".", ",")}
+                      R${" "}
+                      {(entrega.valor_total || 0).toFixed(2).replace(".", ",")}
                     </TableCell>
                   </TableRow>
                 ))
