@@ -22,7 +22,7 @@ const ROUTE_PERMISSIONS: Record<string, string[]> = {
     "/consumidor/pagamentos",
     "/consumidor/relatorio-pedidos",
     "/consumidor/relatorio-pedidos-resultado/*",
-    "/usuario/1",
+    "/usuario/*",
   ],
   fornecedor: [
     "/fornecedor/loja",
@@ -30,7 +30,7 @@ const ROUTE_PERMISSIONS: Record<string, string[]> = {
     "/fornecedor/selecionar-ciclo-entregas",
     "/oferta/*",
     "/fornecedor/entregas/*",
-    "/usuario/1",
+    "/usuario/*",
   ],
   admin: [
     "/admin/*",

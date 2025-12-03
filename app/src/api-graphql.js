@@ -106,7 +106,15 @@ const rootValue = {
   atualizarUsuario: async (args, context) => {
     await requiredAuthenticated(context);
     await setupSession(context);
-    await requiredAdmin(context);
+
+    // Permitir a usuarios autenticados actualizar su propio perfil
+    // Solo admin puede actualizar el perfil de otros usuarios
+    const esPropioPerfil =
+      String(context.session?.usuarioId) === String(args.id);
+    if (!esPropioPerfil) {
+      await requiredAdmin(context);
+    }
+
     const { id, input } = args;
     const usuario = await context.usuarioService.atualizarUsuario(id, input);
     return usuario;
@@ -132,7 +140,15 @@ const rootValue = {
   buscarUsuario: async (args, context) => {
     await requiredAuthenticated(context);
     await setupSession(context);
-    await requiredAdmin(context);
+
+    // Permitir a usuarios autenticados ver su propio perfil
+    // Solo admin puede ver el perfil de otros usuarios
+    const esPropioPerfil =
+      String(context.session?.usuarioId) === String(args.id);
+    if (!esPropioPerfil) {
+      await requiredAdmin(context);
+    }
+
     const usuario = await context.usuarioService.buscarPorId(args.id);
     return usuario;
   },
