@@ -380,13 +380,17 @@ export default function AdminMercadoRelatorioFornecedores() {
                       </TableCell>
                       <TableCell>{entrega.medida}</TableCell>
                       <TableCell className="text-right">
-                        R$ {entrega.valorUnitario.toFixed(2).replace(".", ",")}
+                        R${" "}
+                        {(entrega.valorUnitario || 0)
+                          .toFixed(2)
+                          .replace(".", ",")}
                       </TableCell>
                       <TableCell className="text-right">
                         {entrega.quantidade}
                       </TableCell>
                       <TableCell className="text-right font-semibold text-success">
-                        R$ {entrega.valorTotal.toFixed(2).replace(".", ",")}
+                        R${" "}
+                        {(entrega.valorTotal || 0).toFixed(2).replace(".", ",")}
                       </TableCell>
                     </TableRow>
                   ))
