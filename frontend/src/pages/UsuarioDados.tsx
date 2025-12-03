@@ -143,7 +143,9 @@ const UsuarioDados = () => {
           title: "Sucesso",
           description: getUpdateSuccessMessage(data.atualizarUsuario.nome),
         });
-        if (id && activeRole === "admin") {
+        // Admin editando outro usuário → volta para lista de usuários
+        // Qualquer usuário editando seus próprios dados → volta para dashboard do perfil
+        if (id && id !== user?.id && activeRole === "admin") {
           navigate("/usuario-index");
         } else {
           navigate(getRedirectRoute(activeRole));
@@ -160,7 +162,9 @@ const UsuarioDados = () => {
   };
 
   const handleCancel = () => {
-    if (id && activeRole === "admin") {
+    // Admin editando outro usuário → volta para lista de usuários
+    // Qualquer usuário editando seus próprios dados → volta para dashboard do perfil
+    if (id && id !== user?.id && activeRole === "admin") {
       navigate("/usuario-index");
     } else {
       navigate(getRedirectRoute(activeRole));

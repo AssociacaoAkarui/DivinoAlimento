@@ -907,6 +907,7 @@ export function useAtualizarUsuario() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listar_usuarios"] });
+      queryClient.invalidateQueries({ queryKey: ["buscar_usuario"] });
     },
   });
 }
@@ -934,6 +935,7 @@ export function useDeletarUsuario() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listar_usuarios"] });
+      queryClient.invalidateQueries({ queryKey: ["buscar_usuario"] });
     },
   });
 }
