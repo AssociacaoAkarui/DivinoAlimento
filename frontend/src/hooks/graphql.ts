@@ -551,7 +551,8 @@ export function useCriarMercado() {
       queryClient.invalidateQueries({ queryKey: ["listar_mercados"] });
       queryClient.invalidateQueries({ queryKey: ["listar_mercados_ativos"] });
       queryClient.invalidateQueries({
-        queryKey: ["listar_mercados_por_responsavel"],
+        predicate: (query) =>
+          query.queryKey[0] === "listar_mercados_por_responsavel",
       });
     },
   });
@@ -575,7 +576,8 @@ export function useAtualizarMercado() {
       queryClient.invalidateQueries({ queryKey: ["buscar_mercado"] });
       queryClient.invalidateQueries({ queryKey: ["listar_mercados_ativos"] });
       queryClient.invalidateQueries({
-        queryKey: ["listar_mercados_por_responsavel"],
+        predicate: (query) =>
+          query.queryKey[0] === "listar_mercados_por_responsavel",
       });
     },
   });
@@ -598,7 +600,8 @@ export function useDeletarMercado() {
       queryClient.invalidateQueries({ queryKey: ["listar_mercados"] });
       queryClient.invalidateQueries({ queryKey: ["listar_mercados_ativos"] });
       queryClient.invalidateQueries({
-        queryKey: ["listar_mercados_por_responsavel"],
+        predicate: (query) =>
+          query.queryKey[0] === "listar_mercados_por_responsavel",
       });
     },
   });
