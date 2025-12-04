@@ -905,9 +905,11 @@ export function useAtualizarUsuario() {
         variables,
       );
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["listar_usuarios"] });
-      queryClient.invalidateQueries({ queryKey: ["buscar_usuario"] });
+      queryClient.invalidateQueries({
+        queryKey: ["buscar_usuario", variables.id],
+      });
     },
   });
 }
@@ -933,9 +935,11 @@ export function useDeletarUsuario() {
         variables,
       );
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["listar_usuarios"] });
-      queryClient.invalidateQueries({ queryKey: ["buscar_usuario"] });
+      queryClient.invalidateQueries({
+        queryKey: ["buscar_usuario", variables.id],
+      });
     },
   });
 }
