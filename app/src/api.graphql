@@ -89,7 +89,7 @@ input CriarMercadoInput {
     taxaAdministrativa: Float
     valorMaximoCesta: Float
     status: String
-    pontosEntrega: [PontoEntregaInput!]
+    pontoEntregaIds: [ID!]
 }
 
 input AtualizarMercadoInput {
@@ -99,6 +99,7 @@ input AtualizarMercadoInput {
     taxaAdministrativa: Float
     valorMaximoCesta: Float
     status: String
+    pontoEntregaIds: [ID!]
 }
 
 input CriarCategoriaProdutosInput {

@@ -71,22 +71,16 @@ class MercadoService {
 
       const mercado = await Mercado.create(payloadSeguro, { transaction });
 
-      if (dados.pontosEntrega && Array.isArray(dados.pontosEntrega)) {
-        for (const ponto of dados.pontosEntrega) {
-          await PontoEntrega.create(
-            {
-              nome: ponto.nome || ponto,
-              endereco: ponto.endereco || "A definir",
-              bairro: ponto.bairro || "A definir",
-              cidade: ponto.cidade || "A definir",
-              estado: ponto.estado || "RS",
-              cep: ponto.cep || "00000-000",
-              pontoReferencia: ponto.pontoReferencia || "A definir",
-              status: ponto.status || "ativo",
-              mercadoId: mercado.id,
-            },
-            { transaction },
-          );
+      // Associar pontos de entrega existentes ao mercado
+      if (dados.pontoEntregaIds && Array.isArray(dados.pontoEntregaIds)) {
+        for (const pontoId of dados.pontoEntregaIds) {
+          const ponto = await PontoEntrega.findByPk(pontoId, { transaction });
+          if (!ponto) {
+            throw new ServiceError(
+              `Ponto de entrega com ID ${pontoId} não encontrado`,
+            );
+          }
+          await ponto.update({ mercadoId: mercado.id }, { transaction });
         }
       }
 
@@ -137,6 +131,27 @@ class MercadoService {
       }
 
       await mercado.update(payloadSeguro);
+
+      // Atualizar pontos de entrega associados se fornecidos
+      if (dados.pontoEntregaIds && Array.isArray(dados.pontoEntregaIds)) {
+        // Primeiro, remover associação dos pontos atuais
+        await PontoEntrega.update(
+          { mercadoId: null },
+          { where: { mercadoId: id } },
+        );
+
+        // Depois, associar os novos pontos
+        for (const pontoId of dados.pontoEntregaIds) {
+          const ponto = await PontoEntrega.findByPk(pontoId);
+          if (!ponto) {
+            throw new ServiceError(
+              `Ponto de entrega com ID ${pontoId} não encontrado`,
+            );
+          }
+          await ponto.update({ mercadoId: id });
+        }
+      }
+
       return await this.buscarPorId(id);
     } catch (error) {
       if (error instanceof ServiceError) {
