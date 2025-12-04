@@ -92,8 +92,15 @@ const rootValue = {
         },
         {
           nome: input.nome,
+          nomeoficial: input.nomeoficial,
+          celular: input.celular,
           perfis: input.perfis,
           status: input.status || "ativo",
+          banco: input.banco,
+          agencia: input.agencia,
+          conta: input.conta,
+          chavePix: input.chavePix,
+          cientepolitica: input.cientepolitica,
         },
       );
       return usuario;

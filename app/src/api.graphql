@@ -357,9 +357,15 @@ input AtualizarCicloInput {
 
 input CriarUsuarioInput {
     nome: String!
+    nomeoficial: String
     email: String!
     senha: String!
     celular: String
+    banco: String
+    agencia: String
+    conta: String
+    chavePix: String
+    cientepolitica: String
     perfis: [String!]!
     status: String
 }
