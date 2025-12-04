@@ -703,6 +703,7 @@ class PontoEntregaService {
         "cidade",
         "estado",
         "cep",
+        "pontoReferencia",
         "status",
       ];
       const payloadSeguro = filterPayload(PontoEntrega, dados, allowedFields);
@@ -741,6 +742,7 @@ class PontoEntregaService {
         "cidade",
         "estado",
         "cep",
+        "pontoReferencia",
         "status",
       ];
       const payloadSeguro = filterPayload(PontoEntrega, dados, allowedFields);

@@ -76,15 +76,16 @@ class MercadoService {
           await PontoEntrega.create(
             {
               nome: ponto.nome || ponto,
-              endereco: ponto.endereco || null,
-              bairro: ponto.bairro || null,
-              cidade: ponto.cidade || null,
-              estado: ponto.estado || null,
-              cep: ponto.cep || null,
+              endereco: ponto.endereco || "A definir",
+              bairro: ponto.bairro || "A definir",
+              cidade: ponto.cidade || "A definir",
+              estado: ponto.estado || "RS",
+              cep: ponto.cep || "00000-000",
+              pontoReferencia: ponto.pontoReferencia || "A definir",
               status: ponto.status || "ativo",
               mercadoId: mercado.id,
             },
-            { transaction }
+            { transaction },
           );
         }
       }

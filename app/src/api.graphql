@@ -73,12 +73,13 @@ type Mercado {
 
 input PontoEntregaInput {
     nome: String!
-    endereco: String
-    bairro: String
-    cidade: String
-    estado: String
-    cep: String
-    status: String
+    endereco: String!
+    bairro: String!
+    cidade: String!
+    estado: String!
+    cep: String!
+    pontoReferencia: String!
+    status: String!
 }
 
 input CriarMercadoInput {
@@ -214,11 +215,12 @@ input AprovarSubmissaoInput {
 type PontoEntrega {
     id: ID!
     nome: String!
-    endereco: String
-    bairro: String
-    cidade: String
-    estado: String
-    cep: String
+    endereco: String!
+    bairro: String!
+    cidade: String!
+    estado: String!
+    cep: String!
+    pontoReferencia: String
     status: String!
     createdAt: String
     updatedAt: String
@@ -226,11 +228,12 @@ type PontoEntrega {
 
 input CriarPontoEntregaInput {
     nome: String!
-    endereco: String
-    bairro: String
-    cidade: String
-    estado: String
-    cep: String
+    endereco: String!
+    bairro: String!
+    cidade: String!
+    estado: String!
+    cep: String!
+    pontoReferencia: String
     status: String!
 }
 
@@ -241,6 +244,7 @@ input AtualizarPontoEntregaInput {
     cidade: String
     estado: String
     cep: String
+    pontoReferencia: String
     status: String
 }
 
