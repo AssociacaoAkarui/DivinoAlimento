@@ -125,6 +125,7 @@ export default function AdminPrecos() {
   }, [produtos, searchTerm]);
 
   const hasModifications = produtos.some((p) => p.modified);
+  const modificationsCount = produtos.filter((p) => p.modified).length;
 
   const handlePriceChange = (id: string, value: string) => {
     const formatted = formatBRLInput(value);
@@ -133,85 +134,6 @@ export default function AdminPrecos() {
         p.id === id ? { ...p, precoMercado: formatted, modified: true } : p,
       ),
     );
-  };
-
-  const handleSaveSingle = async (id: string) => {
-    const produto = produtos.find((p) => p.id === id);
-    if (!produto) return;
-
-    const precoNumerico = parseBRLToNumber(produto.precoMercado);
-
-    if (!validatePreco(precoNumerico)) {
-      toast({
-        title: "Erro",
-        description: "Insira um valor válido para atualizar o preço",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      if (produto.precoId) {
-        // Update existing price
-        await atualizarPrecoMutation.mutateAsync({
-          id: produto.precoId,
-          input: {
-            preco: precoNumerico,
-            status: "ativo",
-          },
-        });
-
-        toast({
-          title: "Sucesso",
-          description: formatUpdateSuccessMessage(produto.nome),
-        });
-      } else {
-        // Create new price
-        const input = preparePrecoMercadoForBackend({
-          produtoId: produto.produtoId,
-          mercadoId: mercadoId,
-          preco: precoNumerico,
-          status: "ativo",
-        });
-
-        const result = await criarPrecoMutation.mutateAsync({ input });
-
-        // Update local state with the new precoId
-        setProdutos((prev) =>
-          prev.map((p) =>
-            p.id === id ? { ...p, precoId: result.id, modified: false } : p,
-          ),
-        );
-
-        toast({
-          title: "Sucesso",
-          description: formatCreateSuccessMessage(
-            produto.nome,
-            mercado?.nome || "",
-          ),
-        });
-
-        // Refetch to get updated data
-        await refetchPrecos();
-        return;
-      }
-
-      setProdutos((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, modified: false } : p)),
-      );
-
-      await refetchPrecos();
-    } catch (error) {
-      const errorMessage = produto.precoId
-        ? formatUpdateError(error)
-        : formatCreateError(error);
-
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
   };
 
   const handleSaveAll = () => {
@@ -372,12 +294,14 @@ export default function AdminPrecos() {
                   <TableHead>Unidade</TableHead>
                   <TableHead>Preço Base</TableHead>
                   <TableHead>Preço do Mercado</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredProdutos.map((produto) => (
-                  <TableRow key={produto.id}>
+                  <TableRow
+                    key={produto.id}
+                    className={produto.modified ? "bg-amber-50" : ""}
+                  >
                     <TableCell className="font-medium">
                       {produto.nome}
                     </TableCell>
@@ -395,15 +319,6 @@ export default function AdminPrecos() {
                         placeholder="0,00"
                       />
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        onClick={() => handleSaveSingle(produto.id)}
-                        disabled={!produto.modified}
-                      >
-                        Salvar
-                      </Button>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -414,7 +329,10 @@ export default function AdminPrecos() {
         {/* Products Cards - Mobile */}
         <div className="md:hidden space-y-4">
           {filteredProdutos.map((produto) => (
-            <Card key={produto.id}>
+            <Card
+              key={produto.id}
+              className={produto.modified ? "border-amber-400 bg-amber-50" : ""}
+            >
               <CardHeader>
                 <CardTitle className="text-lg">{produto.nome}</CardTitle>
                 <CardDescription>Unidade: {produto.medida}</CardDescription>
@@ -443,21 +361,13 @@ export default function AdminPrecos() {
                     />
                   </div>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => handleSaveSingle(produto.id)}
-                  disabled={!produto.modified}
-                  className="w-full"
-                >
-                  Salvar
-                </Button>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Action Buttons */}
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 flex gap-2 justify-end md:relative md:border-0 md:p-0">
+        <div className="mt-6 flex gap-2 justify-end">
           <Button variant="outline" onClick={handleCancel}>
             <X className="mr-2 h-4 w-4" />
             Cancelar
@@ -468,7 +378,9 @@ export default function AdminPrecos() {
             className="bg-green-600 hover:bg-green-700"
           >
             <Save className="mr-2 h-4 w-4" />
-            Salvar todas alterações
+            {hasModifications
+              ? `Salvar Mudanças (${modificationsCount})`
+              : "Nenhuma Mudança"}
           </Button>
         </div>
       </div>
@@ -477,10 +389,21 @@ export default function AdminPrecos() {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar atualização</AlertDialogTitle>
+            <AlertDialogTitle>
+              Confirmar atualização de {modificationsCount}{" "}
+              {modificationsCount === 1 ? "preço" : "preços"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Deseja confirmar atualização dos preços? Esta ação irá salvar
-              todos os preços modificados.
+              Deseja confirmar a atualização dos seguintes produtos?
+              <ul className="mt-2 space-y-1 text-sm">
+                {produtos
+                  .filter((p) => p.modified)
+                  .map((p) => (
+                    <li key={p.id} className="font-medium">
+                      • {p.nome}: {p.precoMercado}
+                    </li>
+                  ))}
+              </ul>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
