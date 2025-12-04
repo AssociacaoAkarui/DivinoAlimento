@@ -80,6 +80,7 @@ export type AtualizarCicloMercadosInput = {
 
 export type AtualizarMercadoInput = {
   nome?: InputMaybe<Scalars['String']['input']>;
+  pontoEntregaIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   responsavelId?: InputMaybe<Scalars['Int']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
   taxaAdministrativa?: InputMaybe<Scalars['Float']['input']>;
@@ -302,7 +303,7 @@ export type CriarComposicaoInput = {
 
 export type CriarMercadoInput = {
   nome: Scalars['String']['input'];
-  pontosEntrega?: InputMaybe<Array<PontoEntregaInput>>;
+  pontoEntregaIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   responsavelId: Scalars['Int']['input'];
   status?: InputMaybe<Scalars['String']['input']>;
   taxaAdministrativa?: InputMaybe<Scalars['Float']['input']>;
