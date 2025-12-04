@@ -56,6 +56,7 @@ import {
   useCriarMercado,
   useAtualizarMercado,
   useDeletarMercado,
+  useListarPontosEntrega,
 } from "@/hooks/graphql";
 import {
   filterMercadosBySearch,
@@ -100,6 +101,8 @@ const AdminMercados = () => {
     useListarMercados();
   const { data: usuariosData, isLoading: usuariosLoading } =
     useListarUsuarios();
+  const { data: pontosEntregaData, isLoading: pontosLoading } =
+    useListarPontosEntrega();
   const criarMercadoMutation = useCriarMercado();
   const atualizarMercadoMutation = useAtualizarMercado();
   const deletarMercadoMutation = useDeletarMercado();
@@ -109,14 +112,13 @@ const AdminMercados = () => {
   const [editData, setEditData] = useState<any>(null);
   const [newMarket, setNewMarket] = useState({
     name: "",
-    deliveryPoints: [] as string[],
+    pontoEntregaIds: [] as string[],
     type: "",
     valorMaximoCesta: null as number | null,
     administratorId: null as number | null,
     administrativeFee: null as number | null,
     status: "ativo" as "ativo" | "inativo",
   });
-  const [currentDeliveryPoint, setCurrentDeliveryPoint] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [marketToDelete, setMarketToDelete] = useState<number | null>(null);
@@ -153,30 +155,44 @@ const AdminMercados = () => {
           email: u.email,
         }));
 
+  const availablePontos = !pontosEntregaData?.listarPontosEntrega
+    ? []
+    : pontosEntregaData.listarPontosEntrega;
+
+  const [selectedPontoId, setSelectedPontoId] = useState("");
+
   const addDeliveryPoint = () => {
-    if (!currentDeliveryPoint.trim()) {
+    if (!selectedPontoId) {
       toast({
         title: "Erro",
-        description: "Digite um nome para o ponto de entrega",
+        description: "Selecione um ponto de entrega",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (newMarket.pontoEntregaIds.includes(selectedPontoId)) {
+      toast({
+        title: "Erro",
+        description: "Este ponto já foi adicionado",
         variant: "destructive",
       });
       return;
     }
     setNewMarket((prev) => ({
       ...prev,
-      deliveryPoints: [...prev.deliveryPoints, currentDeliveryPoint.trim()],
+      pontoEntregaIds: [...prev.pontoEntregaIds, selectedPontoId],
     }));
-    setCurrentDeliveryPoint("");
+    setSelectedPontoId("");
     toast({
       title: "Ponto adicionado",
       description: "O ponto de entrega foi adicionado à lista",
     });
   };
 
-  const removeDeliveryPoint = (index: number) => {
+  const removeDeliveryPoint = (pontoId: string) => {
     setNewMarket((prev) => ({
       ...prev,
-      deliveryPoints: prev.deliveryPoints.filter((_, i) => i !== index),
+      pontoEntregaIds: prev.pontoEntregaIds.filter((id) => id !== pontoId),
     }));
   };
 
@@ -326,13 +342,10 @@ const AdminMercados = () => {
       return;
     }
 
-    const validDeliveryPoints = newMarket.deliveryPoints.filter((point) =>
-      point.trim(),
-    );
-    if (validDeliveryPoints.length === 0) {
+    if (newMarket.pontoEntregaIds.length === 0) {
       toast({
         title: "Erro",
-        description: "Ao menos um ponto de entrega deve estar vinculado",
+        description: "Selecione ao menos um ponto de entrega",
         variant: "destructive",
       });
       return;
@@ -351,31 +364,33 @@ const AdminMercados = () => {
     }
 
     try {
-      const formData = {
+      const payload: any = {
         nome: newMarket.name,
         tipo: newMarket.type,
         responsavelId: newMarket.administratorId,
-        taxaAdministrativa: newMarket.administrativeFee,
-        valorMaximoCesta:
-          newMarket.type === "cesta" ? newMarket.valorMaximoCesta : null,
         status: newMarket.status,
-        pontosEntrega: validDeliveryPoints,
+        pontoEntregaIds: newMarket.pontoEntregaIds,
       };
 
-      const payload = prepareMercadoForBackend(formData);
+      if (newMarket.administrativeFee !== null) {
+        payload.taxaAdministrativa = newMarket.administrativeFee;
+      }
+
+      if (newMarket.type === "cesta" && newMarket.valorMaximoCesta) {
+        payload.valorMaximoCesta = newMarket.valorMaximoCesta;
+      }
 
       await criarMercadoMutation.mutateAsync({ input: payload });
 
       setNewMarket({
         name: "",
-        deliveryPoints: [],
+        pontoEntregaIds: [],
         type: "",
         valorMaximoCesta: null,
         administratorId: null,
         administrativeFee: null,
         status: "ativo",
       });
-      setCurrentDeliveryPoint("");
       setIsDialogOpen(false);
 
       toast({
@@ -1248,18 +1263,32 @@ const AdminMercados = () => {
                 </h4>
                 <div className="space-y-3">
                   <div className="flex gap-2">
-                    <Input
-                      value={currentDeliveryPoint}
-                      onChange={(e) => setCurrentDeliveryPoint(e.target.value)}
-                      placeholder="Ex: Centro, Zona Norte"
-                      className="h-11"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addDeliveryPoint();
-                        }
-                      }}
-                    />
+                    <Select
+                      value={selectedPontoId}
+                      onValueChange={setSelectedPontoId}
+                    >
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Selecione um ponto de entrega" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availablePontos.length === 0 ? (
+                          <SelectItem value="none" disabled>
+                            Nenhum ponto disponível
+                          </SelectItem>
+                        ) : (
+                          availablePontos
+                            .filter(
+                              (p: any) =>
+                                !newMarket.pontoEntregaIds.includes(p.id),
+                            )
+                            .map((ponto: any) => (
+                              <SelectItem key={ponto.id} value={ponto.id}>
+                                {ponto.nome} - {ponto.cidade}/{ponto.estado}
+                              </SelectItem>
+                            ))
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <Button
                     type="button"
@@ -1270,27 +1299,34 @@ const AdminMercados = () => {
                     <Plus className="w-4 h-4 mr-2" />
                     Adicionar Ponto
                   </Button>
-                  {newMarket.deliveryPoints.length > 0 && (
+                  {newMarket.pontoEntregaIds.length > 0 && (
                     <div className="space-y-2 mt-4">
                       <Label className="text-sm font-medium">
                         Pontos adicionados:
                       </Label>
                       <div className="flex flex-wrap gap-2">
-                        {newMarket.deliveryPoints.map((point, index) => (
-                          <Badge
-                            key={index}
-                            className="bg-success text-white px-3 py-1 flex items-center gap-2"
-                          >
-                            <span>{point}</span>
-                            <button
-                              type="button"
-                              onClick={() => removeDeliveryPoint(index)}
-                              className="hover:bg-white/20 rounded-full p-0.5"
+                        {newMarket.pontoEntregaIds.map((pontoId) => {
+                          const ponto = availablePontos.find(
+                            (p: any) => p.id === pontoId,
+                          );
+                          return (
+                            <Badge
+                              key={pontoId}
+                              className="bg-success text-white px-3 py-1 flex items-center gap-2"
                             >
-                              <Plus className="w-3 h-3 rotate-45" />
-                            </button>
-                          </Badge>
-                        ))}
+                              <span>
+                                {ponto?.nome || "Ponto não encontrado"}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => removeDeliveryPoint(pontoId)}
+                                className="hover:bg-white/20 rounded-full p-0.5"
+                              >
+                                <Plus className="w-3 h-3 rotate-45" />
+                              </button>
+                            </Badge>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -1306,13 +1342,14 @@ const AdminMercados = () => {
                   setIsDialogOpen(false);
                   setNewMarket({
                     name: "",
-                    deliveryPoints: [],
+                    pontoEntregaIds: [],
                     type: "",
                     valorMaximoCesta: null,
                     administratorId: null,
                     administrativeFee: null,
                     status: "ativo",
                   });
+                  setSelectedPontoId("");
                 }}
                 className="px-6 h-12 border-primary text-primary hover:bg-primary/10"
               >
