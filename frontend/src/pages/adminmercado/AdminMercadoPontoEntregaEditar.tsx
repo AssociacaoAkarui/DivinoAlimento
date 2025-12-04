@@ -38,6 +38,7 @@ const AdminMercadoPontoEntregaEditar = () => {
     cidade: "",
     estado: "",
     cep: "",
+    pontoReferencia: "",
     status: "ativo",
   });
 
@@ -59,6 +60,7 @@ const AdminMercadoPontoEntregaEditar = () => {
         cidade: pontoEntrega.cidade || "",
         estado: pontoEntrega.estado || "",
         cep: pontoEntrega.cep || "",
+        pontoReferencia: pontoEntrega.pontoReferencia || "",
         status: pontoEntrega.status,
       });
     }
@@ -77,6 +79,21 @@ const AdminMercadoPontoEntregaEditar = () => {
     if (!formData.nome.trim()) {
       newErrors.nome = "Nome do ponto de entrega é obrigatório";
     }
+    if (!formData.endereco.trim()) {
+      newErrors.endereco = "Endereço é obrigatório";
+    }
+    if (!formData.bairro.trim()) {
+      newErrors.bairro = "Bairro é obrigatório";
+    }
+    if (!formData.cidade.trim()) {
+      newErrors.cidade = "Cidade é obrigatória";
+    }
+    if (!formData.estado.trim()) {
+      newErrors.estado = "Estado é obrigatório";
+    }
+    if (!formData.cep.trim()) {
+      newErrors.cep = "CEP é obrigatório";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -89,11 +106,12 @@ const AdminMercadoPontoEntregaEditar = () => {
           id,
           input: {
             nome: formData.nome,
-            endereco: formData.endereco || undefined,
-            bairro: formData.bairro || undefined,
-            cidade: formData.cidade || undefined,
-            estado: formData.estado || undefined,
-            cep: formData.cep || undefined,
+            endereco: formData.endereco,
+            bairro: formData.bairro,
+            cidade: formData.cidade,
+            estado: formData.estado,
+            cep: formData.cep,
+            pontoReferencia: formData.pontoReferencia,
             status: formData.status,
           },
         },
@@ -248,7 +266,9 @@ const AdminMercadoPontoEntregaEditar = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="endereco">Endereço</Label>
+                <Label htmlFor="endereco">
+                  Endereço <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="endereco"
                   value={formData.endereco}
@@ -256,51 +276,91 @@ const AdminMercadoPontoEntregaEditar = () => {
                     handleInputChange("endereco", e.target.value)
                   }
                   placeholder="Ex: Rua das Flores, 123"
+                  className={errors.endereco ? "border-destructive" : ""}
                 />
+                {errors.endereco && (
+                  <p className="text-sm text-destructive">{errors.endereco}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bairro">Bairro</Label>
+                <Label htmlFor="bairro">
+                  Bairro <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="bairro"
                   value={formData.bairro}
                   onChange={(e) => handleInputChange("bairro", e.target.value)}
                   placeholder="Ex: Centro"
+                  className={errors.bairro ? "border-destructive" : ""}
                 />
+                {errors.bairro && (
+                  <p className="text-sm text-destructive">{errors.bairro}</p>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="cidade">Cidade</Label>
+                <Label htmlFor="cidade">
+                  Cidade <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="cidade"
                   value={formData.cidade}
                   onChange={(e) => handleInputChange("cidade", e.target.value)}
                   placeholder="Ex: São Paulo"
+                  className={errors.cidade ? "border-destructive" : ""}
                 />
+                {errors.cidade && (
+                  <p className="text-sm text-destructive">{errors.cidade}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="estado">Estado</Label>
+                <Label htmlFor="estado">
+                  Estado <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="estado"
                   value={formData.estado}
                   onChange={(e) => handleInputChange("estado", e.target.value)}
                   placeholder="Ex: SP"
                   maxLength={2}
+                  className={errors.estado ? "border-destructive" : ""}
                 />
+                {errors.estado && (
+                  <p className="text-sm text-destructive">{errors.estado}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cep">CEP</Label>
+                <Label htmlFor="cep">
+                  CEP <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="cep"
                   value={formData.cep}
                   onChange={(e) => handleInputChange("cep", e.target.value)}
                   placeholder="Ex: 01234-567"
+                  className={errors.cep ? "border-destructive" : ""}
                 />
+                {errors.cep && (
+                  <p className="text-sm text-destructive">{errors.cep}</p>
+                )}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pontoReferencia">Ponto de Referência</Label>
+              <Input
+                id="pontoReferencia"
+                value={formData.pontoReferencia}
+                onChange={(e) =>
+                  handleInputChange("pontoReferencia", e.target.value)
+                }
+                placeholder="Ex: Próximo ao mercado municipal, ao lado da praça..."
+              />
             </div>
 
             <div className="space-y-2">
@@ -362,7 +422,15 @@ const AdminMercadoPontoEntregaEditar = () => {
             <Button
               onClick={handleSave}
               className="bg-primary hover:bg-primary/90"
-              disabled={!formData.nome?.trim() || isUpdating}
+              disabled={
+                !formData.nome?.trim() ||
+                !formData.endereco?.trim() ||
+                !formData.bairro?.trim() ||
+                !formData.cidade?.trim() ||
+                !formData.estado?.trim() ||
+                !formData.cep?.trim() ||
+                isUpdating
+              }
             >
               {isUpdating ? "Salvando..." : "Salvar alterações"}
             </Button>

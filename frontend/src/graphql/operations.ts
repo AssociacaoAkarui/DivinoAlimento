@@ -110,8 +110,8 @@ export const LISTAR_CATEGORIAS_QUERY = gql`
 `;
 
 export const LISTAR_PAGAMENTOS_QUERY = gql`
-  query ListarPagamentos($tipo: String, $status: String, $cicloId: Int) {
-    listarPagamentos(tipo: $tipo, status: $status, cicloId: $cicloId) {
+  query ListarPagamentos($filtros: FiltrosPagamentoInput) {
+    listarPagamentos(filtros: $filtros) {
       id
       tipo
       valorTotal
