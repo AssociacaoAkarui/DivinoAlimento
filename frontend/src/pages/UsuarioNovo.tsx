@@ -151,15 +151,18 @@ const UsuarioNovo = () => {
         if (formData.perfilConsumidor) perfis.push("consumidor");
         if (formData.perfilAdministradorMercado) perfis.push("adminmercado");
 
-        // Criar informações de pagamento
-        const descritivo = `banco: ${formData.banco}, agencia: ${formData.agencia}, conta: ${formData.conta}, pix: ${formData.chavePix}`;
-
         await criarUsuarioMutation.mutateAsync({
           input: {
             nome: formData.nomeCompleto,
+            nomeoficial: formData.nomeFantasia,
             email: formData.email,
             senha: formData.senha,
             celular: formData.celular,
+            banco: formData.banco,
+            agencia: formData.agencia,
+            conta: formData.conta,
+            chavePix: formData.chavePix,
+            cientepolitica: formData.aceitePolitica ? "sim" : "nao",
             perfis,
             status: "ativo",
           },
