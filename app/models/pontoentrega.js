@@ -16,13 +16,75 @@ module.exports = (sequelize, DataTypes) => {
   }
   PontoEntrega.init(
     {
-      nome: DataTypes.STRING,
-      endereco: DataTypes.STRING,
-      bairro: DataTypes.STRING,
-      cidade: DataTypes.STRING,
-      estado: DataTypes.STRING,
-      cep: DataTypes.STRING,
-      status: DataTypes.STRING,
+      nome: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            msg: "O nome do ponto de entrega é obrigatório",
+          },
+        },
+      },
+      endereco: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            msg: "O endereço é obrigatório",
+          },
+        },
+      },
+      bairro: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            msg: "O bairro é obrigatório",
+          },
+        },
+      },
+      cidade: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            msg: "A cidade é obrigatória",
+          },
+        },
+      },
+      estado: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            msg: "O estado é obrigatório",
+          },
+        },
+      },
+      cep: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            msg: "O CEP é obrigatório",
+          },
+        },
+      },
+      pontoReferencia: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      status: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "ativo",
+        validate: {
+          isIn: {
+            args: [["ativo", "inativo"]],
+            msg: "Status deve ser 'ativo' ou 'inativo'",
+          },
+        },
+      },
       mercadoId: {
         type: DataTypes.INTEGER,
         allowNull: true,
