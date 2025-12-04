@@ -341,7 +341,7 @@ export type CriarPontoEntregaInput = {
   endereco: Scalars['String']['input'];
   estado: Scalars['String']['input'];
   nome: Scalars['String']['input'];
-  pontoReferencia: Scalars['String']['input'];
+  pontoReferencia?: InputMaybe<Scalars['String']['input']>;
   status: Scalars['String']['input'];
 };
 
@@ -380,9 +380,15 @@ export type CriarSubmissaoProdutoInput = {
 };
 
 export type CriarUsuarioInput = {
+  agencia?: InputMaybe<Scalars['String']['input']>;
+  banco?: InputMaybe<Scalars['String']['input']>;
   celular?: InputMaybe<Scalars['String']['input']>;
+  chavePix?: InputMaybe<Scalars['String']['input']>;
+  cientepolitica?: InputMaybe<Scalars['String']['input']>;
+  conta?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
   nome: Scalars['String']['input'];
+  nomeoficial?: InputMaybe<Scalars['String']['input']>;
   perfis: Array<Scalars['String']['input']>;
   senha: Scalars['String']['input'];
   status?: InputMaybe<Scalars['String']['input']>;
@@ -874,7 +880,7 @@ export type PontoEntrega = {
   estado: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   nome: Scalars['String']['output'];
-  pontoReferencia: Scalars['String']['output'];
+  pontoReferencia?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
