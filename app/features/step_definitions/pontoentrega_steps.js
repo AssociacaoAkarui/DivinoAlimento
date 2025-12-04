@@ -15,7 +15,15 @@ let erroDeletar;
 Given(
   "que eu quero criar um novo ponto de entrega para o mercado {string}",
   function (mercado) {
-    novoPontoEntrega = { status: "ativo" };
+    novoPontoEntrega = {
+      endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "Cidade Teste",
+      estado: "RS",
+      cep: "90000-000",
+      pontoReferencia: "Próximo ao mercado",
+      status: "ativo",
+    };
   },
 );
 
@@ -46,10 +54,22 @@ Given(
   async function (ponto1, ponto2, mercado) {
     await pontoEntregaService.criarPontoEntrega({
       nome: ponto1,
+      endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "Cidade Teste",
+      estado: "RS",
+      cep: "90000-000",
+      pontoReferencia: "Próximo ao mercado",
       status: "ativo",
     });
     await pontoEntregaService.criarPontoEntrega({
       nome: ponto2,
+      endereco: "Rua Teste, 456",
+      bairro: "Centro",
+      cidade: "Cidade Teste",
+      estado: "RS",
+      cep: "90000-000",
+      pontoReferencia: "Próximo à praça",
       status: "ativo",
     });
   },
@@ -74,6 +94,12 @@ Then(
 Given("que existe um ponto de entrega {string}", async function (nome) {
   pontoEntregaExistente = await pontoEntregaService.criarPontoEntrega({
     nome: nome,
+    endereco: "Rua Teste, 123",
+    bairro: "Centro",
+    cidade: "Cidade Teste",
+    estado: "RS",
+    cep: "90000-000",
+    pontoReferencia: "Próximo ao mercado",
     status: "ativo",
   });
 });

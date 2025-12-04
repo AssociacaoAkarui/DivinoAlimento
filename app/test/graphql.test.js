@@ -3086,6 +3086,7 @@ describe("Ciclo GraphQL", function () {
       cidade: "São Paulo",
       estado: "SP",
       cep: "01000-000",
+      pontoReferencia: "Próximo ao mercado",
       status: "ativo",
     });
 
@@ -3159,6 +3160,7 @@ describe("Ciclo GraphQL", function () {
       cidade: "São Paulo",
       estado: "SP",
       cep: "01000-000",
+      pontoReferencia: "Próximo ao shopping",
       status: "ativo",
     });
 
@@ -3239,6 +3241,7 @@ describe("Ciclo GraphQL", function () {
       cidade: "São Paulo",
       estado: "SP",
       cep: "01000-000",
+      pontoReferencia: "Próximo ao shopping",
       status: "ativo",
     });
 
@@ -3315,6 +3318,7 @@ describe("Ciclo GraphQL", function () {
       cidade: "São Paulo",
       estado: "SP",
       cep: "01000-000",
+      pontoReferencia: "Próximo ao shopping",
       status: "ativo",
     });
 
@@ -3383,6 +3387,7 @@ describe("Ciclo GraphQL", function () {
       cidade: "São Paulo",
       estado: "SP",
       cep: "01000-000",
+      pontoReferencia: "Próximo ao shopping",
       status: "ativo",
     });
 
@@ -3458,6 +3463,11 @@ describe("Oferta GraphQL", function () {
     const pontoEntrega = await PontoEntrega.create({
       nome: "Ponto Teste",
       endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      pontoReferencia: "Próximo à estação de metrô",
       status: "ativo",
     });
 
@@ -3542,6 +3552,11 @@ describe("Oferta GraphQL", function () {
     const pontoEntrega = await PontoEntrega.create({
       nome: "Ponto Teste",
       endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      pontoReferencia: "Próximo à estação de metrô",
       status: "ativo",
     });
 
@@ -3639,6 +3654,11 @@ describe("Oferta GraphQL", function () {
     const pontoEntrega = await PontoEntrega.create({
       nome: "Ponto Teste",
       endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      pontoReferencia: "Próximo à estação de metrô",
       status: "ativo",
     });
 
@@ -3752,6 +3772,11 @@ describe("Oferta GraphQL", function () {
     const pontoEntrega = await PontoEntrega.create({
       nome: "Ponto Teste",
       endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      pontoReferencia: "Próximo à estação de metrô",
       status: "ativo",
     });
 
@@ -3848,6 +3873,11 @@ describe("Oferta GraphQL", function () {
     const pontoEntrega = await PontoEntrega.create({
       nome: "Ponto Teste",
       endereco: "Rua Teste, 123",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      pontoReferencia: "Próximo à estação de metrô",
       status: "ativo",
     });
 
@@ -3979,6 +4009,7 @@ describe("PontoEntrega GraphQL", function () {
           cidade
           estado
           cep
+          pontoReferencia
           status
         }
       }
@@ -3996,6 +4027,7 @@ describe("PontoEntrega GraphQL", function () {
           cidade: "São Paulo",
           estado: "SP",
           cep: "01310-100",
+          pontoReferencia: "Próximo à praça central",
           status: "ativo",
         },
       },
@@ -4014,6 +4046,9 @@ describe("PontoEntrega GraphQL", function () {
     expect(result.data.criarPontoEntrega.cidade).to.equal("São Paulo");
     expect(result.data.criarPontoEntrega.estado).to.equal("SP");
     expect(result.data.criarPontoEntrega.cep).to.equal("01310-100");
+    expect(result.data.criarPontoEntrega.pontoReferencia).to.equal(
+      "Próximo à praça central",
+    );
     expect(result.data.criarPontoEntrega.status).to.equal("ativo");
   });
 
@@ -4022,11 +4057,21 @@ describe("PontoEntrega GraphQL", function () {
     await PontoEntrega.create({
       nome: "Ponto A",
       endereco: "Endereço A",
+      bairro: "Centro",
+      cidade: "Cidade Teste",
+      estado: "RS",
+      cep: "90000-000",
+      pontoReferencia: "Próximo ao mercado",
       status: "ativo",
     });
     await PontoEntrega.create({
       nome: "Ponto B",
       endereco: "Endereço B",
+      bairro: "Centro",
+      cidade: "Cidade Teste",
+      estado: "RS",
+      cep: "90000-000",
+      pontoReferencia: "Próximo à praça",
       status: "inativo",
     });
 
@@ -4060,11 +4105,21 @@ describe("PontoEntrega GraphQL", function () {
     await PontoEntrega.create({
       nome: "Ponto Ativo",
       endereco: "Endereço A",
+      bairro: "Centro",
+      cidade: "Cidade Teste",
+      estado: "RS",
+      cep: "90000-000",
+      pontoReferencia: "Próximo ao mercado",
       status: "ativo",
     });
     await PontoEntrega.create({
       nome: "Ponto Inativo",
       endereco: "Endereço B",
+      bairro: "Centro",
+      cidade: "Cidade Teste",
+      estado: "RS",
+      cep: "90000-000",
+      pontoReferencia: "Próximo à praça",
       status: "inativo",
     });
 
@@ -4103,6 +4158,7 @@ describe("PontoEntrega GraphQL", function () {
       cidade: "Cidade Teste",
       estado: "MG",
       cep: "30000-000",
+      pontoReferencia: "Próximo ao terminal",
       status: "ativo",
     });
 
@@ -4164,6 +4220,11 @@ describe("PontoEntrega GraphQL", function () {
     const pontoEntrega = await PontoEntrega.create({
       nome: "Ponto Original",
       endereco: "Endereço Original",
+      bairro: "Bairro Original",
+      cidade: "Cidade Original",
+      estado: "RS",
+      cep: "90000-000",
+      pontoReferencia: "Referência Original",
       status: "ativo",
     });
 
@@ -4213,6 +4274,11 @@ describe("PontoEntrega GraphQL", function () {
     const pontoEntrega = await PontoEntrega.create({
       nome: "Ponto a Deletar",
       endereco: "Endereço",
+      bairro: "Centro",
+      cidade: "Cidade Teste",
+      estado: "RS",
+      cep: "90000-000",
+      pontoReferencia: "Próximo ao mercado",
       status: "ativo",
     });
 
@@ -4293,6 +4359,11 @@ describe("PontoEntrega GraphQL", function () {
     await PontoEntrega.create({
       nome: "Ponto Disponível",
       endereco: "Endereço",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      pontoReferencia: "Próximo à praça central",
       status: "ativo",
     });
 
@@ -4368,8 +4439,26 @@ describe("Mercado GraphQL", function () {
         valorMaximoCesta: 150.0,
         status: "ativo",
         pontosEntrega: [
-          { nome: "Centro", status: "ativo" },
-          { nome: "Zona Norte", status: "ativo" },
+          {
+            nome: "Centro",
+            endereco: "Rua Central, 100",
+            bairro: "Centro",
+            cidade: "São Paulo",
+            estado: "SP",
+            cep: "01000-000",
+            pontoReferencia: "Próximo ao mercado municipal",
+            status: "ativo",
+          },
+          {
+            nome: "Zona Norte",
+            endereco: "Av. Norte, 500",
+            bairro: "Zona Norte",
+            cidade: "São Paulo",
+            estado: "SP",
+            cep: "02000-000",
+            pontoReferencia: "Ao lado da estação de metrô",
+            status: "ativo",
+          },
         ],
       },
     };
@@ -4413,7 +4502,18 @@ describe("Mercado GraphQL", function () {
         responsavelId: adminSession.usuarioId,
         taxaAdministrativa: 3.0,
         status: "ativo",
-        pontosEntrega: [{ nome: "Ponto Principal", status: "ativo" }],
+        pontosEntrega: [
+          {
+            nome: "Ponto Principal",
+            endereco: "Rua Principal, 200",
+            bairro: "Centro",
+            cidade: "São Paulo",
+            estado: "SP",
+            cep: "01100-000",
+            pontoReferencia: "Em frente à praça",
+            status: "ativo",
+          },
+        ],
       },
     };
 
@@ -4452,7 +4552,18 @@ describe("Mercado GraphQL", function () {
           responsavelId: adminSession.usuarioId,
           valorMaximoCesta: 100,
           status: "ativo",
-          pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+          pontosEntrega: [
+            {
+              nome: "Ponto 1",
+              endereco: "Rua Teste, 100",
+              bairro: "Centro",
+              cidade: "São Paulo",
+              estado: "SP",
+              cep: "01000-000",
+              pontoReferencia: "Próximo à praça",
+              status: "ativo",
+            },
+          ],
         },
       },
     });
@@ -4468,7 +4579,18 @@ describe("Mercado GraphQL", function () {
           tipo: "lote",
           responsavelId: adminSession.usuarioId,
           status: "ativo",
-          pontosEntrega: [{ nome: "Ponto 2", status: "ativo" }],
+          pontosEntrega: [
+            {
+              nome: "Ponto 2",
+              endereco: "Av. Teste, 200",
+              bairro: "Zona Sul",
+              cidade: "São Paulo",
+              estado: "SP",
+              cep: "02000-000",
+              pontoReferencia: "Próximo ao shopping",
+              status: "ativo",
+            },
+          ],
         },
       },
     });
@@ -4519,7 +4641,18 @@ describe("Mercado GraphQL", function () {
           responsavelId: adminSession.usuarioId,
           valorMaximoCesta: 200,
           status: "ativo",
-          pontosEntrega: [{ nome: "Centro", status: "ativo" }],
+          pontosEntrega: [
+            {
+              nome: "Centro",
+              endereco: "Rua Central, 300",
+              bairro: "Centro",
+              cidade: "São Paulo",
+              estado: "SP",
+              cep: "01000-000",
+              pontoReferencia: "Próximo à catedral",
+              status: "ativo",
+            },
+          ],
         },
       },
     });
@@ -4581,7 +4714,18 @@ describe("Mercado GraphQL", function () {
           valorMaximoCesta: 100,
           taxaAdministrativa: 5,
           status: "ativo",
-          pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+          pontosEntrega: [
+            {
+              nome: "Ponto 1",
+              endereco: "Rua Original, 400",
+              bairro: "Centro",
+              cidade: "São Paulo",
+              estado: "SP",
+              cep: "01000-000",
+              pontoReferencia: "Ao lado do banco",
+              status: "ativo",
+            },
+          ],
         },
       },
     });
@@ -4642,7 +4786,18 @@ describe("Mercado GraphQL", function () {
           responsavelId: adminSession.usuarioId,
           valorMaximoCesta: 150,
           status: "ativo",
-          pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+          pontosEntrega: [
+            {
+              nome: "Ponto 1",
+              endereco: "Rua Delete, 500",
+              bairro: "Centro",
+              cidade: "São Paulo",
+              estado: "SP",
+              cep: "01000-000",
+              pontoReferencia: "Próximo à escola",
+              status: "ativo",
+            },
+          ],
         },
       },
     });
@@ -4669,18 +4824,66 @@ describe("Mercado GraphQL", function () {
   });
 
   it("admin user can list mercados ativos", async function () {
+    const mutationAtivo = `
+      mutation CriarMercado($input: CriarMercadoInput!) {
+        criarMercado(input: $input) {
+          id
+        }
+      }
+    `;
     await graphql({
       schema: APIGraphql.schema,
-      source: `mutation { criarMercado(input: { nome: "Ativo 1", tipo: "cesta", responsavelId: ${adminSession.usuarioId}, valorMaximoCesta: 100, status: "ativo", pontosEntrega: [{ nome: "P1", status: "ativo" }] }) { id } }`,
+      source: mutationAtivo,
       rootValue: APIGraphql.rootValue,
       contextValue: APIGraphql.buildContext(adminSession.token),
+      variableValues: {
+        input: {
+          nome: "Ativo 1",
+          tipo: "cesta",
+          responsavelId: adminSession.usuarioId,
+          valorMaximoCesta: 100,
+          status: "ativo",
+          pontosEntrega: [
+            {
+              nome: "P1",
+              endereco: "Rua Ativo, 600",
+              bairro: "Centro",
+              cidade: "São Paulo",
+              estado: "SP",
+              cep: "01000-000",
+              pontoReferencia: "Próximo ao parque",
+              status: "ativo",
+            },
+          ],
+        },
+      },
     });
 
     await graphql({
       schema: APIGraphql.schema,
-      source: `mutation { criarMercado(input: { nome: "Inativo 1", tipo: "lote", responsavelId: ${adminSession.usuarioId}, status: "inativo", pontosEntrega: [{ nome: "P2", status: "ativo" }] }) { id } }`,
+      source: mutationAtivo,
       rootValue: APIGraphql.rootValue,
       contextValue: APIGraphql.buildContext(adminSession.token),
+      variableValues: {
+        input: {
+          nome: "Inativo 1",
+          tipo: "lote",
+          responsavelId: adminSession.usuarioId,
+          status: "inativo",
+          pontosEntrega: [
+            {
+              nome: "P2",
+              endereco: "Rua Inativo, 700",
+              bairro: "Zona Oeste",
+              cidade: "São Paulo",
+              estado: "SP",
+              cep: "03000-000",
+              pontoReferencia: "Próximo ao hospital",
+              status: "ativo",
+            },
+          ],
+        },
+      },
     });
 
     const query = `
@@ -4722,7 +4925,18 @@ describe("Mercado GraphQL", function () {
         tipo: "cesta",
         responsavelId: adminSession.usuarioId,
         status: "ativo",
-        pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+        pontosEntrega: [
+          {
+            nome: "Ponto 1",
+            endereco: "Rua Sem Valor, 800",
+            bairro: "Centro",
+            cidade: "São Paulo",
+            estado: "SP",
+            cep: "01000-000",
+            pontoReferencia: "Próximo à biblioteca",
+            status: "ativo",
+          },
+        ],
       },
     };
 
@@ -5027,6 +5241,12 @@ describe("Pagamento GraphQL", function () {
     const { PontoEntrega } = require("../models/index.js");
     const pontoEntrega = await PontoEntrega.create({
       nome: "Ponto Test",
+      endereco: "Rua Principal, 100",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      pontoReferencia: "Próximo à rodoviária",
       status: "ativo",
     });
 
@@ -5432,6 +5652,7 @@ describe("CicloMercados GraphQL", function () {
       cidade: "São Paulo",
       estado: "SP",
       cep: "01000-000",
+      pontoReferencia: "Próximo ao mercado",
       status: "ativo",
     });
     pontoEntregaId = pontoEntrega.id;
@@ -5768,6 +5989,11 @@ describe("EntregasFornecedores GraphQL", function () {
     const pontoEntrega = await PontoEntrega.create({
       nome: "Ponto Central",
       endereco: "Rua A",
+      bairro: "Centro",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "01000-000",
+      pontoReferencia: "Próximo ao centro comunitário",
       status: "ativo",
     });
 
@@ -5885,6 +6111,11 @@ describe("EntregasFornecedores GraphQL", function () {
     const pontoEntrega = await PontoEntrega.create({
       nome: "Ponto Vazio",
       endereco: "Rua B",
+      bairro: "Bairro Novo",
+      cidade: "São Paulo",
+      estado: "SP",
+      cep: "02000-000",
+      pontoReferencia: "Próximo ao parque",
       status: "ativo",
     });
 
