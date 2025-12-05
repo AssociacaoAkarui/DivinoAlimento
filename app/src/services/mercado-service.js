@@ -71,6 +71,29 @@ class MercadoService {
 
       const mercado = await Mercado.create(payloadSeguro, { transaction });
 
+      // Criar novos pontos de entrega se fornecidos como objetos
+      if (dados.pontosEntrega && Array.isArray(dados.pontosEntrega)) {
+        for (const pontoData of dados.pontosEntrega) {
+          // Se é um objeto com dados para criar novo ponto
+          if (typeof pontoData === "object" && pontoData.nome) {
+            await PontoEntrega.create(
+              {
+                nome: pontoData.nome,
+                status: pontoData.status || "ativo",
+                mercadoId: mercado.id,
+                endereco: pontoData.endereco,
+                bairro: pontoData.bairro,
+                cidade: pontoData.cidade,
+                estado: pontoData.estado,
+                cep: pontoData.cep,
+                pontoReferencia: pontoData.pontoReferencia,
+              },
+              { transaction },
+            );
+          }
+        }
+      }
+
       // Associar pontos de entrega existentes ao mercado
       if (dados.pontoEntregaIds && Array.isArray(dados.pontoEntregaIds)) {
         for (const pontoId of dados.pontoEntregaIds) {

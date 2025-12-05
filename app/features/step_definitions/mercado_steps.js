@@ -89,7 +89,15 @@ When("o ponto de entrega como {string}", function (nomePonto) {
   if (!this.mercadoData.pontosEntrega) {
     this.mercadoData.pontosEntrega = [];
   }
-  this.mercadoData.pontosEntrega.push({ nome: nomePonto, status: "ativo" });
+  this.mercadoData.pontosEntrega.push({
+    nome: nomePonto,
+    status: "ativo",
+    endereco: "Rua Teste, 123",
+    bairro: "Centro",
+    cidade: "São Paulo",
+    estado: "SP",
+    cep: "01000-000",
+  });
 });
 
 When("o valor máximo do mercado tipo Cesta como {int}", function (valor) {
@@ -207,7 +215,17 @@ Given("que existe um mercado {string} cadastrado", async function (nome) {
       responsavelId: usuario.id,
       valorMaximoCesta: 50,
       status: "ativo",
-      pontosEntrega: [{ nome: "Ponto Central", status: "ativo" }],
+      pontosEntrega: [
+        {
+          nome: "Ponto Central",
+          status: "ativo",
+          endereco: "Rua Teste, 123",
+          bairro: "Centro",
+          cidade: "São Paulo",
+          estado: "SP",
+          cep: "01000-000",
+        },
+      ],
     });
     this.mercados[nome] = mercado;
   }
@@ -233,7 +251,17 @@ Given(
       taxaAdministrativa: 1,
       valorMaximoCesta: 30,
       status: "ativo",
-      pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+      pontosEntrega: [
+        {
+          nome: "Ponto 1",
+          status: "ativo",
+          endereco: "Rua Teste, 123",
+          bairro: "Centro",
+          cidade: "São Paulo",
+          estado: "SP",
+          cep: "01000-000",
+        },
+      ],
     });
     this.mercados[nome] = mercado;
     this.currentMercado = mercado;
@@ -258,7 +286,17 @@ Given(
       responsavelId: this.usuarios["Manuel"].id,
       taxaAdministrativa: 1,
       status: "ativo",
-      pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+      pontosEntrega: [
+        {
+          nome: "Ponto 1",
+          status: "ativo",
+          endereco: "Rua Teste, 123",
+          bairro: "Centro",
+          cidade: "São Paulo",
+          estado: "SP",
+          cep: "01000-000",
+        },
+      ],
     });
     this.mercados[nome] = mercado;
     this.currentMercado = mercado;
@@ -283,7 +321,17 @@ Given(
       responsavelId: this.usuarios["Manuel"].id,
       taxaAdministrativa: 1,
       status: "ativo",
-      pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+      pontosEntrega: [
+        {
+          nome: "Ponto 1",
+          status: "ativo",
+          endereco: "Rua Teste, 123",
+          bairro: "Centro",
+          cidade: "São Paulo",
+          estado: "SP",
+          cep: "01000-000",
+        },
+      ],
     });
     this.mercados[nome] = mercado;
     this.currentMercado = mercado;
@@ -461,7 +509,17 @@ Given(
         responsavelId: usuario.id,
         valorMaximoCesta: 50,
         status: "ativo",
-        pontosEntrega: [{ nome: "Ponto 1", status: "ativo" }],
+        pontosEntrega: [
+          {
+            nome: "Ponto 1",
+            status: "ativo",
+            endereco: "Rua Teste, 123",
+            bairro: "Centro",
+            cidade: "São Paulo",
+            estado: "SP",
+            cep: "01000-000",
+          },
+        ],
       });
       this.mercados[nome] = mercado;
     }

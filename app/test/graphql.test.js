@@ -5678,7 +5678,17 @@ describe("CicloMercados GraphQL", function () {
       valorMaximoCesta: 150.0,
       taxaAdministrativa: 5.0,
       status: "ativo",
-      pontosEntrega: [{ nome: "Ponto Mercado", status: "ativo" }],
+      pontosEntrega: [
+        {
+          nome: "Ponto Mercado",
+          status: "ativo",
+          endereco: "Rua Teste, 123",
+          bairro: "Centro",
+          cidade: "São Paulo",
+          estado: "SP",
+          cep: "01000-000",
+        },
+      ],
     });
     mercadoId = mercado.id;
   });

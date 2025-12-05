@@ -78,8 +78,8 @@ input PontoEntregaInput {
     cidade: String!
     estado: String!
     cep: String!
-    pontoReferencia: String!
-    status: String!
+    pontoReferencia: String
+    status: String
 }
 
 input CriarMercadoInput {
@@ -90,6 +90,7 @@ input CriarMercadoInput {
     valorMaximoCesta: Float
     status: String
     pontoEntregaIds: [ID!]
+    pontosEntrega: [PontoEntregaInput!]
 }
 
 input AtualizarMercadoInput {
@@ -341,6 +342,7 @@ input CriarCicloInput {
     retiradaConsumidorInicio: String
     retiradaConsumidorFim: String
     observacao: String
+    status: String
 }
 
 input AtualizarCicloInput {
