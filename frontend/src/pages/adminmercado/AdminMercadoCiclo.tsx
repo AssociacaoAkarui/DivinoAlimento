@@ -234,29 +234,32 @@ const AdminMercadoCiclo = () => {
     try {
       // Guardar cada mercado del ciclo
       for (const mercado of mercados) {
-        const inputMercado = {
-          cicloId,
-          mercadoId: parseInt(mercado.mercado_id),
-          tipoVenda: mercado.tipo_venda,
-          ordemAtendimento: mercado.ordem_atendimento,
-          pontoEntregaId: mercado.ponto_entrega
-            ? parseInt(mercado.ponto_entrega)
-            : undefined,
-          quantidadeCestas: mercado.quantidade_cestas || undefined,
-          valorAlvoCesta: mercado.valor_alvo_cesta
-            ? parseFloat(mercado.valor_alvo_cesta.replace(",", "."))
-            : undefined,
-          valorAlvoLote: mercado.valor_alvo_lote
-            ? parseFloat(mercado.valor_alvo_lote.replace(",", "."))
-            : undefined,
-          status: "ativo" as const,
-        };
+        // Si el mercado tiene id numérico pequeño (de la BD), actualizar
+        // Los IDs nuevos son timestamps grandes (> 1000000000000)
+        const isExistingMercado =
+          mercado.id && parseInt(mercado.id) < 1000000000000;
 
-        // Si el mercado tiene id (ya existe), actualizar, sino crear
-        if (mercado.id && !mercado.id.startsWith("Date")) {
+        if (isExistingMercado) {
+          // Input para actualizar (sin cicloId ni mercadoId)
+          const inputActualizar = {
+            tipoVenda: mercado.tipo_venda,
+            ordemAtendimento: mercado.ordem_atendimento,
+            pontoEntregaId: mercado.ponto_entrega
+              ? parseInt(mercado.ponto_entrega)
+              : undefined,
+            quantidadeCestas: mercado.quantidade_cestas || undefined,
+            valorAlvoCesta: mercado.valor_alvo_cesta
+              ? parseFloat(mercado.valor_alvo_cesta.replace(",", "."))
+              : undefined,
+            valorAlvoLote: mercado.valor_alvo_lote
+              ? parseFloat(mercado.valor_alvo_lote.replace(",", "."))
+              : undefined,
+            status: "oferta" as const,
+          };
+
           await new Promise<void>((resolve, reject) => {
             atualizarMercadoCiclo(
-              { id: parseInt(mercado.id), input: inputMercado },
+              { id: parseInt(mercado.id), input: inputActualizar },
               {
                 onSuccess: () => resolve(),
                 onError: (error: Error) => reject(error),
@@ -264,9 +267,28 @@ const AdminMercadoCiclo = () => {
             );
           });
         } else {
+          // Input para crear (con cicloId y mercadoId)
+          const inputCrear = {
+            cicloId,
+            mercadoId: parseInt(mercado.mercado_id),
+            tipoVenda: mercado.tipo_venda,
+            ordemAtendimento: mercado.ordem_atendimento,
+            pontoEntregaId: mercado.ponto_entrega
+              ? parseInt(mercado.ponto_entrega)
+              : undefined,
+            quantidadeCestas: mercado.quantidade_cestas || undefined,
+            valorAlvoCesta: mercado.valor_alvo_cesta
+              ? parseFloat(mercado.valor_alvo_cesta.replace(",", "."))
+              : undefined,
+            valorAlvoLote: mercado.valor_alvo_lote
+              ? parseFloat(mercado.valor_alvo_lote.replace(",", "."))
+              : undefined,
+            status: "oferta" as const,
+          };
+
           await new Promise<void>((resolve, reject) => {
             adicionarMercadoCiclo(
-              { input: inputMercado },
+              { input: inputCrear },
               {
                 onSuccess: () => resolve(),
                 onError: (error: Error) => reject(error),
@@ -358,9 +380,9 @@ const AdminMercadoCiclo = () => {
       nome,
       ofertaInicio: inicioOfertas,
       ofertaFim: fimOfertas,
-      observacoes: observacoes || undefined,
+      observacao: observacoes || undefined,
       pontoEntregaId,
-      status: "ativo" as const,
+      status: "oferta" as const,
     };
 
     if (isEdit && id) {
