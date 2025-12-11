@@ -14,7 +14,7 @@ Sua [primeira versão](https://github.com/AssociacaoAkarui/divinoalimento_cestas
 
 Em 2025, se somam mais pessoas ao processo que culmina na versão 2 cujo código está nesse repositório. 
 
-São Alejandro González (Lider Técnico) e Nádia Coelho Pontes (Desenvolvedora), Ana Laura Carrilli (Extensionista), Damaris Chaves (Administrativo da Akarui), Daniela Coura (Extensionista), Allan Carlos (Design de Interface), Leonardo Ávila (Pesquisador em Design) e Sofia Kraja (Financeiro da Akarui).
+São Alejandro González (Lider Técnico), Nádia Coelho Pontes (Desenvolvedora), Ana Laura Carrilli (Extensionista), Damaris Chaves (Administrativo da Akarui), Daniela Coura (Extensionista), Allan Carlos (Design de Interface), Leonardo Ávila (Pesquisador em Design) e Sofia Kraja (Financeiro da Akarui).
 
 ---
 
