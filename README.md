@@ -34,8 +34,6 @@ No terminal, utilizar o código abaixo:
 
 *obs:*  a versão mais atualizada está na [rama](https://github.com/AssociacaoAkarui/DivinoAlimento/tree/feature/graphql-client-cors)
 
-Entrar) "graphql-client-cors" 
-
 3. Na pasta que foi criada, utilizando o comando cd 
 
 `cd DivinoAlimento`
