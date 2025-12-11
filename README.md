@@ -8,9 +8,9 @@ Atualizado em 2025 para atender três tipos de mercados:
 2. Venda em lote como acontece por exemplo no Programa Nacional da Alimentação Escolar
 3. Venda direta
 
-Uma plataforma criada em 2021 a luz iniciativa do Divino Alimento, que é contada com mais detalhes no site da [Akarui](https://www.akarui.org.br/divinoalimento) que acontece em São Luiz do Paraitinga, SP, em dialogo entre consumidores e agricultores e agricultoras ligados à Associação Minhoca.
+Uma plataforma criada em 2021 a luz iniciativa do Divino Alimento, que é contada com mais detalhes no site da [Akarui](https://www.akarui.org.br/divinoalimento) que acontece em São Luiz do Paraitinga, SP, em diálogo entre consumidores e agricultores e agricultoras ligados à Associação Minhoca.
 
-Sua primeira versão foi desenvolvida por Carmen Freitas (Desenvolvedora) em diálogo com Juliana Farinaci (Comunicação da Akarui). 
+Sua [primeira versão](https://github.com/AssociacaoAkarui/divinoalimento_cestas) foi desenvolvida por Carmen Freitas (Desenvolvedora) em diálogo com Juliana Farinaci (Comunicação da Akarui). 
 
 Em 2025, se somam mais pessoas ao processo que culmina na versão 2 cujo código está nesse repositório. 
 
