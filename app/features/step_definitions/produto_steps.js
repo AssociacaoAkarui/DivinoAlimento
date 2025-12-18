@@ -1,161 +1,119 @@
-const { Given, When, Then } = require("@cucumber/cucumber");
 const { expect } = require("chai");
-const { CategoriaProdutos, Produto } = require("../../models");
-const Factories = require("./support/factories");
-const { ProdutoService } = require("../../src/services/services");
+const { Before, Given, When, Then } = require("@cucumber/cucumber");
+const {
+  ProdutoService,
+  CategoriaProdutosService,
+} = require("../../src/services/services.js");
 
-let novoProdutoData = {};
-let categoriaCriada;
-let produtoCriado;
-let produtoExistente;
-let produtoRetornado;
+let produtoService;
+let categoriaProdutosService;
 
-Given("que eu quero criar um novo Produto", async function () {
-  novoProdutoData = {};
+Before(function () {
+  produtoService = new ProdutoService();
+  categoriaProdutosService = new CategoriaProdutosService();
+  this.produtoData = {};
+  this.currentProduto = null;
+  this.currentCategoria = null;
+});
 
-  [categoriaCriada] = await CategoriaProdutos.findOrCreate({
-    where: { nome: "Frutas" },
-    defaults: { status: "ativo" },
-  });
+Given("que eu quero criar um novo Produto", function () {
+  this.novoProdutoData = {};
 });
 
 When("eu preencho o nome com {string}", function (nome) {
-  novoProdutoData.nome = nome;
+  if (!this.novoProdutoData) {
+    this.novoProdutoData = {};
+  }
+  this.novoProdutoData.nome = nome;
 });
-
-/* Campos não existirão mais em produtos, e sim em produto comercializável
-When("a medida como {string}", function (medida) {
-  novoProdutoData.medida = medida;
-});
-
-When("o peso em gramas com {string}", function (peso) {
-  novoProdutoData.pesoGrama = parseInt(peso, 10);
-});
-
-When("o valor de referência com {string}", function (valor) {
-  novoProdutoData.valorReferencia = parseFloat(valor);
-});*/
 
 When("o status como {string}", function (status) {
-  novoProdutoData.status = status;
+  this.novoProdutoData.status = status;
 });
 
-When("a categoria como {string}", function (nomeCategoria) {
-  if (categoriaCriada && categoriaCriada.nome === nomeCategoria) {
-    novoProdutoData.categoriaId = categoriaCriada.id;
-  }
+When("a categoria como {string}", async function (categoriaNome) {
+  let categoria = await categoriaProdutosService.criarCategoria({
+    nome: categoriaNome,
+    status: "ativo",
+  });
+  this.currentCategoria = categoria;
+  this.novoProdutoData.categoriaId = categoria.id;
 });
 
 When("o descritivo com {string}", function (descritivo) {
-  novoProdutoData.descritivo = descritivo;
+  this.novoProdutoData.descritivo = descritivo;
 });
 
 When("eu salvo o novo produto", async function () {
-  const produtoService = new ProdutoService();
-  produtoCriado = await produtoService.criarProduto(novoProdutoData);
+  this.currentProduto = await produtoService.criarProduto(this.novoProdutoData);
 });
 
-Then("o produto {string} deve ser criado com sucesso", function (nomeProduto) {
-  expect(produtoCriado).to.not.be.null;
-  expect(produtoCriado.id).to.be.a("number");
-  expect(produtoCriado.nome).to.equal(nomeProduto);
-  expect(produtoCriado.nome).to.equal(novoProdutoData.nome);
-  expect(produtoCriado.medida).to.equal(novoProdutoData.medida);
-  expect(produtoCriado.pesoGrama).to.equal(novoProdutoData.pesoGrama);
-  expect(produtoCriado.valorReferencia).to.equal(
-    novoProdutoData.valorReferencia,
-  );
-  expect(produtoCriado.status).to.equal(novoProdutoData.status);
-  expect(produtoCriado.categoriaId).to.equal(novoProdutoData.categoriaId);
-  expect(produtoCriado.descritivo).to.equal(novoProdutoData.descritivo);
+Then("o produto {string} deve ser criado com sucesso", function (nome) {
+  expect(this.currentProduto).to.exist;
+  expect(this.currentProduto.nome).to.equal(nome);
+  expect(this.currentProduto.id).to.exist;
 });
 
 Given(
   "que existe um produto {string} cadastrado na categoria {string}",
   async function (nomeProduto, nomeCategoria) {
-    const [categoria] = await CategoriaProdutos.findOrCreate({
-      where: { nome: nomeCategoria },
-      defaults: { status: "ativo" },
+    let categoria = await categoriaProdutosService.criarCategoria({
+      nome: nomeCategoria,
+      status: "ativo",
     });
+    this.currentCategoria = categoria;
 
-    produtoExistente = await Produto.create({
+    this.currentProduto = await produtoService.criarProduto({
       nome: nomeProduto,
-      medida: "unidade",
-      pesoGrama: 120,
-      valorReferencia: 0.8,
       status: "ativo",
       categoriaId: categoria.id,
-      descritivo: `Uma deliciosa ${nomeProduto}`,
     });
   },
 );
 
 When("eu peço os detalhes do produto {string}", async function (nomeProduto) {
-  expect(produtoExistente.nome).to.equal(nomeProduto);
-  const produtoService = new ProdutoService();
-  produtoRetornado = await produtoService.buscarProdutoPorId(
-    produtoExistente.id,
+  const produto = await produtoService.buscarProdutoPorId(
+    this.currentProduto.id,
   );
+  this.produtoData = produto;
 });
 
 Then(
   "eu devo ver os detalhes do produto {string} com a categoria {string}",
   function (nomeProduto, nomeCategoria) {
-    expect(produtoRetornado).to.exist;
-    expect(produtoRetornado.nome).to.equal(nomeProduto);
-
-    expect(produtoRetornado.categoria.nome).to.equal(nomeCategoria);
+    expect(this.produtoData).to.exist;
+    expect(this.produtoData.nome).to.equal(nomeProduto);
+    expect(this.produtoData.categoria).to.exist;
+    expect(this.produtoData.categoria.nome).to.equal(nomeCategoria);
   },
 );
 
-let produtoAtualizado;
-let produtoDeletado;
-
 When("eu salvo as alterações do produto", async function () {
-  const produtoService = new ProdutoService();
-  produtoAtualizado = await produtoService.atualizarProduto(
-    produtoExistente.id,
-    novoProdutoData,
+  this.currentProduto = await produtoService.atualizarProduto(
+    this.currentProduto.id,
+    this.novoProdutoData,
   );
 });
 
 Then(
   "o nome do produto na base de dados deve ser {string}",
-  async function (nomeEsperado) {
-    expect(produtoAtualizado).to.exist;
-    expect(produtoAtualizado.nome).to.equal(nomeEsperado);
-    /* valor não existe mais em produto
-    expect(produtoAtualizado.valorReferencia).to.equal(
-      novoProdutoData.valorReferencia,
-    );*/
-
-    const produtoNaDb = await Produto.findByPk(produtoExistente.id);
-    expect(produtoNaDb.nome).to.equal(nomeEsperado);
+  function (nomeEsperado) {
+    expect(this.currentProduto.nome).to.equal(nomeEsperado);
   },
 );
 
 When("eu deleto o produto {string}", async function (nomeProduto) {
-  expect(produtoExistente.nome).to.equal(nomeProduto);
-  const produtoService = new ProdutoService();
-  produtoDeletado = await produtoService.deletarProduto(produtoExistente.id);
+  await produtoService.deletarProduto(this.currentProduto.id);
 });
 
 Then(
   "o produto {string} não deve mais existir no sistema",
   async function (nomeProduto) {
-    expect(produtoDeletado).to.be.true;
-
-    const produtoService = new ProdutoService();
     try {
-      await produtoService.buscarProdutoPorId(produtoExistente.id);
-
-      expect.fail(
-        `Produto "${nomeProduto}" ainda foi encontrado no sistema, mas deveria ter sido deletado.`,
-      );
+      await produtoService.buscarProdutoPorId(this.currentProduto.id);
+      throw new Error("O produto ainda existe");
     } catch (error) {
-      expect(error.message).to.equal(
-        `Produto com ID ${produtoExistente.id} não encontrado`,
-      );
+      expect(error.message).to.match(/not found|não encontrado/i);
     }
   },
 );

@@ -1,0 +1,76 @@
+services:
+  db.prod:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    networks:
+      - network_prod
+    env_file:
+      - .env.prod
+    volumes:
+      - db_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app.prod:
+    image: node:22-alpine
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "${GRAPHQL_PORT:-13000}:${GRAPHQL_PORT:-13000}"
+    volumes:
+      - ./app:/app
+      - app_node_modules_prod:/app/node_modules
+    depends_on:
+      db.prod:
+        condition: service_healthy
+    command: /bin/sh -c "npm install --omit=dev && npx sequelize db:migrate && npm start"
+    env_file:
+      - .env.prod
+    networks:
+      - network_prod
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 13000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend.prod:
+    image: node:22-alpine
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules_prod:/app/node_modules
+    command: /bin/sh -c "npm install && npm run build && npm run preview -- --host 0.0.0.0 --port 8080"
+    env_file:
+      - .env.prod
+    environment:
+      - VITE_GRAPHQL_ENDPOINT=${VITE_GRAPHQL_ENDPOINT}
+      - GRAPHQL_SCHEMA_URL=http://app.prod:13000/graphql
+    networks:
+      - network_prod
+    depends_on:
+      app.prod:
+        condition: service_healthy
+
+networks:
+  network_prod:
+    driver: bridge
+
+volumes:
+  db_data_prod:
+    driver: local
+  app_node_modules_prod:
+    driver: local
+  frontend_node_modules_prod:
+    driver: local

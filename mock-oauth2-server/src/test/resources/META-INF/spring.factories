@@ -1,2 +1,0 @@
-org.springframework.boot.logging.LoggingSystemFactory=\
-org.springframework.boot.logging.java.JavaLoggingSystem.Factory

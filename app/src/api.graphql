@@ -21,12 +21,755 @@ type SystemInformation {
     version: String!
 }
 
+type Usuario {
+    id: ID!
+    nome: String!
+    nomeoficial: String
+    email: String!
+    celular: String
+    banco: String
+    agencia: String
+    conta: String
+    chavePix: String
+    cientepolitica: String
+    status: String!
+    perfis: [String!]!
+}
+
+input AtualizarUsuarioInput {
+    nome: String
+    nomeoficial: String
+    celular: String
+    email: String
+    banco: String
+    agencia: String
+    conta: String
+    chavePix: String
+    cientepolitica: String
+    perfis: [String!]
+    status: String
+}
+
+type CategoriaProdutos {
+    id: ID!
+    nome: String!
+    status: String!
+    observacao: String
+}
+
+type Mercado {
+    id: ID!
+    nome: String!
+    tipo: String!
+    responsavelId: Int!
+    responsavel: Usuario
+    taxaAdministrativa: Float
+    valorMaximoCesta: Float
+    status: String!
+    pontosEntrega: [PontoEntrega!]
+    createdAt: String!
+    updatedAt: String!
+}
+
+input PontoEntregaInput {
+    nome: String!
+    endereco: String!
+    bairro: String!
+    cidade: String!
+    estado: String!
+    cep: String!
+    pontoReferencia: String
+    status: String
+}
+
+input CriarMercadoInput {
+    nome: String!
+    tipo: String!
+    responsavelId: Int!
+    taxaAdministrativa: Float
+    valorMaximoCesta: Float
+    status: String
+    pontoEntregaIds: [ID!]
+    pontosEntrega: [PontoEntregaInput!]
+}
+
+input AtualizarMercadoInput {
+    nome: String
+    tipo: String
+    responsavelId: Int
+    taxaAdministrativa: Float
+    valorMaximoCesta: Float
+    status: String
+    pontoEntregaIds: [ID!]
+}
+
+input CriarCategoriaProdutosInput {
+    nome: String!
+    status: String!
+    observacao: String
+}
+
+input AtualizarCategoriaProdutosInput {
+    nome: String
+    status: String
+    observacao: String
+}
+
+type DeletarCategoriaResponse {
+    success: Boolean!
+    message: String!
+}
+
+type DeletarUsuarioResponse {
+    success: Boolean!
+    message: String!
+}
+
+type Produto {
+    id: ID!
+    nome: String!
+    medida: String
+    pesoGrama: Float
+    valorReferencia: Float
+    status: String!
+    descritivo: String
+    categoriaId: Int
+    categoria: CategoriaProdutos
+}
+
+input CriarProdutoInput {
+    nome: String!
+    medida: String
+    pesoGrama: Float
+    valorReferencia: Float
+    status: String!
+    descritivo: String
+    categoriaId: Int
+}
+
+input AtualizarProdutoInput {
+    nome: String
+    medida: String
+    pesoGrama: Float
+    valorReferencia: Float
+    status: String
+    descritivo: String
+    categoriaId: Int
+}
+
+type ProdutoComercializavel {
+    id: ID!
+    produtoId: Int!
+    produto: Produto
+    medida: String!
+    pesoKg: Float!
+    precoBase: Float!
+    status: String!
+    createdAt: String
+    updatedAt: String
+}
+
+input CriarProdutoComercializavelInput {
+    produtoId: Int!
+    medida: String!
+    pesoKg: Float!
+    precoBase: Float!
+    status: String
+}
+
+input AtualizarProdutoComercializavelInput {
+    produtoId: Int
+    medida: String
+    pesoKg: Float
+    precoBase: Float
+    status: String
+}
+
+type SubmissaoProduto {
+    id: ID!
+    fornecedorId: Int!
+    fornecedor: Usuario
+    nomeProduto: String!
+    descricao: String
+    imagemUrl: String
+    precoUnidade: Float!
+    medida: String!
+    status: String!
+    motivoReprovacao: String
+    createdAt: String
+    updatedAt: String
+}
+
+input CriarSubmissaoProdutoInput {
+    fornecedorId: Int!
+    nomeProduto: String!
+    descricao: String
+    imagemUrl: String
+    precoUnidade: Float!
+    medida: String!
+}
+
+input AprovarSubmissaoInput {
+    descricao: String
+    precoUnidade: Float
+}
+
+type PontoEntrega {
+    id: ID!
+    nome: String!
+    endereco: String!
+    bairro: String!
+    cidade: String!
+    estado: String!
+    cep: String!
+    pontoReferencia: String
+    status: String!
+    createdAt: String
+    updatedAt: String
+}
+
+input CriarPontoEntregaInput {
+    nome: String!
+    endereco: String!
+    bairro: String!
+    cidade: String!
+    estado: String!
+    cep: String!
+    pontoReferencia: String
+    status: String!
+}
+
+input AtualizarPontoEntregaInput {
+    nome: String
+    endereco: String
+    bairro: String
+    cidade: String
+    estado: String
+    cep: String
+    pontoReferencia: String
+    status: String
+}
+
+type Ciclo {
+    id: ID!
+    nome: String!
+    ofertaInicio: String!
+    ofertaFim: String!
+    pontoEntregaId: Int!
+    pontoEntrega: PontoEntrega
+    itensAdicionaisInicio: String
+    itensAdicionaisFim: String
+    retiradaConsumidorInicio: String
+    retiradaConsumidorFim: String
+    observacao: String
+    status: String!
+    createdAt: String
+    updatedAt: String
+}
+
+type ListarCiclosResponse {
+    total: Int!
+    ciclos: [Ciclo!]!
+    limite: Int!
+    nextCursor: String
+}
+
+type CicloMercados {
+    id: ID!
+    cicloId: Int!
+    ciclo: Ciclo
+    mercadoId: Int!
+    mercado: Mercado
+    tipoVenda: String!
+    ordemAtendimento: Int!
+    quantidadeCestas: Int
+    valorAlvoCesta: Float
+    valorAlvoLote: Float
+    pontoEntregaId: Int
+    pontoEntrega: PontoEntrega
+    periodoEntregaFornecedorInicio: String
+    periodoEntregaFornecedorFim: String
+    periodoRetiradaInicio: String
+    periodoRetiradaFim: String
+    periodoComprasInicio: String
+    periodoComprasFim: String
+    status: String!
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CriarCicloMercadosInput {
+    cicloId: Int!
+    mercadoId: Int!
+    tipoVenda: String!
+    ordemAtendimento: Int
+    quantidadeCestas: Int
+    valorAlvoCesta: Float
+    valorAlvoLote: Float
+    pontoEntregaId: Int
+    periodoEntregaFornecedorInicio: String
+    periodoEntregaFornecedorFim: String
+    periodoRetiradaInicio: String
+    periodoRetiradaFim: String
+    periodoComprasInicio: String
+    periodoComprasFim: String
+    status: String
+}
+
+input AtualizarCicloMercadosInput {
+    tipoVenda: String
+    ordemAtendimento: Int
+    quantidadeCestas: Int
+    valorAlvoCesta: Float
+    valorAlvoLote: Float
+    pontoEntregaId: Int
+    periodoEntregaFornecedorInicio: String
+    periodoEntregaFornecedorFim: String
+    periodoRetiradaInicio: String
+    periodoRetiradaFim: String
+    periodoComprasInicio: String
+    periodoComprasFim: String
+    status: String
+}
+
+input CriarCicloInput {
+    nome: String!
+    ofertaInicio: String!
+    ofertaFim: String!
+    pontoEntregaId: Int!
+    itensAdicionaisInicio: String
+    itensAdicionaisFim: String
+    retiradaConsumidorInicio: String
+    retiradaConsumidorFim: String
+    observacao: String
+    status: String
+}
+
+input AtualizarCicloInput {
+    nome: String
+    ofertaInicio: String
+    ofertaFim: String
+    pontoEntregaId: Int
+    itensAdicionaisInicio: String
+    itensAdicionaisFim: String
+    retiradaConsumidorInicio: String
+    retiradaConsumidorFim: String
+    observacao: String
+    status: String
+}
+
+input CriarUsuarioInput {
+    nome: String!
+    nomeoficial: String
+    email: String!
+    senha: String!
+    celular: String
+    banco: String
+    agencia: String
+    conta: String
+    chavePix: String
+    cientepolitica: String
+    perfis: [String!]!
+    status: String
+}
+
+type CicloCestas {
+    id: ID!
+    cicloId: Int!
+    ciclo: Ciclo
+    cestaId: Int!
+    cesta: Cesta
+    quantidadeCestas: Int!
+    composicoes: [Composicao!]
+    createdAt: String!
+    updatedAt: String!
+}
+
+type Cesta {
+    id: ID!
+    nome: String!
+    valormaximo: Float
+    status: String!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type Composicao {
+    id: ID!
+    cicloCestaId: Int!
+    cicloCesta: CicloCestas
+    status: String
+    observacao: String
+    composicaoOfertaProdutos: [ComposicaoOfertaProduto!]
+    createdAt: String!
+    updatedAt: String!
+}
+
+type ComposicaoOfertaProduto {
+    id: ID!
+    composicaoId: Int!
+    produtoId: Int!
+    produto: Produto
+    quantidade: Float!
+    valor: Float
+    ofertaProdutoId: Int
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CriarComposicaoInput {
+    cicloId: Int!
+    cestaId: Int!
+    quantidadeCestas: Int
+}
+
+input SincronizarProdutosComposicaoInput {
+    produtoId: Int!
+    quantidade: Float!
+    ofertaProdutoId: Int
+}
+
+type PedidoConsumidores {
+    id: ID!
+    cicloId: Int!
+    ciclo: Ciclo
+    usuarioId: Int!
+    usuario: Usuario
+    status: String!
+    observacao: String
+    pedidoConsumidoresProdutos: [PedidoConsumidoresProduto!]
+    createdAt: String!
+    updatedAt: String!
+}
+
+type PedidoConsumidoresProduto {
+    id: ID!
+    pedidoConsumidorId: Int!
+    produtoId: Int!
+    produto: Produto
+    quantidade: Float!
+    valorOferta: Float
+    valorCompra: Float
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CriarPedidoConsumidoresInput {
+    cicloId: Int!
+    usuarioId: Int!
+    status: String
+    observacao: String
+}
+
+input AdicionarProdutoPedidoInput {
+    produtoId: Int!
+    quantidade: Float!
+    valorOferta: Float
+    valorCompra: Float
+}
+
+input AtualizarQuantidadeProdutoPedidoInput {
+    quantidade: Float!
+}
+
+input AtualizarStatusPedidoInput {
+    status: String!
+}
+
+type Pagamento {
+    id: ID!
+    tipo: String!
+    valorTotal: Float!
+    status: String!
+    dataPagamento: String
+    observacao: String
+    cicloId: Int!
+    ciclo: Ciclo
+    mercadoId: Int!
+    mercado: Mercado
+    usuarioId: Int!
+    usuario: Usuario
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CriarPagamentoInput {
+    tipo: String!
+    valorTotal: Float!
+    status: String
+    dataPagamento: String
+    observacao: String
+    cicloId: Int!
+    mercadoId: Int!
+    usuarioId: Int!
+}
+
+input AtualizarPagamentoInput {
+    tipo: String
+    valorTotal: Float
+    status: String
+    dataPagamento: String
+    observacao: String
+    cicloId: Int
+    mercadoId: Int
+    usuarioId: Int
+}
+
+input FiltrosPagamentoInput {
+    tipo: String
+    status: String
+    cicloId: Int
+    mercadoId: Int
+    usuarioId: Int
+}
+
+type TotalPorCiclo {
+    totalReceber: Float!
+    totalPagar: Float!
+    saldo: Float!
+}
+
 type Mutation {
     sessionLogin(input: LoginInput!): ActiveSession!
     sessionLogout: LogoutResponse!
+    criarUsuario(input: CriarUsuarioInput!): Usuario!
+    atualizarUsuario(id: ID!, input: AtualizarUsuarioInput!): Usuario!
+    deletarUsuario(id: ID!): DeletarUsuarioResponse!
+    criarCategoria(input: CriarCategoriaProdutosInput!): CategoriaProdutos!
+    atualizarCategoria(
+        id: ID!
+        input: AtualizarCategoriaProdutosInput!
+    ): CategoriaProdutos!
+    deletarCategoria(id: ID!): DeletarCategoriaResponse!
+    criarProduto(input: CriarProdutoInput!): Produto!
+    atualizarProduto(id: ID!, input: AtualizarProdutoInput!): Produto!
+    deletarProduto(id: ID!): Boolean!
+    criarProdutoComercializavel(
+        input: CriarProdutoComercializavelInput!
+    ): ProdutoComercializavel!
+    atualizarProdutoComercializavel(
+        id: ID!
+        input: AtualizarProdutoComercializavelInput!
+    ): ProdutoComercializavel!
+    deletarProdutoComercializavel(id: ID!): Boolean!
+    criarSubmissaoProduto(input: CriarSubmissaoProdutoInput!): SubmissaoProduto!
+    aprovarSubmissaoProduto(
+        id: ID!
+        input: AprovarSubmissaoInput
+    ): SubmissaoProduto!
+    reprovarSubmissaoProduto(
+        id: ID!
+        motivoReprovacao: String!
+    ): SubmissaoProduto!
+    criarMercado(input: CriarMercadoInput!): Mercado!
+    atualizarMercado(id: ID!, input: AtualizarMercadoInput!): Mercado!
+    deletarMercado(id: ID!): Boolean!
+    deletarSubmissaoProduto(id: ID!): Boolean!
+    criarCiclo(input: CriarCicloInput!): Ciclo!
+    atualizarCiclo(id: ID!, input: AtualizarCicloInput!): Ciclo!
+    deletarCiclo(id: ID!): Boolean!
+    adicionarMercadoCiclo(input: CriarCicloMercadosInput!): CicloMercados!
+    atualizarMercadoCiclo(
+        id: ID!
+        input: AtualizarCicloMercadosInput!
+    ): CicloMercados!
+    removerMercadoCiclo(id: ID!): Boolean!
+    criarPontoEntrega(input: CriarPontoEntregaInput!): PontoEntrega!
+    atualizarPontoEntrega(
+        id: ID!
+        input: AtualizarPontoEntregaInput!
+    ): PontoEntrega!
+    deletarPontoEntrega(id: ID!): Boolean!
+    criarOferta(input: CriarOfertaInput!): Oferta!
+    adicionarProdutoOferta(
+        ofertaId: ID!
+        input: AdicionarProdutoOfertaInput!
+    ): OfertaProduto!
+    atualizarQuantidadeProdutoOferta(
+        ofertaProdutoId: ID!
+        input: AtualizarQuantidadeProdutoInput!
+    ): OfertaProduto!
+    removerProdutoOferta(ofertaProdutoId: ID!): Boolean!
+    migrarOfertas(input: MigrarOfertasInput!): [Oferta!]!
+    criarPrecoMercado(input: CriarPrecoMercadoInput!): PrecoMercado!
+    atualizarPrecoMercado(
+        id: ID!
+        input: AtualizarPrecoMercadoInput!
+    ): PrecoMercado!
+    deletarPrecoMercado(id: ID!): Boolean!
+    criarComposicao(input: CriarComposicaoInput!): Composicao!
+    sincronizarProdutosComposicao(
+        composicaoId: ID!
+        produtos: [SincronizarProdutosComposicaoInput!]!
+    ): Boolean!
+    criarPedidoConsumidores(
+        input: CriarPedidoConsumidoresInput!
+    ): PedidoConsumidores!
+    adicionarProdutoPedido(
+        pedidoId: ID!
+        input: AdicionarProdutoPedidoInput!
+    ): PedidoConsumidoresProduto!
+    atualizarQuantidadeProdutoPedido(
+        pedidoProdutoId: ID!
+        input: AtualizarQuantidadeProdutoPedidoInput!
+    ): PedidoConsumidoresProduto
+    removerProdutoPedido(pedidoProdutoId: ID!): Boolean!
+    atualizarStatusPedido(
+        pedidoId: ID!
+        input: AtualizarStatusPedidoInput!
+    ): PedidoConsumidores!
+    criarPagamento(input: CriarPagamentoInput!): Pagamento!
+    atualizarPagamento(id: ID!, input: AtualizarPagamentoInput!): Pagamento!
+    deletarPagamento(id: ID!): Boolean!
+    marcarPagamentoComoPago(
+        id: ID!
+        dataPagamento: String
+        observacao: String
+    ): Pagamento!
+    cancelarPagamento(id: ID!, observacao: String): Pagamento!
+    gerarPagamentosPorCiclo(cicloId: Int!): [Pagamento!]!
 }
 
 type Query {
     healthcheck: HealthCheck!
     systemInformation: SystemInformation!
+    listarUsuarios: [Usuario!]!
+    buscarUsuario(id: ID!): Usuario!
+    listarCategorias: [CategoriaProdutos!]!
+    buscarCategoria(id: ID!): CategoriaProdutos!
+    listarProdutos: [Produto!]!
+    buscarProduto(id: ID!): Produto!
+    listarProdutosComercializaveis: [ProdutoComercializavel!]!
+    buscarProdutoComercializavel(id: ID!): ProdutoComercializavel!
+    listarProdutosComercializaveisPorProduto(
+        produtoId: Int!
+    ): [ProdutoComercializavel!]!
+    listarSubmissoesProdutos: [SubmissaoProduto!]!
+    buscarSubmissaoProduto(id: ID!): SubmissaoProduto!
+    listarSubmissoesPorStatus(status: String!): [SubmissaoProduto!]!
+    listarSubmissoesPorFornecedor(fornecedorId: Int!): [SubmissaoProduto!]!
+    listarCiclos(limite: Int, cursor: String): ListarCiclosResponse!
+    buscarCiclo(id: ID!): Ciclo!
+    listarMercadosPorCiclo(cicloId: Int!): [CicloMercados!]!
+    buscarCicloMercado(id: ID!): CicloMercados!
+    listarPontosEntrega: [PontoEntrega!]!
+    listarPontosEntregaAtivos: [PontoEntrega!]!
+    buscarPontoEntrega(id: ID!): PontoEntrega!
+    buscarOferta(id: ID!): Oferta!
+    listarOfertasPorCiclo(cicloId: Int!): [Oferta!]!
+    listarOfertasPorUsuario(usuarioId: Int!): [Oferta!]!
+    listarMercados: [Mercado!]!
+    buscarMercado(id: ID!): Mercado!
+    listarMercadosAtivos: [Mercado!]!
+    listarMercadosPorResponsavel(responsavelId: Int!): [Mercado!]!
+    listarPrecosMercado(mercadoId: Int!): [PrecoMercado!]!
+    listarPrecosProduto(produtoId: Int!): [PrecoMercado!]!
+    buscarPrecoMercado(id: ID!): PrecoMercado
+    buscarPrecoProdutoMercado(produtoId: Int!, mercadoId: Int!): PrecoMercado
+    buscarComposicao(id: ID!): Composicao!
+    listarComposicoesPorCiclo(cicloId: Int!): [CicloCestas!]!
+    listarCestas: [Cesta!]!
+    buscarPedidoConsumidores(id: ID!): PedidoConsumidores!
+    listarPedidosPorCiclo(cicloId: Int!): [PedidoConsumidores!]!
+    listarPedidosPorUsuario(usuarioId: Int!): [PedidoConsumidores!]!
+    listarPagamentos(filtros: FiltrosPagamentoInput): [Pagamento!]!
+    buscarPagamento(id: ID!): Pagamento!
+    calcularTotalPorCiclo(cicloId: Int!): TotalPorCiclo!
+    listarEntregasFornecedoresPorCiclo(
+        cicloId: Int!
+        fornecedorId: Int
+    ): [EntregaFornecedor!]!
+}
+
+type EntregaFornecedor {
+    id: ID!
+    fornecedor: String!
+    fornecedorId: Int!
+    produto: String!
+    produtoId: Int!
+    unidadeMedida: String!
+    valorUnitario: Float!
+    quantidadeOfertada: Float!
+    quantidadeEntregue: Float!
+    valorTotal: Float!
+    agriculturaFamiliar: Boolean
+    certificacao: String
+}
+
+type OfertaProduto {
+    id: ID!
+    ofertaId: Int!
+    produtoId: Int!
+    produto: Produto
+    quantidade: Float!
+    valorReferencia: Float
+    valorOferta: Float
+}
+
+type Oferta {
+    id: ID!
+    cicloId: Int!
+    ciclo: Ciclo
+    usuarioId: Int!
+    usuario: Usuario
+    status: String!
+    observacao: String
+    ofertaProdutos: [OfertaProduto!]
+    createdAt: String
+    updatedAt: String
+}
+
+input CriarOfertaInput {
+    cicloId: Int!
+    usuarioId: Int!
+    observacao: String
+}
+
+input AdicionarProdutoOfertaInput {
+    produtoId: Int!
+    quantidade: Float!
+    valorReferencia: Float
+    valorOferta: Float
+}
+
+input AtualizarQuantidadeProdutoInput {
+    quantidade: Float!
+    valorOferta: Float
+}
+
+input ProdutoMigrarInput {
+    produtoId: Int!
+    quantidade: Float!
+    valorOferta: Float
+    fornecedorId: Int
+}
+
+input MigrarOfertasInput {
+    ciclosOrigemIds: [Int!]!
+    cicloDestinoId: Int!
+    produtos: [ProdutoMigrarInput!]!
+}
+
+type PrecoMercado {
+    id: ID!
+    produtoId: Int!
+    produto: Produto
+    mercadoId: Int!
+    mercado: Mercado
+    preco: Float!
+    status: String!
+    createdAt: String!
+    updatedAt: String!
+}
+
+input CriarPrecoMercadoInput {
+    produtoId: Int!
+    mercadoId: Int!
+    preco: Float!
+    status: String
+}
+
+input AtualizarPrecoMercadoInput {
+    preco: Float
+    status: String
 }

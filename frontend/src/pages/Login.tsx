@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,9 @@ import CoBrandAkarui from "@/components/layout/CoBrandAkarui";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useLoginUsuario } from "@/hooks/graphql";
+import { useAuth } from "@/contexts/AuthContext";
+import { getDefaultRoute, validateLoginCredentials } from "@/lib/login-helpers";
+import { formatLoginError } from "@/lib/login-formatters";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,32 +20,46 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const loginUsuarioMutation = useLoginUsuario();
+  const { login, activeRole, isAuthenticated } = useAuth();
+
+  // Redirecionar após login bem-sucedido
+  useEffect(() => {
+    if (isAuthenticated && activeRole) {
+      const defaultRoute = getDefaultRoute(activeRole);
+      navigate(defaultRoute);
+    }
+  }, [isAuthenticated, activeRole, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validation = validateLoginCredentials(email, password);
+    if (!validation.valid) {
+      toast({
+        title: "Erro de validação",
+        description: validation.errors.join(", "),
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const sessionlogin = await loginUsuarioMutation.mutateAsync({
-        email,
-        senha: password,
-      });
-      if (sessionlogin.perfis && sessionlogin.perfis.includes("admain")) {
-        throw new Error("only implemented admin dashboard");
-      }
+      await login(email, password);
 
-      setIsLoading(false);
       toast({
         title: "Login realizado com sucesso!",
-        description: "Redirecionando para o dashboard...",
+        description: "Redirecionando...",
       });
-      navigate("/admin/dashboard");
     } catch (error) {
-      console.error(error);
+      const errorMessage = formatLoginError(error);
       toast({
-        title: "Invalid login",
+        title: "Erro no login",
+        description: errorMessage,
+        variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };

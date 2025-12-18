@@ -18,7 +18,11 @@ Before(function () {
 Given(
   "a user with email {string} and password {string} and phone number {string}",
   async function (email, password, phoneNumber) {
-    currentUser = await usuarioService.create({ email, password, phoneNumber });
+    currentUser = await usuarioService.create({
+      email,
+      senha: password,
+      phoneNumber,
+    });
   },
 );
 

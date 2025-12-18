@@ -1,0 +1,330 @@
+import React from "react";
+import ResponsiveLayout from "@/components/layout/ResponsiveLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ArrowLeft, ShoppingBasket, CalendarDays } from "lucide-react";
+import { formatBRL } from "@/utils/currency";
+import { Button } from "@/components/ui/button";
+import { UserMenuLarge } from "@/components/layout/UserMenuLarge";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { RoleTitle } from "@/components/layout/RoleTitle";
+import { useListarCiclos, useListarPedidosPorUsuario } from "@/hooks/graphql";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+
+const MinhaCesta = () => {
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const { user } = useAuth();
+
+  const { data: ciclosData, isLoading: ciclosLoading } = useListarCiclos();
+  const { data: pedidosData, isLoading: pedidosLoading } =
+    useListarPedidosPorUsuario(user ? parseInt(user.id) : 0);
+
+  const cicloAtivo = useMemo(() => {
+    if (!ciclosData?.listarCiclos?.ciclos) return null;
+    return ciclosData.listarCiclos.ciclos.find(
+      (c) => c.status === "ativo" || c.status === "aberto",
+    );
+  }, [ciclosData]);
+
+  const pedidoCicloAtivo = useMemo(() => {
+    if (!pedidosData?.listarPedidosPorUsuario || !cicloAtivo) return null;
+    return pedidosData.listarPedidosPorUsuario.find(
+      (p) => p.ciclo?.id === cicloAtivo.id,
+    );
+  }, [pedidosData, cicloAtivo]);
+
+  const isLoading = ciclosLoading || pedidosLoading;
+  const temCesta =
+    !!pedidoCicloAtivo &&
+    (pedidoCicloAtivo.pedidoConsumidoresProdutos?.length ?? 0) > 0;
+
+  const TAXAS = 5.0;
+
+  const valorProdutos = useMemo(() => {
+    if (!pedidoCicloAtivo?.pedidoConsumidoresProdutos) return 0;
+    return pedidoCicloAtivo.pedidoConsumidoresProdutos.reduce((sum, item) => {
+      const valor = item.valorCompra || item.valorOferta || 0;
+      return sum + valor * item.quantidade;
+    }, 0);
+  }, [pedidoCicloAtivo]);
+
+  const valorTotal = valorProdutos + TAXAS;
+
+  if (isLoading) {
+    return (
+      <ResponsiveLayout
+        headerContent={<UserMenuLarge />}
+        leftHeaderContent={
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center text-primary-foreground hover:opacity-80 transition-opacity focus-ring p-2 -ml-2"
+            aria-label="Voltar"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        }
+      >
+        <div className="space-y-6 pt-8 p-4">
+          <div>
+            <RoleTitle page="Minha Cesta" />
+            <p className="text-muted-foreground mt-2">
+              Itens da sua cesta no ciclo atual
+            </p>
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  if (!temCesta) {
+    return (
+      <ResponsiveLayout
+        headerContent={<UserMenuLarge />}
+        leftHeaderContent={
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center text-primary-foreground hover:opacity-80 transition-opacity focus-ring p-2 -ml-2"
+            aria-label="Voltar"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        }
+      >
+        <div className="space-y-6 pt-8">
+          <div>
+            <RoleTitle page="Minha Cesta" />
+            <p className="text-muted-foreground mt-2">
+              Itens da sua cesta no ciclo atual
+            </p>
+          </div>
+
+          <Card>
+            <CardContent className="py-12">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                  <ShoppingBasket className="w-10 h-10 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Você ainda não tem itens na cesta deste ciclo.
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Confira os alimentos disponíveis na venda direta
+                  </p>
+                  <Button
+                    onClick={() => navigate("/pedidoConsumidores/1")}
+                    variant="outline"
+                  >
+                    Ver opções de compra direta
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  return (
+    <ResponsiveLayout
+      headerContent={<UserMenuLarge />}
+      leftHeaderContent={
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="flex items-center text-primary-foreground hover:opacity-80 transition-opacity focus-ring p-2 -ml-2"
+          aria-label="Voltar"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+      }
+    >
+      <div className="space-y-6 pt-8">
+        {/* Header */}
+        <div>
+          <RoleTitle page="Minha Cesta" />
+          <p className="text-muted-foreground mt-2">
+            Itens da sua cesta no ciclo atual
+          </p>
+        </div>
+
+        {/* Banner Ciclo Ativo */}
+        <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="default" className="bg-primary">
+                {cicloAtivo?.status === "ativo" ? "Ativo" : "Aberto"}
+              </Badge>
+              <span className="font-medium">{cicloAtivo?.nome}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Resumo da Cesta */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShoppingBasket className="w-5 h-5" />
+              Resumo da Cesta
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Valor dos Alimentos</span>
+              <span className="font-medium">{formatBRL(valorProdutos)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Taxas</span>
+              <span className="font-medium">{formatBRL(TAXAS)}</span>
+            </div>
+            <div className="h-px bg-border" />
+            <div className="flex justify-between text-lg font-bold">
+              <span>Total Final</span>
+              <span className="text-primary">{formatBRL(valorTotal)}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Alimentos da Cesta */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Alimentos da Minha Cesta</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isMobile ? (
+              <div className="space-y-3">
+                {pedidoCicloAtivo?.pedidoConsumidoresProdutos?.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start gap-2 mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-poppins font-bold text-base text-primary leading-tight">
+                          {item.produto?.nome}
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Medida:</span>
+                        <span className="font-medium text-foreground">
+                          {item.produto?.medida || "un"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          Quantidade:
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {item.quantidade}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          Valor Unitário:
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {formatBRL(item.valorCompra || item.valorOferta || 0)}
+                        </span>
+                      </div>
+                      <div className="h-px bg-border my-2" />
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-foreground">
+                          Valor Total:
+                        </span>
+                        <span className="font-bold text-primary">
+                          {formatBRL(
+                            (item.valorCompra || item.valorOferta || 0) *
+                              item.quantidade,
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Alimento</TableHead>
+                    <TableHead>Medida</TableHead>
+                    <TableHead className="text-right">Quantidade</TableHead>
+                    <TableHead className="text-right">Valor Unitário</TableHead>
+                    <TableHead className="text-right">Valor Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pedidoCicloAtivo?.pedidoConsumidoresProdutos?.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">
+                            {item.produto?.nome}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{item.produto?.medida || "un"}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {item.quantidade}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatBRL(item.valorCompra || item.valorOferta || 0)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums font-medium">
+                        {formatBRL(
+                          (item.valorCompra || item.valorOferta || 0) *
+                            item.quantidade,
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        {cicloAtivo?.dataInicio && cicloAtivo?.dataFim && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações do Ciclo</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-3">
+                <CalendarDays className="w-5 h-5 text-primary mt-0.5" />
+                <div>
+                  <div className="font-medium">Período do Ciclo</div>
+                  <div className="text-muted-foreground">
+                    {new Date(cicloAtivo.dataInicio).toLocaleDateString(
+                      "pt-BR",
+                    )}{" "}
+                    até{" "}
+                    {new Date(cicloAtivo.dataFim).toLocaleDateString("pt-BR")}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </ResponsiveLayout>
+  );
+};
+
+export default MinhaCesta;

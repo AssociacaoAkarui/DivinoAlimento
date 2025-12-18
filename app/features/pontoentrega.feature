@@ -8,20 +8,20 @@ Funcionalidade: Gestão de Pontos de Entrega
     Quando eu salvo o novo ponto de entrega
     Então o ponto de entrega "Centro - Rua das Flores, 123" é criado para o mercado "Quitandinha"
 
-  @pontoentrega @PEN-02 @pending @versaoNov2025 @alteradoOut2025
+  @pontoentrega @PEN-02 @versaoNov2025 @alteradoOut2025
   Cenário: Ver os nomes dos pontos de entrega de um mercado específico
     Dado que existe os pontos de entrega "Bairro Norte" e "Bairro Sul" cadastrados para o mercado "Quitandinha"
     Quando eu solicito os nomes dos pontos de entrega do mercado "Quitandinha"
     Então eu devo ver os nomes dos pontos de entrega "Bairro Norte" e "Bairro Sul"
 
-  @pontoentrega @PEN-03 @pending
+  @pontoentrega @PEN-03
   Cenário: Atualizar o nome de um ponto de entrega existente
     Dado que existe um ponto de entrega "Centro Antigo"
     Quando eu edito o nome do ponto de entrega para "Centro Histórico"
     E salvo as alterações do ponto de entrega
     Então o nome do ponto de entrega deve ser "Centro Histórico"
 
-  @pontoentrega @PEN-06 @pending
+  @pontoentrega @PEN-06
   Cenário: Deletar um ponto de entrega existente
     Dado que existe um ponto de entrega "Ponto Temporário"
     E que não exista nenhum ciclo associado ao ponto de entrega "Ponto Temporário"

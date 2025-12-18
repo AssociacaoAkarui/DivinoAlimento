@@ -19,8 +19,13 @@ class PontoEntregaFactory {
   static create(override = {}) {
     return {
       nome: faker.commerce.productName(),
+      endereco: faker.location.streetAddress(),
+      bairro: faker.location.county(),
+      cidade: faker.location.city(),
+      estado: faker.location.state({ abbreviated: true }),
+      cep: faker.location.zipCode(),
+      pontoReferencia: faker.location.nearbyGPSCoordinate().toString(),
       status: "ativo",
-      endereco: faker.location.direction(),
       ...override,
     };
   }

@@ -6,15 +6,17 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon .",
-    "test": "npx cucumber",
-    "e2e": "mocha"
+    "test": "NODE_ENV=test node_modules/.bin/cucumber-js",
+    "test:unit": "NODE_ENV=test mocha test/*.test.js",
+    "test:all": "npm run test:unit && npm test"
   },
   "keywords": [],
   "author": "",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "bootstrap": "^5.0.2",
     "chai": "^4.3.6",
+    "cors": "^2.8.5",
     "dotenv": "^9.0.1",
     "ejs": "^3.1.6",
     "express": "^4.21.2",

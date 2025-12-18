@@ -1,0 +1,20 @@
+overwrite: true
+schema: ../app/src/api.graphql
+documents: "src/graphql/**/*.ts"
+generates:
+  src/types/graphql/index.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-graphql-request"
+    config:
+      skipTypename: false
+      withHooks: false
+      dedupeFragments: true
+      avoidOptionals: false
+      maybeValue: T | null
+      rawRequest: false
+
+  src/types/graphql/schema.json:
+    plugins:
+      - "introspection"

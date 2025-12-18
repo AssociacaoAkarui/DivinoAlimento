@@ -1,13 +1,16 @@
 # language: pt
 Funcionalidade: Gestão de Usuários
 
-  @usuario @USR-01 @pending
+  @usuario @USR-01
   Cenário: Criar um novo usuário com sucesso
     Dado que eu quero criar um novo usuário
     Quando eu preencho o nome do usuário com "João da Silva Santos"
     E o nome fantasia do usuário com "João Silva"
     E o celular do usuário com "11999887766"
-    E as informações para pagamento do usuário com "pix: 11999887766"
+    E o banco do usuário com "Itaú"
+    E a agência do usuário com "1234"
+    E a conta do usuário com "56789-0"
+    E a chave PIX do usuário com "11999887766"
     E o email do usuário com "joao.silva@email.com"
     E a política de privacidade do usuário com "cientepolitica"
     E o perfil do usuário como "{consumidor}"
@@ -21,13 +24,16 @@ Funcionalidade: Gestão de Usuários
     Quando eu solicito os detalhes do usuário "Maria Santos"
     Então eu devo ver os detalhes do usuário "Maria Santos"
 
-  @usuario @USR-03 @pending
+  @usuario @USR-03
   Cenário: Atualizar um usuário existente
     Dado que existe um usuário "Pedro Costa"
     Quando eu edito o nome do usuário para "Pedro Costa Junior"
     E eu edito o nome fantasia do usuário para "Venda do Sr. Pedro"
     E eu edito o celular para "11999888777"
-    E eu edito as informações para pagamento para "pix: email@email.com"
+    E eu edito o banco para "Bradesco"
+    E eu edito a agência para "5678"
+    E eu edito a conta para "12345-6"
+    E eu edito a chave PIX para "email@email.com"
     E eu edito o email para "novoemail@email.com"
     E eu edito o a política de privacidade para "cientepolitica"
     E eu edito o perfil do usuário para "{fornecedor,consumidor}"
@@ -36,7 +42,10 @@ Funcionalidade: Gestão de Usuários
     Então o nome do usuário deve ser "Pedro Costa Junior"
     Então o nome fantasia do usuário deve ser "Venda do Sr. Pedro"
     Então o celular do usuário deve ser "11999888777"
-    Então as informações para pagamento do usuário deve ser "pix: email@email.com"
+    Então o banco do usuário deve ser "Bradesco"
+    Então a agência do usuário deve ser "5678"
+    Então a conta do usuário deve ser "12345-6"
+    Então a chave PIX do usuário deve ser "email@email.com"
     Então o email do usuário deve ser "novoemail@email.com"
     Então a políica de privacidade do usuário deve ser "cientepolitica"
     Então o perfil do usuário deve ser "{fornecedor,consumidor}"
@@ -82,3 +91,30 @@ Funcionalidade: Gestão de Usuários
     E que o usuário AUTH exista cadastrado no sistema
     Quando eu clico em logar
     Então o sistema retorna os dados do usuário
+
+  @usuario @USR-08
+  Cenário: Listar todos os usuários (admin)
+    Dado que existe um usuário admin "admin@example.com" com senha "password"
+    E que existem os seguintes usuários cadastrados:
+      | nome         | email             | perfis           | status  |
+      | João Silva   | joao@example.com  | consumidor       | ativo   |
+      | Maria Santos | maria@example.com | admin,fornecedor | ativo   |
+      | Pedro Costa  | pedro@example.com | consumidor       | inativo |
+    Quando eu faço login como "admin@example.com" com senha "password"
+    E eu solicito a listagem de todos os usuários
+    Então eu devo receber uma lista com 4 usuários
+    E a lista deve conter o usuário "João Silva"
+    E a lista deve conter o usuário "Maria Santos" com 2 perfis
+    E a lista deve conter o usuário "Pedro Costa"
+
+  @usuario @USR-09
+  Cenário: Listar usuários sem ser admin (não autorizado)
+    Dado que existe um usuário "user@example.com" com senha "password" e perfil "consumidor"
+    Quando eu faço login como "user@example.com" com senha "password"
+    E eu solicito a listagem de todos os usuários
+    Então eu devo receber um erro "Admin required"
+
+  @usuario @USR-10
+  Cenário: Listar usuários sem autenticação
+    Quando eu solicito a listagem de todos os usuários sem autenticação
+    Então eu devo receber um erro "Unauthorized"

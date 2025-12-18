@@ -1,5 +1,6 @@
 # language: pt
-Funcionalidade: Gestão de Produtos
+@produtocomercializavel
+Funcionalidade: Gerenciar produtos comercializáveis
 
   @produtocomercial @PCO-01 @versaoNov2025 @criadoOut2025
   Cenário: Criar um novo registro de produto comercializável com sucesso
@@ -7,7 +8,7 @@ Funcionalidade: Gestão de Produtos
     Quando eu preencho a medida como "unidade"
     E o peso em kilogramas com "0.150"
     E o preço base com "1.50"
-    E o status como "ativo"
+    E o status do produto comercializável como "ativo"
     Quando eu salvo o novo produto comercializável
     Então o produto comercializável com medida "unidade" deve ser criado com sucesso
 

@@ -58,6 +58,7 @@ web_modules/
 
 # Optional npm cache directory
 .npm
+.npm-cache
 
 # Optional eslint cache
 .eslintcache
@@ -159,7 +160,17 @@ pyvenv.cfg
 .venv
 pip-selfcheck.json
 
+# Exceção: permitir pasta lib do frontend
+!frontend/src/lib/
+!frontend/src/lib/**
+
 # End of https://www.toptal.com/developers/gitignore/api/node,virtualenv
 
 # Temporary files with ~ suffix
 *~
+
+# Rake tasks cache
+.rake_tasks~
+
+# Agent progress file
+_AGENTS.md

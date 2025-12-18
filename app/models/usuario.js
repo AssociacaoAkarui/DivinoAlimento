@@ -21,6 +21,11 @@ module.exports = (sequelize, DataTypes) => {
         as: "PedidoConsumidores",
         onDelete: "CASCADE",
       });
+      Usuario.hasMany(models.SubmissaoProduto, {
+        foreignKey: "fornecedorId",
+        as: "SubmissaoProdutos",
+        onDelete: "CASCADE",
+      });
     }
   }
   Usuario.init(
@@ -28,12 +33,37 @@ module.exports = (sequelize, DataTypes) => {
       nome: DataTypes.STRING,
       nomeoficial: DataTypes.STRING,
       celular: DataTypes.STRING,
-      descritivo: DataTypes.STRING,
+      banco: DataTypes.STRING,
+      agencia: DataTypes.STRING,
+      conta: DataTypes.STRING,
+      chavePix: DataTypes.STRING,
       email: DataTypes.STRING,
       cientepolitica: DataTypes.STRING,
-      perfis: DataTypes.ARRAY(
-        DataTypes.ENUM("info", "master", "admin", "fornecedor", "consumidor"),
-      ),
+      perfis:
+        sequelize.options.dialect === "sqlite"
+          ? {
+              type: DataTypes.TEXT,
+              get() {
+                const rawValue = this.getDataValue("perfis");
+                if (!rawValue) return [];
+                try {
+                  return JSON.parse(rawValue);
+                } catch (e) {
+                  return [];
+                }
+              },
+              set(value) {
+                this.setDataValue("perfis", JSON.stringify(value));
+              },
+            }
+          : DataTypes.ARRAY(
+              DataTypes.ENUM(
+                "admin",
+                "adminmercado",
+                "fornecedor",
+                "consumidor",
+              ),
+            ),
       status: DataTypes.ENUM("ativo", "inativo", "pendente"),
       senha: DataTypes.STRING,
     },

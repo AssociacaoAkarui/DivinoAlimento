@@ -1,7 +1,6 @@
-require 'digest'
-
 COMPOSE_LIVE = 'compose.live.yml'
 COMPOSE_TESTS = 'compose.tests.yml'
+COMPOSE_PROD = 'compose.prod.yml'
 
 def compose(*arg, compose: COMPOSE_LIVE)
   sh "docker compose -f #{compose} #{arg.join(' ')}"
@@ -11,26 +10,19 @@ def compose_tests(*arg, compose: COMPOSE_TESTS)
   sh "UID=#{ENV['UID']} GID=#{ENV['GID']} docker compose -f #{compose} #{arg.join(' ')}"
 end
 
-desc 'Git - Submódulos'
-namespace :git do
-  desc 'Iniciar e atualizar submódulos'
-  task :submodules_inicia do
-    sh 'git submodule init && git submodule update'
-  end
-
-  desc 'Atualizar submódulos, últimos commits'
-  task :submodules_atualiza do
-    sh 'git submodule update --recursive --remote'
-  end
-
-  desc 'Limpar e remover submódulos'
-  task :submodules_zera do
-    sh 'git submodule deinit -f --all'
-  end
+def compose_prod(*arg, compose: COMPOSE_PROD)
+  sh "docker compose -f #{compose} #{arg.join(' ')}"
 end
 
 desc 'Ambiente Vivo'
 namespace :vivo do
+  desc 'GraphQL Codegen - Gerar tipos do schema GraphQL'
+  task :codegen do
+    Dir.chdir('frontend') do
+      sh 'npm run codegen'
+    end
+  end
+
   desc 'DB migração'
   task :migracao do
     compose('exec', 'app.dev', 'npx', 'sequelize', 'db:migrate', compose: COMPOSE_LIVE)
@@ -66,7 +58,7 @@ namespace :vivo do
     compose('restart', compose: COMPOSE_LIVE)
   end
 
-  desc 'Monitorar saída, últimas 50 linhas do programa'
+  desc 'Monitorar saída, últimas 100 linhas do programa'
   task :mensagens do
     compose('logs', '-f', '-n 100', 'app.dev', compose: 'compose.live.yml')
   end
@@ -89,6 +81,13 @@ end
 
 desc 'Ambiente Testes'
 namespace :testes do
+  desc 'GraphQL Codegen - Gerar tipos do schema GraphQL'
+  task :codegen do
+    Dir.chdir('frontend') do
+      sh 'NODE_ENV=test npm run codegen'
+    end
+  end
+
   desc 'Construir ambiente'
   task :constroi do
     compose('up', '--build', '-d', compose: COMPOSE_TESTS)
@@ -120,83 +119,111 @@ namespace :testes do
     compose('restart', compose: COMPOSE_TESTS)
   end
 
-  desc 'Monitorar saída, últimas 50 linhas do programa'
+  desc 'Monitorar saída, últimas 100 linhas do programa'
   task :mensagens do
     compose('logs', '-f', '-n 100', 'app.dev', compose: 'compose.tests.yml')
   end
 
   desc 'Entrar no bash do app DivinoAlimento'
   task :sh do
-    compose('exec', '-T', 'app_tests.dev', 'bash')
+    compose('exec', '-it', 'app_tests.dev', 'bash')
   end
 
-  desc 'Npm Intall'
-  task :npm_install do
-    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm install"
+  desc 'Executar testes unitários (Mocha)'
+  task :unit do
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm run test:unit"
   end
 
-  desc 'Executar todos os testes não pendentes'
-  desc 'Uso: rake testes:test # rápido (só pontos)'
-  desc '      rake testes:test[detalhe] # detalhe é opcional e mostra cada step + backtrace'
-  task :test, [:detalhe] do |_, args|
-    args.with_defaults(detalhe: 'false')
+  desc 'Executar testes BDD (Cucumber) - Uso: rake testes:bdd[rapido|completo,excluir|pendentes|somente]'
+  task :bdd, [:detalhe, :pending] do |_, args|
+    args.with_defaults(detalhe: 'rapido', pending: 'excluir')
     flags = []
-    flags << "--tags \"not @pending\""
-    if args.detalhe == 'detalhe'
-      flags << '--format-options \'{\"colorsEnabled\": true}\''
+
+    case args.pending
+    when 'somente'
+      flags << '--tags'
+      flags << '"@pending"'
+      pending_msg = 'SOMENTE @pending'
+    when 'pendentes', 'incluir', 'todos', 'all'
+      pending_msg = 'incluindo @pending'
+    else
+      flags << '--tags'
+      flags << '"not @pending"'
+      pending_msg = 'excluindo @pending'
+    end
+
+    if args.detalhe == 'completo'
+      flags << '--format-options'
+      flags << '\'{\"colorsEnabled\": true}\''
       flags << '--backtrace'
       puts "\n#{'='*60}"
-      puts "🐛 DEBUG"
+      puts "MODO DETALHADO"
       puts "#{'='*60}"
-      puts "📊 Mostra cada step + backtrace de erros (excluindo @pending)"
+      puts "Mostra cada step + backtrace de erros (#{pending_msg})"
       puts "#{'='*60}\n\n"
     end
+
     cmd = "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
     cmd += " -- #{flags.join(' ')}" unless flags.empty?
     sh cmd
   end
 
-  desc 'Executar TODOS os testes (incluindo pendentes)'
-  task :all, [:detalhe] do |_, args|
-    args.with_defaults(detalhe: 'false')
-    flags = []
-    if args.detalhe == 'detalhe'
-      flags << '--format-options \'{\"colorsEnabled\": true}\''
-      flags << '--backtrace'
-      puts "\n#{'='*60}"
-      puts "🐛 DEBUG"
-      puts "#{'='*60}"
-      puts "📊 Mostra cada step + backtrace de erros"
-      puts "#{'='*60}\n\n"
+  desc 'Executar todos os testes (unit + bdd)'
+  task :all do
+    unit_passed = true
+    bdd_passed = true
+
+    puts "\n#{'='*60}"
+    puts "Executando testes unitarios (Mocha)"
+    puts "#{'='*60}\n"
+    begin
+      sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm run test:unit"
+    rescue
+      unit_passed = false
     end
-    cmd = "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test"
-    cmd += " -- #{flags.join(' ')}" unless flags.empty?
-    sh cmd
+
+    puts "\n#{'='*60}"
+    puts "Executando testes BDD (Cucumber) - excluindo @pending"
+    puts "#{'='*60}\n"
+    begin
+      sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test -- --tags \"not @pending\""
+    rescue
+      bdd_passed = false
+    end
+
+    puts "\n#{'='*60}"
+    puts "RESUMO"
+    puts "#{'='*60}"
+    puts "Unit: #{unit_passed ? 'PASSOU' : 'FALHOU'}"
+    puts "BDD:  #{bdd_passed ? 'PASSOU' : 'FALHOU'}"
+    puts "#{'='*60}\n"
+
+    exit 1 unless unit_passed && bdd_passed
   end
 
-  desc 'Executar testes por funcionalidade'
-  desc 'Uso: rake testes:funcionalidade[ciclo] # rápido (só pontos)'
-  desc '      rake testes:funcionalidade[produto,detalhe] # detalhe é opcional e mostra cada step + backtrace'
+  desc 'Executar testes por funcionalidade - Uso: rake testes:funcionalidade[arquivo,detalhe] (use rake testes:listar para ver arquivos)'
   task :funcionalidade, [:nome_arquivo, :detalhe] do |_, args|
     if args.nome_arquivo.nil?
-      puts "\n❌ Erro: Nome do arquivo não especificado"
+      puts "\nErro: Nome do arquivo não especificado"
       puts "\nUso: rake testes:funcionalidade[nome_arquivo,detalhe]"
+      puts "\nDica: Execute 'rake testes:listar' para ver os arquivos disponíveis"
       puts "\nExemplos:"
       puts "  rake testes:funcionalidade[ciclo]"
-      puts "  rake testes:funcionalidade[produto,detalhe]"
+      puts "  rake testes:funcionalidade[categoriaprodutos,detalhe]"
       exit 1
     end
 
     args.with_defaults(detalhe: 'false')
     flags = []
+
     if args.detalhe == 'detalhe'
       flags << '--format-options \'{\"colorsEnabled\": true}\''
       flags << '--backtrace'
       puts "\n#{'='*60}"
-      puts "🐛 DEBUG"
+      puts "MODO DETALHADO"
       puts "#{'='*60}"
-      puts "🎯 Funcionalidade: #{args.nome_arquivo}"
-      puts "📊 Mostra cada step + backtrace de erros"
+      puts "Funcionalidade: #{args.nome_arquivo}"
+      puts "Mostra cada step + backtrace de erros"
       puts "#{'='*60}\n\n"
     else
       flags << "--format progress"
@@ -207,13 +234,12 @@ namespace :testes do
     sh cmd
   end
 
-  desc 'Executar teste por expressão de @tags'
-  desc 'Uso: rake "testes:tags[expression]" # rápido (só pontos)'
-  desc '      rake "testes:tags[expression,detalhe]" # detalhe é opcional e mostra cada step + backtrace'
+  desc 'Executar teste por expressão de @tags - Uso: rake "testes:tags[expression,detalhe]"'
   task :tags, [:expression, :detalhe] do |_, args|
     if args.expression.nil?
-      puts "\n❌ Erro: Expressão de tags não especificada"
+      puts "\nErro: Expressão de tags não especificada"
       puts "\nUso: rake \"testes:tags[expression,detalhe]\""
+      puts "\nDica: Execute 'rake testes:listar' para ver as tags disponíveis"
       puts "\nExemplos:"
       puts "  rake \"testes:tags[@CIC-01]\""
       puts "  rake \"testes:tags[not @pending]\""
@@ -223,15 +249,18 @@ namespace :testes do
 
     args.with_defaults(detalhe: 'false')
     flags = []
-    flags << "--tags \"#{args.expression}\""
+    flags << '--tags'
+    flags << "\"#{args.expression}\""
+
     if args.detalhe == 'detalhe'
       flags << '--backtrace'
-      flags << '--format-options \'{\"colorsEnabled\": true}\''
+      flags << '--format-options'
+      flags << '\'{\"colorsEnabled\": true}\''
       puts "\n#{'='*60}"
-      puts "🐛 DEBUG"
+      puts "MODO DETALHADO"
       puts "#{'='*60}"
-      puts "🎯 Expressão: #{args.expression}"
-      puts "📊 Mostra cada step + backtrace de erros"
+      puts "Expressao: #{args.expression}"
+      puts "Mostra cada step + backtrace de erros"
       puts "#{'='*60}\n\n"
     else
       flags << "--format progress"
@@ -240,9 +269,77 @@ namespace :testes do
     sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npm test -- #{flags.join(' ')}"
   end
 
-  desc 'Listar todos os cenários disponíveis'
+  desc 'Listar cenários (use ARQUIVO com funcionalidade[ARQUIVO] ou TAG com tags[TAG])'
   task :listar do
-    puts "\n📋 Cenários disponíveis:\n\n"
-    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npx cucumber-js --dry-run --format json | grep -o '\"name\":\"[^\"]*\"' | sed 's/\"name\":\"/  /' | sed 's/\"//' || true"
+    puts "\n#{'='*130}"
+    puts "CENÁRIOS DISPONÍVEIS"
+    puts "#{'='*130}"
+    puts "%-50s | %-12s | %-40s | %s" % ["CENÁRIO", "TAG", "FEATURE", "ARQUIVO"]
+    puts "#{'='*130}"
+    sh "docker compose -f #{COMPOSE_TESTS} exec -T app_tests.dev npx cucumber-js --dry-run --format json 2>&1 | grep -v 'ExperimentalWarning\\|DeprecationWarning\\|Use `node\\|trace-warnings\\|Recreating\\|Starting\\|Stopping\\|Creating\\|Removing' | jq -r '.[] | select(.elements != null) | . as $feature | .elements[] | .name + (\" \" * (50 - (.name | length))) + \"| \" + ((.tags | map(select(.name | startswith(\"@\") and (. | contains(\"pending\") | not) and (. | test(\"^@[A-Z]+-[0-9]+$\")))) | .[0].name) // \"SEM-TAG     \") + \" | \" + ($feature.name + (\" \" * (40 - ($feature.name | length)))) + \" | \" + ($feature.uri | split(\"/\")[-1] | split(\".\")[0])'"
+    puts "\nDica: Use 'rake testes:funcionalidade[ARQUIVO]' ou 'rake \"testes:tags[TAG]\"'"
+  end
+end
+
+desc 'Ambiente Produção'
+namespace :prod do
+  desc 'Construir ambiente'
+  task :constroi do
+    compose_prod('up', '--build', '-d')
+  end
+
+  desc 'Eliminar ambiente e remover'
+  task :del do
+    compose_prod('down', '-v', '--rmi', 'all')
+  end
+
+  desc 'Eliminar ambiente'
+  task :elimina do
+    compose_prod('down')
+  end
+
+  desc 'Iniciar ambiente'
+  task :liga do
+    compose_prod('start')
+  end
+
+  desc 'Parar ambiente'
+  task :para do
+    compose_prod('stop')
+  end
+
+  desc 'Reiniciar ambiente'
+  task :reinicia do
+    compose_prod('restart')
+  end
+
+  desc 'Monitorar saída, últimas 100 linhas do programa'
+  task :mensagens do
+    compose_prod('logs', '-f', '-n 100')
+  end
+
+  desc 'Ver status dos serviços'
+  task :status do
+    compose_prod('ps')
+  end
+
+  desc 'Entrar no bash do app DivinoAlimento'
+  task :sh do
+    compose_prod('exec', 'app.prod', 'sh')
+  end
+
+  desc 'Entrar no bash do banco de dados DivinoAlimento'
+  task :psql do
+    compose_prod('exec', 'db.prod', 'psql', '-U', 'postgres')
+  end
+
+  desc 'Executar migrações de base de datos'
+  task :migracao do
+    compose_prod('exec', 'app.prod', 'npx', 'sequelize', 'db:migrate')
+  end
+
+  desc 'Pull das últimas imagens'
+  task :pull do
+    compose_prod('pull')
   end
 end
